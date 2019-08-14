@@ -1,0 +1,6 @@
+metaT: False
+MAGs: True
+outputDIR: /path/to/output
+scratch: /vortexfs1/scratch/akrinos/wap
+reference: /path/to/reference
+alignment-choice: diamond #or blast? or ... (allow people to choose what kind of alignment they want to run)
