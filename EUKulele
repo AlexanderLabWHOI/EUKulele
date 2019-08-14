@@ -1,0 +1,21 @@
+## Draft Snakefile Sketch
+
+rule setup_reference:
+  ##Builds the reference database if not already built
+
+rule check_if_protein:
+    ## uses GeneMark-ES to predict protein coding regions
+    ## Or a metaT protein prediction (???)
+    ## Also allow users to pass proteins directly.
+
+rule align_reads_against_db:
+  ## runs alignment against reference DB and generates .aln files for each contig in each samples
+
+rule estimate_taxonomy_MAG:
+  ## based on hits within a MAG file -- estimates the LCA for each MAG based on reference DB
+  ## include an additional file that estimates the contamination (?) or shows next higest hits with the MAG
+  ## provide basic statistics on the hits
+
+rule estimate_taxonomy_metaT:
+  ## for every contig within a metaT -- estimates the LCA for the contig (using hit cutoffs to correspond to species, genus etc.)
+  ## groups contig names into various taxonomy units at different levels of interest
