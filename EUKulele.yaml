@@ -1,0 +1,8 @@
+name: EUK-ref
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - biopython=1.74
+  - snakemake
