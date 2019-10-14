@@ -1,8 +1,18 @@
 ## Draft Snakefile Sketch
+import os
+
+configfile: "config.json"  
+REFERENCE = os.path.join(config['reference'], "reference.fa"
+MTS = glob_wildcards("samples/METs/{T}.fa")
+MAG = glob_wildcards("samples/MAGs/{G}.fa")
+
+rule all: 
+    input:
+        input_db = 
 
 rule setup_reference:
   ##Builds the reference database if not already built
-
+    input: 
 rule check_if_protein:
     ## uses GeneMark-ES to predict protein coding regions
     ## Or a metaT protein prediction (???)
