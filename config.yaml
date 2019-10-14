@@ -1,6 +1,8 @@
 metaT: False
 MAGs: True
-outputDIR: /path/to/output
-scratch: /vortexfs1/scratch/akrinos/wap
-reference: /path/to/reference
+scratch: /vortexfs1/scratch/halexander/EUKULELE
+reference: /vortexfs1/omics/alexander/data/mmetsp/reference_dir
+ref_fasta: reference.pep.fa
+ref_tax: taxonomy_table.txt
+taxonomy_table: /vortexfs1/omics/alexander/data/mmetsp/taxonomy_v2.txt
 alignment-choice: diamond #or blast? or ... (allow people to choose what kind of alignment they want to run)
