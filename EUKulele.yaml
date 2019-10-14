@@ -1,4 +1,4 @@
-name: EUK-ref
+name: EUKulele
 channels:
   - bioconda
   - conda-forge
@@ -6,3 +6,5 @@ channels:
 dependencies:
   - biopython=1.74
   - snakemake
+  - pandas 
+  - os
