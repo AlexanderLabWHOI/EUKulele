@@ -1,4 +1,4 @@
-name: cdhit
+name: diamond 
 channels:
     - bioconda 
 dependencies:

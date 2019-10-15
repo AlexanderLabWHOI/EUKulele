@@ -1,0 +1,6 @@
+name: estimate 
+dependencies:
+    - ujson
+    - pandas
+    - yaml
+    - chardet 
