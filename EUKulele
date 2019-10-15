@@ -2,7 +2,7 @@
 import os
 import pandas as pd
 
-configfile: "config.json"  
+configfile: "config.yaml"  
 
 
 REFERENCE_DIR = config['reference']
@@ -10,38 +10,60 @@ REF_FASTA = config['ref_fasta']
 TAX_TAB = config['ref_tax']
 PROT_TAB = config['ref_prot']
 
-MTS = glob_wildcards("samples/METs/{T}.fa")
-MAG = glob_wildcards("samples/MAGs/{G}.fa")
+MTS, = glob_wildcards("samples/METs/{T}.fa")
+MAG, = glob_wildcards("samples/MAGs/{G}.fa")
+print(MTS)
 
 rule all: 
     input:
-        ref_db = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd')
+        ref_db = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd'),
+        aln = expand('output/METs/diamond/{T}.diamond.out', T=MTS)
+
 
 rule setup_reference:
     input: os.path.join(REFERENCE_DIR, REF_FASTA)
     output: os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd')
     params:
-        db = INPUTDIR + REF_FASTA.strip('.fa')
+        db = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa'))
     conda:
          "envs/diamond.yaml"
     shell:
         """
         diamond makedb --in {input} --db {params.db}
         """
-
 #rule check_if_protein:
     ## uses GeneMark-ES to predict protein coding regions
     ## Or a metaT protein prediction (???)
     ## Also allow users to pass proteins directly.
 
-#rule align_reads_against_db:
-  ## runs alignment against reference DB and generates .aln files for each contig in each samples
 
+rule align_MT_against_db:
+  ## runs alignment against reference DB and generates .aln files for each contig in each samples
+    input:
+        dmnd = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd'), 
+        fasta = 'samples/METs/{T}.fa' 
+    output:
+        'output/METs/diamond/{T}.diamond.out'
+    params:
+        other ="--outfmt 6 -k 100 -e 1e-5"
+    conda:
+        "envs/diamond.yaml"
+    shell:
+        """
+        diamond blastx --db {input.dmnd} -q {input.fasta} -o {output} {params.other}
+        """
 #rule estimate_taxonomy_MAG:
   ## based on hits within a MAG file -- estimates the LCA for each MAG based on reference DB
   ## include an additional file that estimates the contamination (?) or shows next higest hits with the MAG
   ## provide basic statistics on the hits
 
-#rule estimate_taxonomy_metaT:
+rule estimate_taxonomy_METs:
   ## for every contig within a metaT -- estimates the LCA for the contig (using hit cutoffs to correspond to species, genus etc.)
   ## groups contig names into various taxonomy units at different levels of interest
+    input:
+        diamond = 'output/METs/diamond/{T}.diamond.out'
+    output: 
+        'output/METs/{T}-estimated-taxonomy.out'
+    conda: 
+        'envs/estimate.yaml'
+    
