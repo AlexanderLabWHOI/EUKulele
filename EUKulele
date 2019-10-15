@@ -17,7 +17,8 @@ print(MTS)
 rule all: 
     input:
         ref_db = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd'),
-        aln = expand('output/METs/diamond/{T}.diamond.out', T=MTS)
+        aln = expand('output/METs/diamond/{T}.diamond.out', T=MTS), 
+        mt_tax = expand('output/METs/{T}-estimated-taxonomy.out', T = MTS)
 
 
 rule setup_reference:
@@ -37,7 +38,7 @@ rule setup_reference:
     ## Also allow users to pass proteins directly.
 
 
-rule align_MT_against_db:
+rule align_METs_against_db:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
         dmnd = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd'), 
@@ -58,12 +59,15 @@ rule align_MT_against_db:
   ## provide basic statistics on the hits
 
 rule estimate_taxonomy_METs:
-  ## for every contig within a metaT -- estimates the LCA for the contig (using hit cutoffs to correspond to species, genus etc.)
-  ## groups contig names into various taxonomy units at different levels of interest
-    input:
-        diamond = 'output/METs/diamond/{T}.diamond.out'
-    output: 
-        'output/METs/{T}-estimated-taxonomy.out'
+    input: 'output/METs/diamond/{T}.diamond.out'
+    output: 'output/METs/{T}-estimated-taxonomy.out'
+    params:
+        tax_file = config['reference'] + '/' + config['ref_tax'],
+        prot_json = config['reference'] + '/' + config['ref_prot'],
+        cutoff = config['cutoff']
     conda: 
         'envs/estimate.yaml'
-    
+    shell:
+        """
+        python scripts/tax-placment.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input} --outfile {output} 
+        """ 
