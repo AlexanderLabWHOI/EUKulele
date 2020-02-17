@@ -11,16 +11,17 @@ TAX_TAB = config['ref_tax']
 PROT_TAB = config['ref_prot']
 
 MTS, = glob_wildcards("samples/METs/{T}.fa")
-MAG, = glob_wildcards("samples/MAGs/{G}.fa")
-print(MTS)
+MAG, = glob_wildcards("samples/MAGs/{G}.faa")
+
 
 rule all: 
     input:
         ref_db = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd'),
         aln = expand('output/METs/diamond/{T}.diamond.out', T=MTS), 
-        mt_tax = expand('output/METs/{T}-estimated-taxonomy.out', T = MTS)
-
-
+        mt_tax = expand('output/METs/{T}-estimated-taxonomy.out', T = MTS), 
+        mag_aln = expand('output/MAGs/diamond/{G}.diamond.out', G=MAG), 
+        mag_tax = expand('output/MAGs/{G}-estimated-taxonomy.out', G = MAG), 
+        mag_assignment = expand('output/MAGs/{G}-max-level.csv', G=MAG)
 rule setup_reference:
     input: os.path.join(REFERENCE_DIR, REF_FASTA)
     output: os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd')
@@ -53,11 +54,29 @@ rule align_METs_against_db:
         """
         diamond blastx --db {input.dmnd} -q {input.fasta} -o {output} {params.other}
         """
+
+
+rule align_MAGs_against_db:
+  ## runs alignment against reference DB and generates .aln files for each contig in each samples
+    input:
+        dmnd = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd'), 
+        fasta = 'samples/MAGs/{G}.faa' 
+    output:
+        'output/MAGs/diamond/{G}.diamond.out'
+    params:
+        other ="--outfmt 6 -k 100 -e 1e-5"
+    conda:
+        "envs/diamond.yaml"
+    shell:
+        """
+        diamond blastp --db {input.dmnd} -q {input.fasta} -o {output} {params.other}
+        """ 
+
 #rule estimate_taxonomy_MAG:
   ## based on hits within a MAG file -- estimates the LCA for each MAG based on reference DB
   ## include an additional file that estimates the contamination (?) or shows next higest hits with the MAG
   ## provide basic statistics on the hits
-
+   
 rule estimate_taxonomy_METs:
     input: 'output/METs/diamond/{T}.diamond.out'
     output: 'output/METs/{T}-estimated-taxonomy.out'
@@ -70,4 +89,34 @@ rule estimate_taxonomy_METs:
     shell:
         """
         python scripts/tax-placment.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input} --outfile {output} 
-        """ 
+        """
+
+ 
+rule estimate_taxonomy_MAG_proteins:
+    input: 'output/MAGs/diamond/{G}.diamond.out'
+    output: 'output/MAGs/{G}-estimated-taxonomy.out'
+    params:
+        tax_file = config['reference'] + '/' + config['ref_tax'],
+        prot_json = config['reference'] + '/' + config['ref_prot'],
+        cutoff = config['cutoff']
+    conda: 
+        'envs/estimate.yaml'
+    shell:
+        """
+        python scripts/tax-placment.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input} --outfile {output} 
+        """
+
+rule assign_MAG_taxonomy:
+    input: 'output/MAGs/{G}-estimated-taxonomy.out'
+    output: 'output/MAGs/{G}-max-level.csv'
+    params: 
+        prefix = '{G}',
+        levels_directory = 'output/MAGs/levels',
+        max_dir = 'output/MAGs'
+
+    conda: 
+        'envs/estimate.yaml'
+    shell:
+        """
+        python scripts/mag-stats.py --estimated-taxonomy-file {input} --out-prefix {params.prefix} --outdir {params.levels_directory} --max-out-dir {params.max_dir}
+        """
