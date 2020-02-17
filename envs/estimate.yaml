@@ -1,6 +1,12 @@
-name: estimate 
+name: estimate
+channels:
+    - bioconda
+    - conda-forge
+    - defaults
 dependencies:
     - ujson
     - pandas
-    - yaml
-    - chardet 
+    - yaml=0.1.7
+    - chardet
+    - pyyaml=5.1.2
+    - numpy 
