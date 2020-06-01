@@ -4,35 +4,69 @@ import pandas as pd
 
 configfile: "config.yaml"  
 
-
 REFERENCE_DIR = config['reference']
+OUTPUT_DIR = config['output']
+SAMPLE_DIR = config['samples']
 REF_FASTA = config['ref_fasta']
 TAX_TAB = config['ref_tax']
 PROT_TAB = config['ref_prot']
+ALIGNMENT_CHOICE = config['alignment-choice']
+EXTENSION = "txt"
+if ALIGNMENT_CHOICE == "diamond":
+    EXTENSION = "out"
 
-MTS, = glob_wildcards("samples/METs/{T}.fa")
-MAG, = glob_wildcards("samples/MAGs/{G}.faa")
-
+def get_alignment(ALIGNMENT_CHOICE, mets_or_mags, filename):
+    if mets_or_mags == "METs":
+        if ALIGNMENT_CHOICE == "diamond":
+            return os.path.join(OUTPUT_DIR, "METs", "diamond", filename + ".diamond.out")
+        elif ALIGNMENT_CHOICE == "blast":
+            return os.path.join(OUTPUT_DIR, "METs", "blast", filename + ".blast.txt")
+    elif mets_or_mags == "MAGs":
+        if ALIGNMENT_CHOICE == "diamond":
+            return os.path.join(OUTPUT_DIR, "MAGs", "diamond", filename + ".diamond.out")
+        elif ALIGNMENT_CHOICE == "blast":
+            return os.path.join(OUTPUT_DIR, "MAGs", "blast", filename + ".blast.txt")
+            
+MTS, = glob_wildcards(os.path.join(SAMPLE_DIR, "METs", "{T}.fa"))
+MAG, = glob_wildcards(os.path.join(SAMPLE_DIR, "MAGs", "{G}.faa"))
 
 rule all: 
     input:
-        ref_db = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd'),
-        aln = expand('output/METs/diamond/{T}.diamond.out', T=MTS), 
-        mt_tax = expand('output/METs/{T}-estimated-taxonomy.out', T = MTS), 
-        mag_aln = expand('output/MAGs/diamond/{G}.diamond.out', G=MAG), 
-        mag_tax = expand('output/MAGs/{G}-estimated-taxonomy.out', G = MAG), 
-        mag_assignment = expand('output/MAGs/{G}-max-level.csv', G=MAG)
+        ref_db = expand(os.path.join(REFERENCE_DIR, "{aligner}", REF_FASTA.strip('.fa')), aligner = ALIGNMENT_CHOICE),
+        mt_aln = expand(os.path.join(OUTPUT_DIR, "METs", "{aligner}", "{T}.{aligner}.{extension}"), T = MTS, aligner = ALIGNMENT_CHOICE, extension = EXTENSION), 
+        mt_tax = expand(os.path.join(OUTPUT_DIR, "METs", "{T}-estimated-taxonomy.out"), T = MTS), 
+        mag_aln = expand(os.path.join(OUTPUT_DIR, "MAGs", "{aligner}", "{G}.{aligner}.{extension}"), G = MAG, aligner = ALIGNMENT_CHOICE, extension = EXTENSION), 
+        mag_tax = expand(os.path.join(OUTPUT_DIR, "MAGs", "{G}-estimated-taxonomy.out"), G = MAG), 
+        mag_assignment = expand(os.path.join(OUTPUT_DIR, "MAGs", "{G}-max-level.csv"), G = MAG)
+
 rule setup_reference:
     input: os.path.join(REFERENCE_DIR, REF_FASTA)
-    output: os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd')
+    output: directory(os.path.join(REFERENCE_DIR, "diamond", REF_FASTA.strip('.fa')))
     params:
-        db = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa'))
+        diamondfile = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd'),
+        db = os.path.join(REFERENCE_DIR, "diamond", REF_FASTA.strip('.fa'))
     conda:
          "envs/diamond.yaml"
     shell:
         """
         diamond makedb --in {input} --db {params.db}
         """
+        
+rule setup_reference_blast:
+    input: os.path.join(REFERENCE_DIR, REF_FASTA)
+    output: directory(os.path.join(REFERENCE_DIR, "blast", REF_FASTA.strip('.fa')))
+    params:
+        db = os.path.join(REFERENCE_DIR, "blast", REF_FASTA.strip('.fa')),
+        db_name = "MMETSPDatabase",
+        db_type = "prot",
+        blast_version = 5
+    conda:
+         "envs/blast.yaml"
+    shell:
+        """
+        makeblastdb -in {input} -parse_seqids -blastdb_version {params.blast_version} -title {params.db_name} -dbtype {params.db_type} -out {params.db}
+        """
+
 #rule check_if_protein:
     ## uses GeneMark-ES to predict protein coding regions
     ## Or a metaT protein prediction (???)
@@ -43,77 +77,117 @@ rule align_METs_against_db:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
         dmnd = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd'), 
-        fasta = 'samples/METs/{T}.fa' 
+        fasta = os.path.join(SAMPLE_DIR, "METs", "{T}.fa") 
     output:
-        'output/METs/diamond/{T}.diamond.out'
+        os.path.join(OUTPUT_DIR, "METs", "diamond", "{T}.diamond.out")
     params:
-        other ="--outfmt 6 -k 100 -e 1e-5"
+        other = "--outfmt 6 -k 100 -e 1e-5",
+        outfmt = 6,
+        k = 100,
+        e = 1e-5
     conda:
         "envs/diamond.yaml"
     shell:
         """
-        diamond blastx --db {input.dmnd} -q {input.fasta} -o {output} {params.other}
+        diamond blastx --db {input.dmnd} -q {input.fasta} -o {output} --outfmt {params.outfmt} -k {params.k} -e {params.e}
         """
 
+rule align_METs_against_db_blast:
+  ## runs alignment against reference DB and generates .aln files for each contig in each samples
+    input:
+        blast = os.path.join(REFERENCE_DIR, "blast", REF_FASTA.strip('.fa')), 
+        fasta = os.path.join(SAMPLE_DIR, "METs", "{T}.fa") 
+    output:
+        os.path.join(OUTPUT_DIR, "METs", "blast", "{T}.blast.txt")
+    params:
+        outfmt = 6, # tabular output format
+        e = 1e-5
+    conda:
+        "envs/blast.yaml"
+    shell:
+        """
+        blastx -query {input.fasta} -db {input.blast} -o {output} -outfmt {params.outfmt} -evalue {params.e}
+        """
 
 rule align_MAGs_against_db:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
         dmnd = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd'), 
-        fasta = 'samples/MAGs/{G}.faa' 
+        fasta = os.path.join(SAMPLE_DIR, "MAGs", "{G}.faa")
     output:
-        'output/MAGs/diamond/{G}.diamond.out'
+        os.path.join(OUTPUT_DIR, "MAGs", "diamond", "{G}.diamond.out")
     params:
-        other ="--outfmt 6 -k 100 -e 1e-5"
+        other ="--outfmt 6 -k 100 -e 1e-5",
+        outfmt = 6,
+        k = 100,
+        e = 1e-5
     conda:
         "envs/diamond.yaml"
     shell:
         """
-        diamond blastp --db {input.dmnd} -q {input.fasta} -o {output} {params.other}
+        diamond blastp --db {input.dmnd} -q {input.fasta} -o {output} --outfmt {params.outfmt} -k {params.k} -e {params.e}
+        """ 
+        
+rule align_MAGs_against_db_blast:
+  ## runs alignment against reference DB and generates .aln files for each contig in each samples
+    input:
+        blast = os.path.join(REFERENCE_DIR, "blast", REF_FASTA.strip('.fa')), 
+        fasta = os.path.join(SAMPLE_DIR, "MAGs", "{G}.faa") 
+    output:
+        os.path.join(OUTPUT_DIR, "MAGs", "blast", "{G}.blast.txt")
+    params:
+        outfmt = 6, # tabular output format
+        e = 1e-5
+    conda:
+        "envs/blast.yaml"
+    shell:
+        """
+        blastx -query {input.fasta} -db {input.blast} -o {output} -outfmt {params.outfmt} -evalue {params.e}
         """ 
 
 #rule estimate_taxonomy_MAG:
   ## based on hits within a MAG file -- estimates the LCA for each MAG based on reference DB
-  ## include an additional file that estimates the contamination (?) or shows next higest hits with the MAG
+  ## include an additional file that estimates the contamination (?) or shows next highest hits with the MAG
   ## provide basic statistics on the hits
    
 rule estimate_taxonomy_METs:
-    input: 'output/METs/diamond/{T}.diamond.out'
-    output: 'output/METs/{T}-estimated-taxonomy.out'
+    input: 
+        file = lambda filename: get_alignment(ALIGNMENT_CHOICE, mets_or_mags = "METs", filename = filename.T) #os.path.join(OUTPUT_DIR, "METs", "diamond", "{T}.diamond.out")
+    output: os.path.join(OUTPUT_DIR, "METs", "{T}-estimated-taxonomy.out")
     params:
-        tax_file = config['reference'] + '/' + config['ref_tax'],
-        prot_json = config['reference'] + '/' + config['ref_prot'],
+        tax_file = os.path.join(config['reference'], config['ref_tax']),
+        prot_json = os.path.join(config['reference'], config['ref_prot']),
         cutoff = config['cutoff']
     conda: 
         'envs/estimate.yaml'
     shell:
         """
-        python scripts/tax-placment.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input} --outfile {output} 
+        echo {input.file}
+        python scripts/tax-placment.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output} 
         """
 
- 
 rule estimate_taxonomy_MAG_proteins:
-    input: 'output/MAGs/diamond/{G}.diamond.out'
-    output: 'output/MAGs/{G}-estimated-taxonomy.out'
+    input: 
+        file = lambda filename: get_alignment(ALIGNMENT_CHOICE, mets_or_mags = "MAGs", filename = filename.G) #os.path.join(OUTPUT_DIR, "MAGs", "diamond", "{G}.diamond.out")
+    output: os.path.join(OUTPUT_DIR, "MAGs", "{G}-estimated-taxonomy.out")
     params:
-        tax_file = config['reference'] + '/' + config['ref_tax'],
-        prot_json = config['reference'] + '/' + config['ref_prot'],
+        tax_file = os.path.join(config['reference'], config['ref_tax']),
+        prot_json = os.path.join(config['reference'], config['ref_prot']),
         cutoff = config['cutoff']
     conda: 
         'envs/estimate.yaml'
     shell:
         """
-        python scripts/tax-placment.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input} --outfile {output} 
+        python scripts/tax-placment.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output} 
         """
 
 rule assign_MAG_taxonomy:
-    input: 'output/MAGs/{G}-estimated-taxonomy.out'
-    output: 'output/MAGs/{G}-max-level.csv'
+    input: os.path.join(OUTPUT_DIR, "MAGs", "{G}-estimated-taxonomy.out")
+    output: os.path.join(OUTPUT_DIR, "MAGs", "{G}-max-level.csv")
     params: 
         prefix = '{G}',
-        levels_directory = 'output/MAGs/levels',
-        max_dir = 'output/MAGs'
-
+        levels_directory = os.path.join(OUTPUT_DIR, "MAGs", "levels"),
+        max_dir = os.path.join(OUTPUT_DIR, "MAGs")
     conda: 
         'envs/estimate.yaml'
     shell:

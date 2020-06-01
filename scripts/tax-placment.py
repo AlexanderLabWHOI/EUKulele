@@ -25,7 +25,7 @@ def read_in_taxonomy(infile):
         result = chardet.detect(f.read())
     tax_out = pd.read_csv(infile, sep='\t',encoding=result['encoding'])
     tax_out.columns = tax_out.columns.str.lower()
-    tax_out =tax_out.set_index('source_id')
+    tax_out = tax_out.set_index('source_id')
     return tax_out
 
 def read_in_tax_cutoffs(yamlfile):
@@ -44,8 +44,6 @@ def read_in_diamond_file(dfile, pdict):
     dfout['ssqid_TAXID']=dfout.sseqid.map(pdict)
     return dfout
 
-
-
 def classify_taxonomy(df, tax_table):
     level_dict = {'class':['supergroup','division','class'],
                        'order':['supergroup','division','class', 'order'],
@@ -53,7 +51,7 @@ def classify_taxonomy(df, tax_table):
                        'genus': ['supergroup','division','class', 'order', 'family','genus'],
                         'species':['supergroup','division','class', 'order', 'family','genus', 'species']}
 
-    outdf = pd.DataFrame(columns = ['classification_level', 'full_classification','classification', 'max_pid'])
+    outdf = pd.DataFrame(columns = ['classification_level', 'full_classification', 'classification', 'max_pid'])
     for t,dd in df.groupby('qseqid'):
         md = dd.pident.max()
         ds = list(set(dd[dd.pident==md]['ssqid_TAXID']))
@@ -86,14 +84,9 @@ if __name__ == "__main__":
     parser.add_argument('--diamond_file')
     parser.add_argument('--outfile')
     args = parser.parse_args()
-    #tax_file = '/vortexfs1/omics/alexander/data/mmetsp/reference_dir/taxonomy-table.txt'
     tax_table = read_in_taxonomy(args.tax_file)
-    #cutoff_file = "tax-cutoffs.yaml"
     tax_cutoffs = read_in_tax_cutoffs(args.cutoff_file)
-    #prot_map_file = '/vortexfs1/omics/alexander/data/mmetsp/reference_dir/protein-species-map.json'
     pdict = read_in_protein_map(args.prot_map_file)
-    #diamond_file = 'output/METs/diamond/test2.diamond.out'
     diamond_df = read_in_diamond_file(args.diamond_file, pdict)
     classification_df = classify_taxonomy(diamond_df, tax_table)
-    #outfile = 'tmp.out'
     classification_df.to_csv(args.outfile, sep='\t')
