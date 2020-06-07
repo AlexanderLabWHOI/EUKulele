@@ -6,14 +6,17 @@ configfile: "config.yaml"
 
 REFERENCE_DIR = config['reference']
 OUTPUT_DIR = config['output']
+DATABASE_DIR = os.path.join(OUTPUT_DIR, "database")
 SAMPLE_DIR = config['samples']
 REF_FASTA = config['ref_fasta']
 TAX_TAB = config['ref_tax']
 PROT_TAB = config['ref_prot']
 ALIGNMENT_CHOICE = config['alignment-choice']
 EXTENSION = "txt"
+DBEXTENSION = ""
 if ALIGNMENT_CHOICE == "diamond":
     EXTENSION = "out"
+    DBEXTENSION = ".dmnd"
 
 def get_alignment(ALIGNMENT_CHOICE, mets_or_mags, filename):
     if mets_or_mags == "METs":
@@ -32,7 +35,7 @@ MAG, = glob_wildcards(os.path.join(SAMPLE_DIR, "MAGs", "{G}.faa"))
 
 rule all: 
     input:
-        ref_db = expand(os.path.join(REFERENCE_DIR, "{aligner}", REF_FASTA.strip('.fa')), aligner = ALIGNMENT_CHOICE),
+        ref_db = expand(os.path.join(REFERENCE_DIR, "{aligner}", REF_FASTA.strip('.fa') + "{extension}"), aligner = ALIGNMENT_CHOICE, extension = DBEXTENSION),
         mt_aln = expand(os.path.join(OUTPUT_DIR, "METs", "{aligner}", "{T}.{aligner}.{extension}"), T = MTS, aligner = ALIGNMENT_CHOICE, extension = EXTENSION), 
         mt_tax = expand(os.path.join(OUTPUT_DIR, "METs", "{T}-estimated-taxonomy.out"), T = MTS), 
         mag_aln = expand(os.path.join(OUTPUT_DIR, "MAGs", "{aligner}", "{G}.{aligner}.{extension}"), G = MAG, aligner = ALIGNMENT_CHOICE, extension = EXTENSION), 
@@ -41,10 +44,10 @@ rule all:
 
 rule setup_reference:
     input: os.path.join(REFERENCE_DIR, REF_FASTA)
-    output: directory(os.path.join(REFERENCE_DIR, "diamond", REF_FASTA.strip('.fa')))
+    output: os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa') + ".dmnd")
     params:
-        diamondfile = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd'),
-        db = os.path.join(REFERENCE_DIR, "diamond", REF_FASTA.strip('.fa'))
+        diamondfile = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa') + '.dmnd'),
+        db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa'))
     conda:
          "envs/diamond.yaml"
     shell:
@@ -54,9 +57,9 @@ rule setup_reference:
         
 rule setup_reference_blast:
     input: os.path.join(REFERENCE_DIR, REF_FASTA)
-    output: directory(os.path.join(REFERENCE_DIR, "blast", REF_FASTA.strip('.fa')))
+    output: directory(os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa')))
     params:
-        db = os.path.join(REFERENCE_DIR, "blast", REF_FASTA.strip('.fa')),
+        db = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa'), "database"),
         db_name = "MMETSPDatabase",
         db_type = "prot",
         blast_version = 5
@@ -76,7 +79,7 @@ rule setup_reference_blast:
 rule align_METs_against_db:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
-        dmnd = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd'), 
+        dmnd = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa')+'.dmnd'), 
         fasta = os.path.join(SAMPLE_DIR, "METs", "{T}.fa") 
     output:
         os.path.join(OUTPUT_DIR, "METs", "diamond", "{T}.diamond.out")
@@ -95,24 +98,26 @@ rule align_METs_against_db:
 rule align_METs_against_db_blast:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
-        blast = os.path.join(REFERENCE_DIR, "blast", REF_FASTA.strip('.fa')), 
+        blast = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa')), 
         fasta = os.path.join(SAMPLE_DIR, "METs", "{T}.fa") 
     output:
         os.path.join(OUTPUT_DIR, "METs", "blast", "{T}.blast.txt")
     params:
+        db = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa'), "database"),
         outfmt = 6, # tabular output format
         e = 1e-5
     conda:
         "envs/blast.yaml"
     shell:
         """
-        blastx -query {input.fasta} -db {input.blast} -o {output} -outfmt {params.outfmt} -evalue {params.e}
+        export BLASTDB={params.db}
+        blastx -query {input.fasta} -db {params.db} -out {output} -outfmt {params.outfmt} -evalue {params.e}
         """
 
 rule align_MAGs_against_db:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
-        dmnd = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa')+'.dmnd'), 
+        dmnd = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa')+'.dmnd'), 
         fasta = os.path.join(SAMPLE_DIR, "MAGs", "{G}.faa")
     output:
         os.path.join(OUTPUT_DIR, "MAGs", "diamond", "{G}.diamond.out")
@@ -131,18 +136,20 @@ rule align_MAGs_against_db:
 rule align_MAGs_against_db_blast:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
-        blast = os.path.join(REFERENCE_DIR, "blast", REF_FASTA.strip('.fa')), 
+        blast = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa')), 
         fasta = os.path.join(SAMPLE_DIR, "MAGs", "{G}.faa") 
     output:
         os.path.join(OUTPUT_DIR, "MAGs", "blast", "{G}.blast.txt")
     params:
+        db = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa'), "database"),
         outfmt = 6, # tabular output format
         e = 1e-5
     conda:
         "envs/blast.yaml"
     shell:
         """
-        blastx -query {input.fasta} -db {input.blast} -o {output} -outfmt {params.outfmt} -evalue {params.e}
+        export BLASTDB={params.db}
+        blastp -query {input.fasta} -db {params.db} -out {output} -outfmt {params.outfmt} -evalue {params.e}
         """ 
 
 #rule estimate_taxonomy_MAG:

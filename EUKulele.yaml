@@ -1,8 +1,8 @@
 __default__:
     system: 'slurm' #check if system is defined below
-    account: halexander #requred
-    time: 120 # minutes
-    mem: 4 # GB
+    account: akrinos #requred
+    time: 5000 # minutes
+    mem: 50 # GB
     threads: 2
     queue: compute # required
     nodes: 1
@@ -22,12 +22,10 @@ align_METs_against_db:
     queue: compute
     threads: 8 
     mem: 16
-    time: 600
+    time: 5000
 
 align_MAGs_against_db: 
     queue: compute
     threads: 8 
     mem: 16
-    time: 600
-
-
+    time: 5000
