@@ -48,7 +48,7 @@ def gen_dict(tax_table):
     classes = ['supergroup','division','class','order','family','genus','species']
     tax_table["Classification"] = ""
     for c in classes:
-        if tax_table["Classification"] != "":
+        if str(tax_table["Classification"][0]) != "":
             tax_table["Classification"] = tax_table["Classification"] + ";" + tax_table[c]
         else:
             tax_table["Classification"] = tax_table["Classification"] + tax_table[c]
@@ -115,13 +115,13 @@ def classify_taxonomy(df, tax_dict):
                 classification_0.add(d_full_class[len(d_full_class) - 1]) # the most specific taxonomic level we can classify by
                 full_classification_0.add('; '.join(d_full_class)) # the actual assignments based on that
                 if len(classification_0) == 1:
-                    classification = list(classification_0)[0]
+                    best_classification = list(classification_0)[0]
                     full_classification = list(full_classification_0)[0]
                 else:
                     ambiguous = 1
                     break # we just end up picking the first added if we have multiple classifications.
                     # we probably want to implement this differently in the future. For now we mark as "ambiguous"
-        outdf.loc[t] =  [assignment, full_classification, classification, md, ambiguous]
+        outdf.loc[t] =  [assignment, full_classification, best_classification, md, ambiguous]
     return outdf
 
 if __name__ == "__main__":
