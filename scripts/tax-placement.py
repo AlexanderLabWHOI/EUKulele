@@ -48,7 +48,10 @@ def gen_dict(tax_table):
     classes = ['supergroup','division','class','order','family','genus','species']
     tax_table["Classification"] = ""
     for c in classes:
-        tax_table["Classification"] = tax_table["Classification"] + ";" + tax_table[c]
+        if tax_table["Classification"] != "":
+            tax_table["Classification"] = tax_table["Classification"] + ";" + tax_table[c]
+        else:
+            tax_table["Classification"] = tax_table["Classification"] + tax_table[c]
     return(dict(zip(tax_table.index, tax_table["Classification"])))
 
 def match_maker(dd):
@@ -103,14 +106,14 @@ def classify_taxonomy(df, tax_dict):
         if len(ds)==1:
             full_classification = tax_dict[ds[0]].split(";")[0:level]
             best_classification = full_classification[len(full_classification) - 1] # the most specific taxonomic level we can classify by
-            full_classification = '; '.join(full_classification.remove("")) # the actual assignments based on that
+            full_classification = '; '.join(full_classification) # the actual assignments based on that
         else:
             classification_0 = set()
             full_classification_0 = set()
             for d in ds:
                 d_full_class = tax_dict[d].split(";")[0:level]
                 classification_0.add(d_full_class[len(d_full_class) - 1]) # the most specific taxonomic level we can classify by
-                full_classification_0.add('; '.join(d_full_class.remove(""))) # the actual assignments based on that
+                full_classification_0.add('; '.join(d_full_class)) # the actual assignments based on that
                 if len(classification_0) == 1:
                     classification = list(classification_0)[0]
                     full_classification = list(full_classification_0)[0]
