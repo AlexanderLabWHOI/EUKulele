@@ -29,15 +29,17 @@ def get_alignment(ALIGNMENT_CHOICE, mets_or_mags, filename):
             return os.path.join(OUTPUT_DIR, "MAGs", "diamond", filename + ".diamond.out")
         elif ALIGNMENT_CHOICE == "blast":
             return os.path.join(OUTPUT_DIR, "MAGs", "blast", filename + ".blast.txt")
-            
-MTS, = glob_wildcards(os.path.join(SAMPLE_DIR, "METs", "{T}.fa"))
+
+METEXT = "fasta"    
+IFPARALLEL = "parallel"
+MTS, = glob_wildcards(os.path.join(SAMPLE_DIR, "METs", "{T}." + METEXT))
 MAG, = glob_wildcards(os.path.join(SAMPLE_DIR, "MAGs", "{G}.faa"))
 
 rule all: 
     input:
         ref_db = expand(os.path.join(REFERENCE_DIR, "{aligner}", REF_FASTA.strip('.fa') + "{extension}"), aligner = ALIGNMENT_CHOICE, extension = DBEXTENSION),
         mt_aln = expand(os.path.join(OUTPUT_DIR, "METs", "{aligner}", "{T}.{aligner}.{extension}"), T = MTS, aligner = ALIGNMENT_CHOICE, extension = EXTENSION), 
-        mt_tax = expand(os.path.join(OUTPUT_DIR, "METs", "{T}-estimated-taxonomy.out"), T = MTS), 
+        mt_tax = expand(os.path.join(OUTPUT_DIR, "METs", "{T}-estimated-taxonomy-{ifparallel}.out"), T = MTS, ifparallel = IFPARALLEL), 
         mag_aln = expand(os.path.join(OUTPUT_DIR, "MAGs", "{aligner}", "{G}.{aligner}.{extension}"), G = MAG, aligner = ALIGNMENT_CHOICE, extension = EXTENSION), 
         mag_tax = expand(os.path.join(OUTPUT_DIR, "MAGs", "{G}-estimated-taxonomy.out"), G = MAG), 
         mag_assignment = expand(os.path.join(OUTPUT_DIR, "MAGs", "{G}-max-level.csv"), G = MAG)
@@ -80,7 +82,7 @@ rule align_METs_against_db:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
         dmnd = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa')+'.dmnd'), 
-        fasta = os.path.join(SAMPLE_DIR, "METs", "{T}.fa") 
+        fasta = os.path.join(SAMPLE_DIR, "METs", "{T}." + METEXT) 
     output:
         os.path.join(OUTPUT_DIR, "METs", "diamond", "{T}.diamond.out")
     params:
@@ -99,7 +101,7 @@ rule align_METs_against_db_blast:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
         blast = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa')), 
-        fasta = os.path.join(SAMPLE_DIR, "METs", "{T}.fa") 
+        fasta = os.path.join(SAMPLE_DIR, "METs", "{T}." + METEXT) 
     output:
         os.path.join(OUTPUT_DIR, "METs", "blast", "{T}.blast.txt")
     params:
@@ -159,10 +161,13 @@ rule align_MAGs_against_db_blast:
    
 rule estimate_taxonomy_METs:
     input: 
-        file = lambda filename: get_alignment(ALIGNMENT_CHOICE, mets_or_mags = "METs", filename = filename.T) #os.path.join(OUTPUT_DIR, "METs", "diamond", "{T}.diamond.out")
-    output: os.path.join(OUTPUT_DIR, "METs", "{T}-estimated-taxonomy.out")
+        file = lambda filename: get_alignment(ALIGNMENT_CHOICE, mets_or_mags = "METs", filename = filename.T) 
+    output: 
+        outfile = os.path.join(OUTPUT_DIR, "METs", "{T}-estimated-taxonomy-{parallel}.out")
     params:
+        method = "{parallel}",
         tax_file = os.path.join(config['reference'], config['ref_tax']),
+        outfile_series = os.path.join(OUTPUT_DIR, "METs", "{T}-estimated-taxonomy.out"),
         prot_json = os.path.join(config['reference'], config['ref_prot']),
         cutoff = config['cutoff']
     conda: 
@@ -170,12 +175,12 @@ rule estimate_taxonomy_METs:
     shell:
         """
         echo {input.file}
-        python scripts/tax-placment.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output} 
+        time python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output.outfile} --method {params.method}
         """
 
 rule estimate_taxonomy_MAG_proteins:
     input: 
-        file = lambda filename: get_alignment(ALIGNMENT_CHOICE, mets_or_mags = "MAGs", filename = filename.G) #os.path.join(OUTPUT_DIR, "MAGs", "diamond", "{G}.diamond.out")
+        file = lambda filename: get_alignment(ALIGNMENT_CHOICE, mets_or_mags = "MAGs", filename = filename.G) 
     output: os.path.join(OUTPUT_DIR, "MAGs", "{G}-estimated-taxonomy.out")
     params:
         tax_file = os.path.join(config['reference'], config['ref_tax']),
@@ -185,7 +190,7 @@ rule estimate_taxonomy_MAG_proteins:
         'envs/estimate.yaml'
     shell:
         """
-        python scripts/tax-placment.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output} 
+        python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output} 
         """
 
 rule assign_MAG_taxonomy:
