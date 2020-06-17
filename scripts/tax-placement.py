@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import ujson
 import pandas as pd
+import numpy as np
 import yaml
 import chardet
 import argparse
@@ -54,43 +55,80 @@ def gen_dict(tax_table):
             tax_table["Classification"] = tax_table["Classification"] + tax_table[c]
     return(dict(zip(tax_table.index, tax_table["Classification"])))
 
-def match_maker(dd):
+def lca(full_classifications):
+    full_classifications_split = [curr.split(";").strip() for curr in full_classifications]
+    lengths_classes = [len(curr) for curr in full_classifications_split]
+    if len(set(lengths_classes)) != 1:
+        print("Error: not all classifications at at the same taxonomic level.")
+        sys.exit(1)
+    for l in reversed(range(length_classes[0])):
+        set_classifications = [curr[1] for curr in full_classifications_split]
+        if len(set(set_classifications)):
+            return set_classifications[0], full_classifications_split[0][0:l]
+    return "","" # if there are no 
+
+def match_maker(dd, consensus_cutoff, tax_dict):
     ambiguous = 0 # we assume unambiguous
     md = dd.pident.max()
+    print(dd)
     ds = list(set(dd[dd.pident==md]['ssqid_TAXID']))
+    print(ds)
     assignment, level = tax_placement(md) # most specific taxonomic level assigned
     if len(ds)==1:
         full_classification = tax_dict[ds[0]].split(";")[0:level]
         best_classification = full_classification[len(full_classification) - 1] # the most specific taxonomic level we can classify by
         full_classification = '; '.join(full_classification) # the actual assignments based on that
     else:
-        classification_0 = set()
-        full_classification_0 = set()
+        classification_0 = []
+        full_classification_0 = []
         for d in ds:
             d_full_class = tax_dict[d].split(";")[0:level]
-            classification_0.add(d_full_class[len(d_full_class) - 1]) # the most specific taxonomic level we can classify by
-            full_classification_0.add('; '.join(d_full_class)) # the actual assignments based on that
-            if len(classification_0) == 1:
-                best_classification = list(set(classification_0))[0]
-                full_classification = list(set(full_classification_0))[0]
+            classification_0.append(d_full_class[len(d_full_class) - 1]) # the most specific taxonomic level we can classify by
+            full_classification_0.append('; '.join(d_full_class)) # the actual assignments based on that
+        entries = list(set(full_classification_0))
+        if len(entries) == 1:
+                best_classification = classification_0[0]
+                full_classification = full_classification_0[0]
+        else:
+            ambiguous = 1
+            best_frac = 0
+            best_one_class = 0
+            best_full_class = 0
+            for e in entries:
+                curr_frac = len(np.where(full_classification_0 == e)) / len(full_classification_0)
+                if curr_frac > best_frac:
+                    best_frac = curr_frac
+                    best_full_class = e
+                    best_one_class = e.split(";")[len(e.split(";")) - 1].strip()
+            if best_frac >= consensus_cutoff:
+                best_classification = best_one_class
+                full_classification = best_full_class
             else:
-                ambiguous = 1
-                break # we just end up picking the first added if we have multiple classifications.
-                # we probably want to implement this differently in the future. For now we mark as "ambiguous"
+                best_classification, full_classification = lca(full_classification_0)
+
     return pd.DataFrame([[assignment, full_classification, best_classification, md, ambiguous]],\
                    columns=['classification_level', 'full_classification', 'classification', 'max_pid', 'ambiguous'])
 
-def apply_parallel(grouped_data, match_maker):
-    resultdf = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(match_maker)(group) for name, group in grouped_data)
+def apply_parallel(grouped_data, match_maker, consensus_cutoff, tax_dict):
+    resultdf = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(match_maker)(group, consensus_cutoff, tax_dict) for name, group in grouped_data)
     return pd.concat(resultdf)
 
-def classify_taxonomy_parallel(df, tax_dict):
-    outdf = apply_parallel(df.groupby('qseqid'), match_maker)
+def classify_taxonomy_parallel(df, tax_dict, pdict, consensus_cutoff):
+    chunksize = 10 ** 6
+    counter = 0
+    for chunk in pd.read_csv(df, sep = '\t', header = None, chunksize=chunksize):
+        chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore']
+        chunk['ssqid_TAXID']=chunk.sseqid.map(pdict)
+        if counter == 0:
+            outdf = apply_parallel(chunk.groupby('qseqid'), match_maker, consensus_cutoff, tax_dict)
+        else:
+            outdf = pd.concat([outdf, apply_parallel(chunk.groupby('qseqid'), match_maker, consensus_cutoff, tax_dict)], axis = 0)
+        counter = counter + 1
     return outdf
 
 # create a dictionary for all of the mmetsp and then just split by ";" and then take the top X based on the tax class level.
 # time the difference between the new function and the original.
-def classify_taxonomy(df, tax_dict):
+def classify_taxonomy(df, tax_dict, consensus_cutoff):
     level_dict = {'class':['supergroup','division','class'],
                        'order':['supergroup','division','class', 'order'],
                        'family':['supergroup','division','class', 'order', 'family'],
@@ -108,19 +146,32 @@ def classify_taxonomy(df, tax_dict):
             best_classification = full_classification[len(full_classification) - 1] # the most specific taxonomic level we can classify by
             full_classification = '; '.join(full_classification) # the actual assignments based on that
         else:
-            classification_0 = set()
-            full_classification_0 = set()
+            classification_0 = []
+            full_classification_0 = []
             for d in ds:
                 d_full_class = tax_dict[d].split(";")[0:level]
-                classification_0.add(d_full_class[len(d_full_class) - 1]) # the most specific taxonomic level we can classify by
-                full_classification_0.add('; '.join(d_full_class)) # the actual assignments based on that
-                if len(classification_0) == 1:
-                    best_classification = list(classification_0)[0]
-                    full_classification = list(full_classification_0)[0]
+                classification_0.append(d_full_class[len(d_full_class) - 1]) # the most specific taxonomic level we can classify by
+                full_classification_0.append('; '.join(d_full_class)) # the actual assignments based on that
+            if len(set(classification_0)) == 1:
+                best_classification = classification_0[0]
+                full_classification = full_classification_0[0]
+            else:
+                ambiguous = 1
+                entries = list(set(full_classification_0))
+                best_frac = 0
+                best_one_class = 0
+                best_full_class = 0
+                for e in entries:
+                    curr_frac = len(np.where(full_classification_0 == e)) / len(full_classification_0)
+                    if (isinstance(curr_frac, float)) & (curr_frac > best_frac):
+                        best_frac = curr_frac
+                        best_full_class = e
+                        best_one_class = e.split(";")[len(e.split(";")) - 1].strip()
+                if best_frac >= consensus_cutoff:
+                    best_classification = best_one_class
+                    full_classification = best_full_class
                 else:
-                    ambiguous = 1
-                    break # we just end up picking the first added if we have multiple classifications.
-                    # we probably want to implement this differently in the future. For now we mark as "ambiguous"
+                    best_classification, full_classification = lca(full_classification_0)
         outdf.loc[t] =  [assignment, full_classification, best_classification, md, ambiguous]
     return outdf
 
@@ -128,6 +179,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--tax_file')
     parser.add_argument('--cutoff_file')
+    parser.add_argument('--consensus_cutoff')
     parser.add_argument('--prot_map_file')
     parser.add_argument('--diamond_file')
     parser.add_argument('--outfile')
@@ -136,10 +188,10 @@ if __name__ == "__main__":
     tax_table = read_in_taxonomy(args.tax_file)
     tax_cutoffs = read_in_tax_cutoffs(args.cutoff_file)
     pdict = read_in_protein_map(args.prot_map_file)
-    diamond_df = read_in_diamond_file(args.diamond_file, pdict)
     tax_dict = gen_dict(tax_table)
     if args.method == "parallel":
-        classification_df = classify_taxonomy_parallel(diamond_df, tax_dict)
+        classification_df = classify_taxonomy_parallel(args.diamond_file, tax_dict, pdict, args.consensus_cutoff)
     else:
-        classification_df = classify_taxonomy(diamond_df, tax_dict)
+        diamond_df = read_in_diamond_file(args.diamond_file, pdict)
+        classification_df = classify_taxonomy(diamond_df, tax_dict, args.consensus_cutoff)
     classification_df.to_csv(args.outfile, sep='\t')

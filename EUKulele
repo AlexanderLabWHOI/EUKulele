@@ -30,7 +30,7 @@ def get_alignment(ALIGNMENT_CHOICE, mets_or_mags, filename):
         elif ALIGNMENT_CHOICE == "blast":
             return os.path.join(OUTPUT_DIR, "MAGs", "blast", filename + ".blast.txt")
 
-METEXT = "fasta"    
+METEXT = "fa"    
 IFPARALLEL = "parallel"
 MTS, = glob_wildcards(os.path.join(SAMPLE_DIR, "METs", "{T}." + METEXT))
 MAG, = glob_wildcards(os.path.join(SAMPLE_DIR, "MAGs", "{G}.faa"))
