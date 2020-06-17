@@ -4,8 +4,9 @@ nucleotide_extension: .fna
 protein_extension: .faa
 scratch: /vortexfs1/scratch/halexander/EUKULELE
 reference: /vortexfs1/omics/alexander/data/mmetsp/reference_dir
+database: /vortexfs1/omics/alexander/data/mmetsp/reference_dir
 output: first-test/ 
-samples: samples
+samples: test-samples/
 ref_fasta: reference-pep.fa # amino acid sequences
 ref_tax: taxonomy-table.txt
 ref_prot: protein-species-map.json 
