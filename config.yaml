@@ -1,13 +1,15 @@
-jobname: wap
-metaT: True
-MAGs: True
-scratch: /vortexfs1/scratch/akrinos/EUKULELE
+jobname: test 
+mets_or_mags: METs #answer METs or MAGs
+nucleotide_extension: .fna
+protein_extension: .faa
+scratch: /vortexfs1/scratch/halexander/EUKULELE
 reference: /vortexfs1/omics/alexander/data/mmetsp/reference_dir
-output: ../EUKulele_output_12Jun2020
+output: first-test/ 
 samples: samples
 ref_fasta: reference-pep.fa # amino acid sequences
 ref_tax: taxonomy-table.txt
 ref_prot: protein-species-map.json 
 cutoff: tax-cutoffs.yaml 
-taxonomy_table: /vortexfs1/omics/alexander/data/mmetsp/taxonomy_v2.txt
-alignment-choice: diamond #diamond or blast? or ... (allow people to choose what kind of alignment they want to run)
+taxonomy_table: /vortexfs1/omics/alexander/data/mmetsp/taxonomy_v2.txt #path to eukulele taxonomy table
+alignment-choice: diamond #diamond or blast
+transdecoder_orfsize: 100
