@@ -89,7 +89,7 @@ rule setup_reference_blast:
 
 rule transdecoder:
     input:
-        nt_mets = os.path.join(SAMPLE_DIR, "METs", "{T}." + NT_EXT) 
+        nt_mets = os.path.join(SAMPLE_DIR,  "{T}." + NT_EXT) 
     output:
         pep = os.path.join(SAMPLE_DIR,  "{T}." + PEP_EXT),
         gff = os.path.join(SAMPLE_DIR, "transdecoder", "{T}.fasta.transdecoder.gff3"),
