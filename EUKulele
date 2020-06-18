@@ -4,6 +4,7 @@ import pandas as pd
 
 configfile: "config.yaml"  
 
+CONSENSUS_CUTOFF = config['consensus_cutoff']
 REFERENCE_DIR = config['reference']
 OUTPUT_DIR = config['output']
 DATABASE_DIR = os.path.join(OUTPUT_DIR, "database")
@@ -165,6 +166,7 @@ rule estimate_taxonomy_METs:
     output: 
         outfile = os.path.join(OUTPUT_DIR, "METs", "{T}-estimated-taxonomy-{parallel}.out")
     params:
+        consensus = CONSENSUS_CUTOFF,
         method = "{parallel}",
         tax_file = os.path.join(config['reference'], config['ref_tax']),
         outfile_series = os.path.join(OUTPUT_DIR, "METs", "{T}-estimated-taxonomy.out"),
@@ -175,7 +177,7 @@ rule estimate_taxonomy_METs:
     shell:
         """
         echo {input.file}
-        time python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output.outfile} --method {params.method}
+        time python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output.outfile} --method {params.method} --consensus_cutoff {params.consensus}
         """
 
 rule estimate_taxonomy_MAG_proteins:
@@ -183,6 +185,7 @@ rule estimate_taxonomy_MAG_proteins:
         file = lambda filename: get_alignment(ALIGNMENT_CHOICE, mets_or_mags = "MAGs", filename = filename.G) 
     output: os.path.join(OUTPUT_DIR, "MAGs", "{G}-estimated-taxonomy.out")
     params:
+        consensus = CONSENSUS_CUTOFF,
         tax_file = os.path.join(config['reference'], config['ref_tax']),
         prot_json = os.path.join(config['reference'], config['ref_prot']),
         cutoff = config['cutoff']
@@ -190,7 +193,7 @@ rule estimate_taxonomy_MAG_proteins:
         'envs/estimate.yaml'
     shell:
         """
-        python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output} 
+        python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output} --consensus_cutoff {params.consensus}
         """
 
 rule assign_MAG_taxonomy:

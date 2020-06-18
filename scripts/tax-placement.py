@@ -10,15 +10,15 @@ from joblib import Parallel, delayed
 
 def tax_placement(pident):
     if pident >= tax_cutoffs['species']:
-        out = 'species'; level = 6;
+        out = 'species'; level = 7;
     elif pident >= tax_cutoffs['genus']:
-        out = 'genus'; level = 5;
+        out = 'genus'; level = 6;
     elif pident >= tax_cutoffs['family']:
-        out = 'family'; level = 4;
+        out = 'family'; level = 5;
     elif pident >= tax_cutoffs['order']:
-        out = 'order'; level = 3;
+        out = 'order'; level = 4;
     elif pident < tax_cutoffs['order']:
-        out = 'class'; level = 2;
+        out = 'class'; level = 3;
     return out, level
 
 def read_in_taxonomy(infile):
@@ -56,9 +56,9 @@ def gen_dict(tax_table):
     return(dict(zip(tax_table.index, tax_table["Classification"])))
 
 def lca(full_classifications):
-    full_classifications_split = [curr.split(";").strip() for curr in full_classifications]
-    lengths_classes = [len(curr) for curr in full_classifications_split]
-    if len(set(lengths_classes)) != 1:
+    full_classifications_split = [[subtax.strip() for subtax in curr.split(";")] for curr in full_classifications]
+    length_classes = [len(curr) for curr in full_classifications_split]
+    if len(set(length_classes)) != 1:
         print("Error: not all classifications at at the same taxonomic level.")
         sys.exit(1)
     for l in reversed(range(length_classes[0])):
@@ -96,7 +96,7 @@ def match_maker(dd, consensus_cutoff, tax_dict):
             best_full_class = 0
             for e in entries:
                 curr_frac = len(np.where(full_classification_0 == e)) / len(full_classification_0)
-                if curr_frac > best_frac:
+                if (isinstance(curr_frac, float)) & (curr_frac > best_frac):
                     best_frac = curr_frac
                     best_full_class = e
                     best_one_class = e.split(";")[len(e.split(";")) - 1].strip()
@@ -189,9 +189,10 @@ if __name__ == "__main__":
     tax_cutoffs = read_in_tax_cutoffs(args.cutoff_file)
     pdict = read_in_protein_map(args.prot_map_file)
     tax_dict = gen_dict(tax_table)
+    consensus_cutoff = float(args.consensus_cutoff)
     if args.method == "parallel":
-        classification_df = classify_taxonomy_parallel(args.diamond_file, tax_dict, pdict, args.consensus_cutoff)
+        classification_df = classify_taxonomy_parallel(args.diamond_file, tax_dict, pdict, consensus_cutoff)
     else:
         diamond_df = read_in_diamond_file(args.diamond_file, pdict)
-        classification_df = classify_taxonomy(diamond_df, tax_dict, args.consensus_cutoff)
+        classification_df = classify_taxonomy(diamond_df, tax_dict, consensus_cutoff)
     classification_df.to_csv(args.outfile, sep='\t')
