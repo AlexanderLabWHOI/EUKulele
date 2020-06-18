@@ -3,7 +3,7 @@ metaT: True
 MAGs: True
 scratch: /vortexfs1/scratch/akrinos/EUKULELE
 reference: /vortexfs1/omics/alexander/data/mmetsp/reference_dir
-output: ../EUKulele_output_12Jun2020/17JuneTest
+output: ../EUKulele_output_WAP_18June
 samples: samples
 ref_fasta: reference-pep.fa # amino acid sequences
 ref_tax: taxonomy-table.txt
