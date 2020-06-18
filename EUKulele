@@ -4,47 +4,66 @@ import pandas as pd
 
 configfile: "config.yaml"  
 
+## VARIABLES ##
 CONSENSUS_CUTOFF = config['consensus_cutoff']
 REFERENCE_DIR = config['reference']
-OUTPUT_DIR = config['output']
-DATABASE_DIR = os.path.join(OUTPUT_DIR, "database")
+OUTPUTDIR = config['output']
+DATABASE_DIR = os.path.join(config['database'], "database")
 SAMPLE_DIR = config['samples']
 REF_FASTA = config['ref_fasta']
 TAX_TAB = config['ref_tax']
 PROT_TAB = config['ref_prot']
-ALIGNMENT_CHOICE = config['alignment-choice']
-EXTENSION = "txt"
+ALIGNMENT_CHOICE = config['alignment_choice']
+IFPARALLEL = config['choose_parallel']
+OUTPUT_EXTENSION = "txt"
 DBEXTENSION = ""
+TRANSDECODERORFSIZE=config['transdecoder_orfsize']
 if ALIGNMENT_CHOICE == "diamond":
-    EXTENSION = "out"
+    OUTPUT_EXTENSION = "out"
     DBEXTENSION = ".dmnd"
+NT_EXT = config['nucleotide_extension'].strip('.')
+PEP_EXT = config['protein_extension'].strip('.')
+mets_or_mags=config['mets_or_mags'].lower()
 
-def get_alignment(ALIGNMENT_CHOICE, mets_or_mags, filename):
-    if mets_or_mags == "METs":
+assert mets_or_mags in ['mets', 'mags']
+    
+def get_alignment(ALIGNMENT_CHOICE, sampletype, filename):
+    sampletype=sampletype.lower()
+    if sampletype== "mets":
         if ALIGNMENT_CHOICE == "diamond":
-            return os.path.join(OUTPUT_DIR, "METs", "diamond", filename + ".diamond.out")
+            return os.path.join(OUTPUTDIR, "METs", "diamond", filename + ".diamond.out")
         elif ALIGNMENT_CHOICE == "blast":
-            return os.path.join(OUTPUT_DIR, "METs", "blast", filename + ".blast.txt")
-    elif mets_or_mags == "MAGs":
+            return os.path.join(OUTPUTDIR, "METs", "blast", filename + ".blast.txt")
+    elif sampletype == "mags":
         if ALIGNMENT_CHOICE == "diamond":
-            return os.path.join(OUTPUT_DIR, "MAGs", "diamond", filename + ".diamond.out")
+            return os.path.join(OUTPUTDIR, "MAGs", "diamond", filename + ".diamond.out")
         elif ALIGNMENT_CHOICE == "blast":
-            return os.path.join(OUTPUT_DIR, "MAGs", "blast", filename + ".blast.txt")
+            return os.path.join(OUTPUTDIR, "MAGs", "blast", filename + ".blast.txt")
+   
+MTS, = glob_wildcards(os.path.join(SAMPLE_DIR, "METs", "{T}"+"." + NT_EXT))    
+MAG, = glob_wildcards(os.path.join(SAMPLE_DIR, "MAGs", "{G}"+"." + PEP_EXT))
 
-METEXT = "fa"    
-IFPARALLEL = "parallel"
-MTS, = glob_wildcards(os.path.join(SAMPLE_DIR, "METs", "{T}." + METEXT))
-MAG, = glob_wildcards(os.path.join(SAMPLE_DIR, "MAGs", "{G}.faa"))
+if not MTS:
+    MTS,=glob_wildcards(os.path.join(SAMPLE_DIR, "METs", "{T}"+"." + PEP_EXT))
+
+if mets_or_mags=='mags':
+    MTS=[]
+elif mets_or_mags=='mets':
+    MAG=[]
+
+   
+print(MTS)
 
 rule all: 
     input:
-        ref_db = expand(os.path.join(REFERENCE_DIR, "{aligner}", REF_FASTA.strip('.fa') + "{extension}"), aligner = ALIGNMENT_CHOICE, extension = DBEXTENSION),
-        mt_aln = expand(os.path.join(OUTPUT_DIR, "METs", "{aligner}", "{T}.{aligner}.{extension}"), T = MTS, aligner = ALIGNMENT_CHOICE, extension = EXTENSION), 
-        mt_tax = expand(os.path.join(OUTPUT_DIR, "METs", "{T}-estimated-taxonomy-{ifparallel}.out"), T = MTS, ifparallel = IFPARALLEL), 
-        mag_aln = expand(os.path.join(OUTPUT_DIR, "MAGs", "{aligner}", "{G}.{aligner}.{extension}"), G = MAG, aligner = ALIGNMENT_CHOICE, extension = EXTENSION), 
-        mag_tax = expand(os.path.join(OUTPUT_DIR, "MAGs", "{G}-estimated-taxonomy.out"), G = MAG), 
-        mag_assignment = expand(os.path.join(OUTPUT_DIR, "MAGs", "{G}-max-level.csv"), G = MAG)
-
+        ref_db = expand(os.path.join(DATABASE_DIR, "{aligner}", REF_FASTA.strip('.fa') + "{extension}"), aligner = ALIGNMENT_CHOICE, extension = DBEXTENSION),
+        mt_prot = expand(os.path.join(SAMPLE_DIR, "METs","{T}.{extension}"), T=MTS, extension=PEP_EXT),
+        mt_aln = expand(os.path.join(OUTPUTDIR, "METs", "{aligner}", "{T}.{aligner}.{extension}"), T = MTS, aligner = ALIGNMENT_CHOICE, extension = OUTPUT_EXTENSION), 
+        mt_tax = expand(os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy-{ifparallel}.out"), T = MTS, ifparallel = IFPARALLEL), 
+        mag_aln = expand(os.path.join(OUTPUTDIR, "MAGs", "{aligner}", "{G}.{aligner}.{extension}"), G = MAG, aligner = ALIGNMENT_CHOICE, extension = OUTPUT_EXTENSION), 
+        mag_tax = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-estimated-taxonomy.out"), G = MAG), 
+        mag_assignment = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-max-level.csv"), G = MAG)
+ 
 rule setup_reference:
     input: os.path.join(REFERENCE_DIR, REF_FASTA)
     output: os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa') + ".dmnd")
@@ -73,19 +92,41 @@ rule setup_reference_blast:
         makeblastdb -in {input} -parse_seqids -blastdb_version {params.blast_version} -title {params.db_name} -dbtype {params.db_type} -out {params.db}
         """
 
-#rule check_if_protein:
-    ## uses GeneMark-ES to predict protein coding regions
-    ## Or a metaT protein prediction (???)
-    ## Also allow users to pass proteins directly.
-
+rule transdecoder:
+    input:
+        nt_mets = os.path.join(SAMPLE_DIR, "METs", "{T}." + NT_EXT) 
+    output:
+        pep = os.path.join(SAMPLE_DIR,"METs",  "{T}." + PEP_EXT),
+        gff = os.path.join(SAMPLE_DIR, "METs", "transdecoder", "{T}.fasta.transdecoder.gff3"),
+        cds = os.path.join(SAMPLE_DIR, "METs", "transdecoder", "{T}.fasta.transdecoder.cds"),
+        bed = os.path.join(SAMPLE_DIR, "METs", "transdecoder", "{T}.fasta.transdecoder.bed")
+    log:
+        err = os.path.join("logs","transdecoder","orig_{T}_err.log"),
+        out = os.path.join("logs","transdecoder","orig_{T}_out.log")
+    params:
+        merged = "{T}."+NT_EXT,
+        size = TRANSDECODERORFSIZE
+    conda: 
+        "envs/transdecoder-env.yaml"
+    shell:
+        """
+        TransDecoder.LongOrfs -t {input.nt_mets} -m {params.size} 2> {log.err} 1> {log.out}
+        TransDecoder.Predict -t {input.nt_mets} --no_refine_starts 2>> {log.err} 1>> {log.out}
+        mv {params.merged}.transdecoder.pep {output.pep}
+        mv {params.merged}.transdecoder.cds {output.cds}
+        mv {params.merged}.transdecoder.gff3 {output.gff}
+        mv {params.merged}.transdecoder.bed {output.bed}
+        rm -rf {params.merged}.transdecoder_dir*
+        rm -rf pipeliner.*.cmds
+        """
 
 rule align_METs_against_db:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
         dmnd = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa')+'.dmnd'), 
-        fasta = os.path.join(SAMPLE_DIR, "METs", "{T}." + METEXT) 
+        fasta = os.path.join(SAMPLE_DIR, "METs", "{T}." + PEP_EXT) 
     output:
-        os.path.join(OUTPUT_DIR, "METs", "diamond", "{T}.diamond.out")
+        os.path.join(OUTPUTDIR, "METs", "diamond", "{T}.diamond.out")
     params:
         other = "--outfmt 6 -k 100 -e 1e-5",
         outfmt = 6,
@@ -95,16 +136,16 @@ rule align_METs_against_db:
         "envs/diamond.yaml"
     shell:
         """
-        diamond blastx --db {input.dmnd} -q {input.fasta} -o {output} --outfmt {params.outfmt} -k {params.k} -e {params.e}
+        diamond blastp --db {input.dmnd} -q {input.fasta} -o {output} --outfmt {params.outfmt} -k {params.k} -e {params.e}
         """
 
 rule align_METs_against_db_blast:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
         blast = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa')), 
-        fasta = os.path.join(SAMPLE_DIR, "METs", "{T}." + METEXT) 
+        fasta = os.path.join(SAMPLE_DIR, "METs", "{T}." + PEP_EXT) 
     output:
-        os.path.join(OUTPUT_DIR, "METs", "blast", "{T}.blast.txt")
+        os.path.join(OUTPUTDIR, "METs", "blast", "{T}.blast.txt")
     params:
         db = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa'), "database"),
         outfmt = 6, # tabular output format
@@ -114,16 +155,16 @@ rule align_METs_against_db_blast:
     shell:
         """
         export BLASTDB={params.db}
-        blastx -query {input.fasta} -db {params.db} -out {output} -outfmt {params.outfmt} -evalue {params.e}
+        blastp -query {input.fasta} -db {params.db} -out {output} -outfmt {params.outfmt} -evalue {params.e}
         """
 
 rule align_MAGs_against_db:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
         dmnd = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa')+'.dmnd'), 
-        fasta = os.path.join(SAMPLE_DIR, "MAGs", "{G}.faa")
+        fasta = os.path.join(SAMPLE_DIR, "MAGs", "{G}."+PEP_EXT)
     output:
-        os.path.join(OUTPUT_DIR, "MAGs", "diamond", "{G}.diamond.out")
+        os.path.join(OUTPUTDIR, "MAGs", "diamond", "{G}.diamond.out")
     params:
         other ="--outfmt 6 -k 100 -e 1e-5",
         outfmt = 6,
@@ -140,9 +181,9 @@ rule align_MAGs_against_db_blast:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
         blast = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa')), 
-        fasta = os.path.join(SAMPLE_DIR, "MAGs", "{G}.faa") 
+        fasta = os.path.join(SAMPLE_DIR, "MAGs", "{G}"+PEP_EXT) 
     output:
-        os.path.join(OUTPUT_DIR, "MAGs", "blast", "{G}.blast.txt")
+        os.path.join(OUTPUTDIR, "MAGs", "blast", "{G}.blast.txt")
     params:
         db = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa'), "database"),
         outfmt = 6, # tabular output format
@@ -162,14 +203,14 @@ rule align_MAGs_against_db_blast:
    
 rule estimate_taxonomy_METs:
     input: 
-        file = lambda filename: get_alignment(ALIGNMENT_CHOICE, mets_or_mags = "METs", filename = filename.T) 
+        file = lambda filename: get_alignment(ALIGNMENT_CHOICE, sampletype= "METs", filename = filename.T) 
     output: 
-        outfile = os.path.join(OUTPUT_DIR, "METs", "{T}-estimated-taxonomy-{parallel}.out")
+        outfile = os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy-{parallel}.out")
     params:
         consensus = CONSENSUS_CUTOFF,
         method = "{parallel}",
         tax_file = os.path.join(config['reference'], config['ref_tax']),
-        outfile_series = os.path.join(OUTPUT_DIR, "METs", "{T}-estimated-taxonomy.out"),
+        outfile_series = os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy.out"),
         prot_json = os.path.join(config['reference'], config['ref_prot']),
         cutoff = config['cutoff']
     conda: 
@@ -182,8 +223,8 @@ rule estimate_taxonomy_METs:
 
 rule estimate_taxonomy_MAG_proteins:
     input: 
-        file = lambda filename: get_alignment(ALIGNMENT_CHOICE, mets_or_mags = "MAGs", filename = filename.G) 
-    output: os.path.join(OUTPUT_DIR, "MAGs", "{G}-estimated-taxonomy.out")
+        file = lambda filename: get_alignment(ALIGNMENT_CHOICE, sampletype= "MAGs", filename = filename.G) 
+    output: os.path.join(OUTPUTDIR, "MAGs", "{G}-estimated-taxonomy.out")
     params:
         consensus = CONSENSUS_CUTOFF,
         tax_file = os.path.join(config['reference'], config['ref_tax']),
@@ -197,12 +238,12 @@ rule estimate_taxonomy_MAG_proteins:
         """
 
 rule assign_MAG_taxonomy:
-    input: os.path.join(OUTPUT_DIR, "MAGs", "{G}-estimated-taxonomy.out")
-    output: os.path.join(OUTPUT_DIR, "MAGs", "{G}-max-level.csv")
+    input: os.path.join(OUTPUTDIR, "MAGs", "{G}-estimated-taxonomy.out")
+    output: os.path.join(OUTPUTDIR, "MAGs", "{G}-max-level.csv")
     params: 
         prefix = '{G}',
-        levels_directory = os.path.join(OUTPUT_DIR, "MAGs", "levels"),
-        max_dir = os.path.join(OUTPUT_DIR, "MAGs")
+        levels_directory = os.path.join(OUTPUTDIR, "MAGs", "levels"),
+        max_dir = os.path.join(OUTPUTDIR, "MAGs")
     conda: 
         'envs/estimate.yaml'
     shell:
