@@ -70,9 +70,7 @@ def lca(full_classifications):
 def match_maker(dd, consensus_cutoff, tax_dict):
     ambiguous = 0 # we assume unambiguous
     md = dd.pident.max()
-    print(dd)
     ds = list(set(dd[dd.pident==md]['ssqid_TAXID']))
-    print(ds)
     assignment, level = tax_placement(md) # most specific taxonomic level assigned
     if len(ds)==1:
         full_classification = tax_dict[ds[0]].split(";")[0:level]

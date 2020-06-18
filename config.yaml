@@ -1,9 +1,10 @@
 jobname: test 
-mets_or_mags: METs #answer METs or MAGs
-nucleotide_extension: .fna
+mets_or_mags: METs # answer METs or MAGs
+nucleotide_extension: .fasta
 protein_extension: .faa
-scratch: /vortexfs1/scratch/halexander/EUKULELE
+scratch: /vortexfs1/scratch/akrinos/EUKULELE
 reference: /vortexfs1/omics/alexander/data/mmetsp/reference_dir
+database: /vortexfs1/omics/alexander/data/mmetsp/reference_dir
 output: ../EUKulele_output_WAP_18June
 samples: samples
 ref_fasta: reference-pep.fa # amino acid sequences

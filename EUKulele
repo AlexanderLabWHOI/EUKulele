@@ -40,11 +40,11 @@ def get_alignment(ALIGNMENT_CHOICE, sampletype, filename):
         elif ALIGNMENT_CHOICE == "blast":
             return os.path.join(OUTPUTDIR, "MAGs", "blast", filename + ".blast.txt")
    
-MTS, = glob_wildcards(os.path.join(SAMPLE_DIR, "METs", "{T}"+"." + NT_EXT))    
-MAG, = glob_wildcards(os.path.join(SAMPLE_DIR, "MAGs", "{G}"+"." + PEP_EXT))
+MTS, = glob_wildcards(os.path.join(SAMPLE_DIR, "METs", "{T}"+ "." + NT_EXT))    
+MAG, = glob_wildcards(os.path.join(SAMPLE_DIR, "MAGs", "{G}"+ "." + PEP_EXT))
 
 if not MTS:
-    MTS,=glob_wildcards(os.path.join(SAMPLE_DIR, "METs", "{T}"+"." + PEP_EXT))
+    MTS,=glob_wildcards(os.path.join(SAMPLE_DIR, "METs", "{T}"+ "." + PEP_EXT))
 
 if mets_or_mags=='mags':
     MTS=[]
@@ -96,7 +96,7 @@ rule transdecoder:
     input:
         nt_mets = os.path.join(SAMPLE_DIR, "METs", "{T}." + NT_EXT) 
     output:
-        pep = os.path.join(SAMPLE_DIR,"METs",  "{T}." + PEP_EXT),
+        pep = os.path.join(SAMPLE_DIR, "METs",  "{T}." + PEP_EXT),
         gff = os.path.join(SAMPLE_DIR, "METs", "transdecoder", "{T}.fasta.transdecoder.gff3"),
         cds = os.path.join(SAMPLE_DIR, "METs", "transdecoder", "{T}.fasta.transdecoder.cds"),
         bed = os.path.join(SAMPLE_DIR, "METs", "transdecoder", "{T}.fasta.transdecoder.bed")
@@ -104,7 +104,7 @@ rule transdecoder:
         err = os.path.join("logs","transdecoder","orig_{T}_err.log"),
         out = os.path.join("logs","transdecoder","orig_{T}_out.log")
     params:
-        merged = "{T}."+NT_EXT,
+        merged = "{T}."+ NT_EXT,
         size = TRANSDECODERORFSIZE
     conda: 
         "envs/transdecoder-env.yaml"
@@ -123,7 +123,7 @@ rule transdecoder:
 rule align_METs_against_db:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
-        dmnd = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa')+'.dmnd'), 
+        dmnd = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa') + '.dmnd'), 
         fasta = os.path.join(SAMPLE_DIR, "METs", "{T}." + PEP_EXT) 
     output:
         os.path.join(OUTPUTDIR, "METs", "diamond", "{T}.diamond.out")
