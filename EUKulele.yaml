@@ -1,10 +1,10 @@
 __default__:
     system: 'slurm' #check if system is defined below
-    account: halexander #requred
+    account: akrinos #requred
     time: 5000 # minutes
     mem: 180 # GB
     threads: 2
-    queue: compute # required
+    queue: scavenger # required
     nodes: 1
     command_options:
         slurm:
@@ -19,13 +19,13 @@ __default__:
             nodes: "-N {}"      # ntasks: 24
 
 align_METs_against_db: 
-    queue: compute
+    queue: scavenger
     threads: 8 
     mem: 50 
     time: 5000
 
 align_MAGs_against_db: 
-    queue: compute
+    queue: scavenger
     threads: 8 
     mem: 50
     time: 5000   

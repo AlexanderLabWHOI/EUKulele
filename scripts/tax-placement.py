@@ -64,7 +64,7 @@ def lca(full_classifications):
     for l in reversed(range(length_classes[0])):
         set_classifications = [curr[1] for curr in full_classifications_split]
         if len(set(set_classifications)):
-            return set_classifications[0], full_classifications_split[0][0:l]
+            return set_classifications[0], "; ".join(full_classifications_split[0][0:l])
     return "","" # if there are no 
 
 def match_maker(dd, consensus_cutoff, tax_dict):
