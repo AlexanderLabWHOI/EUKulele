@@ -1,10 +1,18 @@
-metaT: False
-MAGs: True
-scratch: /vortexfs1/scratch/halexander/EUKULELE
+jobname: test 
+mets_or_mags: MAGs # answer METs or MAGs
+nucleotide_extension: .fna
+protein_extension: .faa
+scratch: /vortexfs1/scratch/akrinos/EUKULELE
 reference: /vortexfs1/omics/alexander/data/mmetsp/reference_dir
-ref_fasta: reference-pep.fa
+database: /vortexfs1/omics/alexander/data/mmetsp/reference_dir
+output: test-output 
+samples: test-samples 
+ref_fasta: reference-pep.fa # amino acid sequences
 ref_tax: taxonomy-table.txt
 ref_prot: protein-species-map.json 
 cutoff: tax-cutoffs.yaml 
-taxonomy_table: /vortexfs1/omics/alexander/data/mmetsp/taxonomy_v2.txt
-alignment-choice: diamond #or blast? or ... (allow people to choose what kind of alignment they want to run)
+consensus_cutoff: 0.75
+taxonomy_table: /vortexfs1/omics/alexander/data/mmetsp/taxonomy_v2.txt #path to eukulele taxonomy table
+alignment_choice: diamond # diamond or blast
+choose_parallel: parallel # parallel or series; whether to run estimate taxonomy in parallel mode (Requires joblib & multiprocessing)
+transdecoder_orfsize: 100
