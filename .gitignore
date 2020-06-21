@@ -1,4 +1,6 @@
+*out
 .ipynb_checkpoints/
 .snakemake/
-output/
+*output/
 samples/
+logs/*
