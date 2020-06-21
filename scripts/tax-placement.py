@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import json
+import ujson
 import pandas as pd
 import numpy as np
 import yaml
