@@ -62,10 +62,10 @@ def lca(full_classifications):
         print("Error: not all classifications at at the same taxonomic level.")
         sys.exit(1)
     for l in reversed(range(length_classes[0])):
-        set_classifications = [curr[1] for curr in full_classifications_split]
+        set_classifications = [curr[l] for curr in full_classifications_split]
         if len(set(set_classifications)):
             return set_classifications[0], "; ".join(full_classifications_split[0][0:l])
-    return "","" # if there are no 
+    return "","" # if there are no common ancestors
 
 def match_maker(dd, consensus_cutoff, tax_dict):
     ambiguous = 0 # we assume unambiguous
