@@ -71,7 +71,7 @@ def lca(full_classifications):
             return set_classifications[0], "; ".join(full_classifications_split[0][0:l])
     return "","" # if there are no common ancestors
 
-def match_maker(dd, consensus_cutoff, tax_dict):
+def match_maker(dd, consensus_cutoff, tax_dict, use_counts):
     ambiguous = 0 # we assume unambiguous
     md = dd.pident.max()
     ds = list(set(dd[dd.pident==md]['ssqid_TAXID']))
@@ -83,15 +83,12 @@ def match_maker(dd, consensus_cutoff, tax_dict):
     assignment, level = tax_placement(md) # most specific taxonomic level assigned
     if len(ds)==1:
         full_classification = tax_dict[ds[0]].split(";")[0:level]
-        #chosen_count = counts[0]
         best_classification = full_classification[len(full_classification) - 1] # the most specific taxonomic level we can classify by
         full_classification = '; '.join(full_classification) # the actual assignments based on that
     else:
         classification_0 = []
         full_classification_0 = []
-        #ctr = 0; chosen_count = 0
         for d in ds:
-            #chosen_count = chosen_count + counts[ctr]; ctr = ctr + 1
             d_full_class = tax_dict[d].split(";")[0:level]
             classification_0.append(d_full_class[len(d_full_class) - 1]) # the most specific taxonomic level we can classify by
             full_classification_0.append('; '.join(d_full_class)) # the actual assignments based on that
@@ -116,11 +113,15 @@ def match_maker(dd, consensus_cutoff, tax_dict):
             else:
                 best_classification, full_classification = lca(full_classification_0)
 
-    return pd.DataFrame([[assignment, full_classification, best_classification, md, chosen_count, ambiguous]],\
-                   columns=['classification_level', 'full_classification', 'classification', 'max_pid', 'counts', 'ambiguous'])
+    if use_counts == 1:
+        return pd.DataFrame([[assignment, full_classification, best_classification, md, chosen_count, ambiguous]],\
+                       columns=['classification_level', 'full_classification', 'classification', 'max_pid', 'counts', 'ambiguous'])
+    else:
+        return pd.DataFrame([[assignment, full_classification, best_classification, md, ambiguous]],\
+                       columns=['classification_level', 'full_classification', 'classification', 'max_pid', 'ambiguous'])
 
-def apply_parallel(grouped_data, match_maker, consensus_cutoff, tax_dict):
-    resultdf = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(match_maker)(group, consensus_cutoff, tax_dict) for name, group in grouped_data)
+def apply_parallel(grouped_data, match_maker, consensus_cutoff, tax_dict, use_counts):
+    resultdf = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(match_maker)(group, consensus_cutoff, tax_dict, use_counts) for name, group in grouped_data)
     return pd.concat(resultdf)
 
 def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cutoff):
@@ -131,13 +132,15 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cuto
         chunk['ssqid_TAXID']=chunk.sseqid.map(pdict)
         if namestoreads != 0:
             chunk['counts']=[namestoreads[curr.split(".")[0]] for curr in chunk.qseqid]
+            use_counts = 1
         else:
-            chunk['counts'] = [1] * len(chunk.qseqid) # if no reads dict, each count is just assumed to be 1
+            chunk['counts'] = [0] * len(chunk.qseqid) # if no reads dict, each count is just assumed to be 0 and isn't recorded later
+            use_counts = 0
             
         if counter == 0:
-            outdf = apply_parallel(chunk.groupby('qseqid'), match_maker, consensus_cutoff, tax_dict)
+            outdf = apply_parallel(chunk.groupby('qseqid'), match_maker, consensus_cutoff, tax_dict, use_counts)
         else:
-            outdf = pd.concat([outdf, apply_parallel(chunk.groupby('qseqid'), match_maker, consensus_cutoff, tax_dict)], axis = 0)
+            outdf = pd.concat([outdf, apply_parallel(chunk.groupby('qseqid'), match_maker, consensus_cutoff, tax_dict, use_counts)], axis = 0)
         counter = counter + 1
     return outdf
 
