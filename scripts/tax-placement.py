@@ -60,6 +60,7 @@ def gen_reads_dict(names_to_reads):
     return(dict(zip(names_to_reads["TranscriptNames"],names_to_reads["NumReads"])))
 
 def lca(full_classifications):
+    classes = ['supergroup','division','class','order','family','genus','species']
     full_classifications_split = [[subtax.strip() for subtax in curr.split(";")] for curr in full_classifications]
     length_classes = [len(curr) for curr in full_classifications_split]
     if len(set(length_classes)) != 1:
@@ -67,8 +68,8 @@ def lca(full_classifications):
         sys.exit(1)
     for l in reversed(range(length_classes[0])):
         set_classifications = [curr[l] for curr in full_classifications_split]
-        if len(set(set_classifications)):
-            return set_classifications[0], "; ".join(full_classifications_split[0][0:l])
+        if len(set(set_classifications)) == 1:
+            return classes[l], set_classifications[0], "; ".join(full_classifications_split[0][0:(l+1)])
     return "","" # if there are no common ancestors
 
 def match_maker(dd, consensus_cutoff, tax_dict, use_counts):
@@ -111,7 +112,7 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts):
                 best_classification = best_one_class
                 full_classification = best_full_class
             else:
-                best_classification, full_classification = lca(full_classification_0)
+                assignment, best_classification, full_classification = lca(full_classification_0)
 
     if use_counts == 1:
         return pd.DataFrame([[assignment, full_classification, best_classification, md, chosen_count, ambiguous]],\
