@@ -40,7 +40,7 @@ def get_alignment(ALIGNMENT_CHOICE, sampletype, filename):
         elif ALIGNMENT_CHOICE == "blast":
             return os.path.join(OUTPUTDIR, "MAGs", "blast", filename + ".blast.txt")
    
-MTS, = glob_wildcards(os.path.join(SAMPLE_DIR, "METs", "{T}"+ "." + NT_EXT))    
+MTS, = glob_wildcards(os.path.join(SAMPLE_DIR, "METs", "{T}"+ "." + NT_EXT)) # should normally be in METs folder   
 MAG, = glob_wildcards(os.path.join(SAMPLE_DIR, "MAGs", "{G}"+ "." + PEP_EXT))
 
 if not MTS:
@@ -57,7 +57,7 @@ print(MTS)
 rule all: 
     input:
         ref_db = expand(os.path.join(DATABASE_DIR, "{aligner}", REF_FASTA.strip('.fa') + "{extension}"), aligner = ALIGNMENT_CHOICE, extension = DBEXTENSION),
-        mt_prot = expand(os.path.join(SAMPLE_DIR, "METs","{T}.{extension}"), T=MTS, extension=PEP_EXT),
+        mt_prot = expand(os.path.join(OUTPUTDIR, "METs","{T}.{extension}"), T=MTS, extension=PEP_EXT),
         mt_aln = expand(os.path.join(OUTPUTDIR, "METs", "{aligner}", "{T}.{aligner}.{extension}"), T = MTS, aligner = ALIGNMENT_CHOICE, extension = OUTPUT_EXTENSION), 
         mt_tax = expand(os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy-{ifparallel}.out"), T = MTS, ifparallel = IFPARALLEL), 
         mag_aln = expand(os.path.join(OUTPUTDIR, "MAGs", "{aligner}", "{G}.{aligner}.{extension}"), G = MAG, aligner = ALIGNMENT_CHOICE, extension = OUTPUT_EXTENSION), 
@@ -94,12 +94,12 @@ rule setup_reference_blast:
 
 rule transdecoder:
     input:
-        nt_mets = os.path.join(SAMPLE_DIR, "METs", "{T}." + NT_EXT) 
+        nt_mets = os.path.join(SAMPLE_DIR, "METs", "{T}." + NT_EXT)  # normally, within METs folder 
     output:
-        pep = os.path.join(SAMPLE_DIR, "METs",  "{T}." + PEP_EXT),
-        gff = os.path.join(SAMPLE_DIR, "METs", "transdecoder", "{T}.fasta.transdecoder.gff3"),
-        cds = os.path.join(SAMPLE_DIR, "METs", "transdecoder", "{T}.fasta.transdecoder.cds"),
-        bed = os.path.join(SAMPLE_DIR, "METs", "transdecoder", "{T}.fasta.transdecoder.bed")
+        pep = os.path.join(OUTPUTDIR, "METs",  "{T}." + PEP_EXT),
+        gff = os.path.join(OUTPUTDIR, "METs", "transdecoder", "{T}.fasta.transdecoder.gff3"),
+        cds = os.path.join(OUTPUTDIR, "METs", "transdecoder", "{T}.fasta.transdecoder.cds"),
+        bed = os.path.join(OUTPUTDIR, "METs", "transdecoder", "{T}.fasta.transdecoder.bed")
     log:
         err = os.path.join("logs","transdecoder","orig_{T}_err.log"),
         out = os.path.join("logs","transdecoder","orig_{T}_out.log")
@@ -124,7 +124,7 @@ rule align_METs_against_db:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
         dmnd = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa') + '.dmnd'), 
-        fasta = os.path.join(SAMPLE_DIR, "METs", "{T}." + PEP_EXT) 
+        fasta = os.path.join(OUTPUTDIR, "METs", "{T}." + PEP_EXT) 
     output:
         os.path.join(OUTPUTDIR, "METs", "diamond", "{T}.diamond.out")
     params:
@@ -143,7 +143,7 @@ rule align_METs_against_db_blast:
   ## runs alignment against reference DB and generates .aln files for each contig in each samples
     input:
         blast = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa')), 
-        fasta = os.path.join(SAMPLE_DIR, "METs", "{T}." + PEP_EXT) 
+        fasta = os.path.join(OUTPUTDIR, "METs", "{T}." + PEP_EXT) 
     output:
         os.path.join(OUTPUTDIR, "METs", "blast", "{T}.blast.txt")
     params:
@@ -210,6 +210,7 @@ rule estimate_taxonomy_METs:
         consensus = CONSENSUS_CUTOFF,
         method = "{parallel}",
         tax_file = os.path.join(config['reference'], config['ref_tax']),
+        names_to_reads = os.path.join(config['reference'], config['names_to_reads']),
         outfile_series = os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy.out"),
         prot_json = os.path.join(config['reference'], config['ref_prot']),
         cutoff = config['cutoff']
@@ -218,7 +219,7 @@ rule estimate_taxonomy_METs:
     shell:
         """
         echo {input.file}
-        time python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output.outfile} --method {params.method} --consensus_cutoff {params.consensus}
+        time python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --names_to_reads {params.names_to_reads} --outfile {output.outfile} --method {params.method} --consensus_cutoff {params.consensus}
         """
 
 rule estimate_taxonomy_MAG_proteins:

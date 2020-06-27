@@ -55,6 +55,10 @@ def gen_dict(tax_table):
             tax_table["Classification"] = tax_table["Classification"] + tax_table[c]
     return(dict(zip(tax_table.index, tax_table["Classification"])))
 
+def gen_reads_dict(names_to_reads):
+    names_to_reads = pd.read_csv(names_to_reads,header=0,sep="\t")
+    return(dict(zip(names_to_reads["TranscriptNames"],names_to_reads["NumReads"])))
+
 def lca(full_classifications):
     full_classifications_split = [[subtax.strip() for subtax in curr.split(";")] for curr in full_classifications]
     length_classes = [len(curr) for curr in full_classifications_split]
@@ -71,22 +75,30 @@ def match_maker(dd, consensus_cutoff, tax_dict):
     ambiguous = 0 # we assume unambiguous
     md = dd.pident.max()
     ds = list(set(dd[dd.pident==md]['ssqid_TAXID']))
+    counts = list(set(dd[dd.pident==md]['counts']))
+    if (len(counts) >= 1):
+        chosen_count = counts[0]
+    else:
+        chosen_count = 0
     assignment, level = tax_placement(md) # most specific taxonomic level assigned
     if len(ds)==1:
         full_classification = tax_dict[ds[0]].split(";")[0:level]
+        #chosen_count = counts[0]
         best_classification = full_classification[len(full_classification) - 1] # the most specific taxonomic level we can classify by
         full_classification = '; '.join(full_classification) # the actual assignments based on that
     else:
         classification_0 = []
         full_classification_0 = []
+        #ctr = 0; chosen_count = 0
         for d in ds:
+            #chosen_count = chosen_count + counts[ctr]; ctr = ctr + 1
             d_full_class = tax_dict[d].split(";")[0:level]
             classification_0.append(d_full_class[len(d_full_class) - 1]) # the most specific taxonomic level we can classify by
             full_classification_0.append('; '.join(d_full_class)) # the actual assignments based on that
         entries = list(set(full_classification_0))
         if len(entries) == 1:
-                best_classification = classification_0[0]
-                full_classification = full_classification_0[0]
+            best_classification = classification_0[0]
+            full_classification = full_classification_0[0]
         else:
             ambiguous = 1
             best_frac = 0
@@ -104,19 +116,24 @@ def match_maker(dd, consensus_cutoff, tax_dict):
             else:
                 best_classification, full_classification = lca(full_classification_0)
 
-    return pd.DataFrame([[assignment, full_classification, best_classification, md, ambiguous]],\
-                   columns=['classification_level', 'full_classification', 'classification', 'max_pid', 'ambiguous'])
+    return pd.DataFrame([[assignment, full_classification, best_classification, md, chosen_count, ambiguous]],\
+                   columns=['classification_level', 'full_classification', 'classification', 'max_pid', 'counts', 'ambiguous'])
 
 def apply_parallel(grouped_data, match_maker, consensus_cutoff, tax_dict):
     resultdf = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(match_maker)(group, consensus_cutoff, tax_dict) for name, group in grouped_data)
     return pd.concat(resultdf)
 
-def classify_taxonomy_parallel(df, tax_dict, pdict, consensus_cutoff):
+def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cutoff):
     chunksize = 10 ** 6
     counter = 0
     for chunk in pd.read_csv(df, sep = '\t', header = None, chunksize=chunksize):
         chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore']
         chunk['ssqid_TAXID']=chunk.sseqid.map(pdict)
+        if namestoreads != 0:
+            chunk['counts']=[namestoreads[curr.split(".")[0]] for curr in chunk.qseqid]
+        else:
+            chunk['counts'] = [1] * len(chunk.qseqid) # if no reads dict, each count is just assumed to be 1
+            
         if counter == 0:
             outdf = apply_parallel(chunk.groupby('qseqid'), match_maker, consensus_cutoff, tax_dict)
         else:
@@ -179,6 +196,8 @@ if __name__ == "__main__":
     parser.add_argument('--cutoff_file')
     parser.add_argument('--consensus_cutoff')
     parser.add_argument('--prot_map_file')
+    parser.add_argument('--use_counts')
+    parser.add_argument('--names_to_reads')
     parser.add_argument('--diamond_file')
     parser.add_argument('--outfile')
     parser.add_argument('--method')
@@ -189,7 +208,11 @@ if __name__ == "__main__":
     tax_dict = gen_dict(tax_table)
     consensus_cutoff = float(args.consensus_cutoff)
     if args.method == "parallel":
-        classification_df = classify_taxonomy_parallel(args.diamond_file, tax_dict, pdict, consensus_cutoff)
+        if (args.names_to_reads == 1):
+            reads_dict = gen_reads_dict(args.names_to_reads)
+            classification_df = classify_taxonomy_parallel(args.diamond_file, tax_dict, reads_dict, pdict, consensus_cutoff)
+        else:
+            classification_df = classify_taxonomy_parallel(args.diamond_file, tax_dict, 0, pdict, consensus_cutoff)
     else:
         diamond_df = read_in_diamond_file(args.diamond_file, pdict)
         classification_df = classify_taxonomy(diamond_df, tax_dict, consensus_cutoff)

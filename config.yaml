@@ -1,15 +1,20 @@
-jobname: test 
+jobname: wap 
 mets_or_mags: METs # answer METs or MAGs
 nucleotide_extension: .fasta
 protein_extension: .faa
 scratch: /vortexfs1/scratch/akrinos/EUKULELE
-reference: /vortexfs1/omics/alexander/data/mmetsp/reference_dir
-database: /vortexfs1/omics/alexander/data/mmetsp/reference_dir
-output: ../EUKulele_output_WAP_19June
-samples: samples
-ref_fasta: reference-pep.fa # amino acid sequences
-ref_tax: taxonomy-table.txt
-ref_prot: protein-species-map.json 
+use_salmon_counts: 1 # if this is set to 1, names_to_reads
+salmon_dir: ../testoutput/salmon_indiv
+names_to_reads: namestoreads.csv # if this file exists in the reference directory (below), this file is used
+reference: /vortexfs1/omics/alexander/akrinos/EUKulele-Reference
+database: /vortexfs1/omics/alexander/akrinos/EUKulele-Reference
+#reference: /vortexfs1/omics/alexander/data/mmetsp/reference_dir
+#database: /vortexfs1/omics/alexander/data/mmetsp/reference_dir
+output: ../EUKulele_output_WAP_PhyloDB_counts
+samples: samples #/vortexfs1/omics/saito/BATS2019-clio-metaT/eukrhythmic_output/merged 
+ref_fasta: tax-tables/phylodb.pep.fa #reference-pep.fa # amino acid sequences
+ref_tax: tax-table-phylodb.txt #taxonomy-table.txt
+ref_prot: protein-map-phylodb.json #protein-species-map.json 
 cutoff: tax-cutoffs.yaml 
 consensus_cutoff: 0.75
 taxonomy_table: /vortexfs1/omics/alexander/data/mmetsp/taxonomy_v2.txt #path to eukulele taxonomy table
