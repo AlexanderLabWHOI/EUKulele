@@ -24,6 +24,9 @@ if ALIGNMENT_CHOICE == "diamond":
 NT_EXT = config['nucleotide_extension'].strip('.')
 PEP_EXT = config['protein_extension'].strip('.')
 mets_or_mags=config['mets_or_mags'].lower()
+USE_SALMON_COUNTS = config["use_salmon_counts"]
+SALMON_DIR = config["salmon_dir"]
+NAMES_TO_READS = config["names_to_reads"]
 
 assert mets_or_mags in ['mets', 'mags']
     
@@ -210,7 +213,8 @@ rule estimate_taxonomy_METs:
         consensus = CONSENSUS_CUTOFF,
         method = "{parallel}",
         tax_file = os.path.join(config['reference'], config['ref_tax']),
-        names_to_reads = os.path.join(config['reference'], config['names_to_reads']),
+        use_counts = USE_SALMON_COUNTS
+        names_to_reads = os.path.join(config['reference'], NAMES_TO_READS),
         outfile_series = os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy.out"),
         prot_json = os.path.join(config['reference'], config['ref_prot']),
         cutoff = config['cutoff']
@@ -219,8 +223,25 @@ rule estimate_taxonomy_METs:
     shell:
         """
         echo {input.file}
-        time python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --names_to_reads {params.names_to_reads} --outfile {output.outfile} --method {params.method} --consensus_cutoff {params.consensus}
+        if [ {params.use_counts} == 1 ]; then
+            python scripts/names-to-reads.py
+        fi
+        time python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --names_to_reads {params.names_to_reads} --use-counts {params.use_counts} --outfile {output.outfile} --method {params.method} --consensus_cutoff {params.consensus}
         """
+        
+rule visualize_taxonomy_METs:
+    input:
+        expand(os.path.join(OUTPUTDIR, "METs", "{all_mets}-estimated-taxonomy-{parallel}.out"), all_mets = MTS)
+    output:
+        os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1] + "all_species_counts.csv")
+    params:
+        prefix = OUTPUTDIR.split("/")[-1],
+        outputdir = OUTPUTDIR
+    shell:
+        """
+        python scripts/visualize-results.py --out_prefix {params.prefix} --out_dir {params.outputdir}
+        
+    
 
 rule estimate_taxonomy_MAG_proteins:
     input: 
