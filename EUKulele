@@ -29,6 +29,10 @@ SALMON_DIR = config["salmon_dir"]
 NAMES_TO_READS = config["names_to_reads"]
 
 assert mets_or_mags in ['mets', 'mags']
+
+def get_all_names(parallel,METs):
+    filenames = [os.path.join(OUTPUTDIR, "METs", curr + "-estimated-taxonomy-" + parallel + ".out") for curr in METs]
+    return filenames
     
 def get_alignment(ALIGNMENT_CHOICE, sampletype, filename):
     sampletype=sampletype.lower()
@@ -63,6 +67,7 @@ rule all:
         mt_prot = expand(os.path.join(OUTPUTDIR, "METs","{T}.{extension}"), T=MTS, extension=PEP_EXT),
         mt_aln = expand(os.path.join(OUTPUTDIR, "METs", "{aligner}", "{T}.{aligner}.{extension}"), T = MTS, aligner = ALIGNMENT_CHOICE, extension = OUTPUT_EXTENSION), 
         mt_tax = expand(os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy-{ifparallel}.out"), T = MTS, ifparallel = IFPARALLEL), 
+        mt_tax_viz = expand(os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1] + "all_species_counts_{ifparallel}.csv"),ifparallel = IFPARALLEL),
         mag_aln = expand(os.path.join(OUTPUTDIR, "MAGs", "{aligner}", "{G}.{aligner}.{extension}"), G = MAG, aligner = ALIGNMENT_CHOICE, extension = OUTPUT_EXTENSION), 
         mag_tax = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-estimated-taxonomy.out"), G = MAG), 
         mag_assignment = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-max-level.csv"), G = MAG)
@@ -213,7 +218,7 @@ rule estimate_taxonomy_METs:
         consensus = CONSENSUS_CUTOFF,
         method = "{parallel}",
         tax_file = os.path.join(config['reference'], config['ref_tax']),
-        use_counts = USE_SALMON_COUNTS
+        use_counts = USE_SALMON_COUNTS,
         names_to_reads = os.path.join(config['reference'], NAMES_TO_READS),
         outfile_series = os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy.out"),
         prot_json = os.path.join(config['reference'], config['ref_prot']),
@@ -231,16 +236,16 @@ rule estimate_taxonomy_METs:
         
 rule visualize_taxonomy_METs:
     input:
-        expand(os.path.join(OUTPUTDIR, "METs", "{all_mets}-estimated-taxonomy-{parallel}.out"), all_mets = MTS)
+        lambda filename: get_all_names(parallel = filename.parallel, METs = MTS)
     output:
-        os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1] + "all_species_counts.csv")
+        os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1] + "all_species_counts_{parallel}.csv")
     params:
         prefix = OUTPUTDIR.split("/")[-1],
         outputdir = OUTPUTDIR
     shell:
         """
         python scripts/visualize-results.py --out_prefix {params.prefix} --out_dir {params.outputdir}
-        
+        """
     
 
 rule estimate_taxonomy_MAG_proteins:
