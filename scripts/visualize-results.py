@@ -131,6 +131,63 @@ for curr in results_frame.keys():
         new_df = frame_results[curr][l]
         counts_all[l] = makeConcatFrame(curr_df, new_df, l.capitalize(), sample_name)
     
-for l in counts_all:
+for l in level_hierarchys:
     prefix = args.out_prefix
     counts_all[l].to_csv(os.path.join(args.output_dir, prefix + "all_" + l + "_counts.csv"))
+    
+    Curr_Variable = l.capitalize()
+    cutoff_counts = 100000
+    cutoff_transcripts = 100
+
+    #####
+    curr_df_start = counts_all[l] #read.csv(paste0(prefix,"all_",tolower(Curr_Variable),"_counts.csv"))
+    curr_df_start["OfInterest"] = curr_df_start[Curr_Variable]
+
+    import seaborn as sns
+    sns.set()
+    curr_df_start.iloc[1:10,:]
+
+    ## CREATE AGGREGATED COUNTS BY SAMPLE ##
+    curr_df_summed = curr_df_start.groupby("Sample")["NumTranscripts"].agg(AllCts='sum')
+    curr_df_summed = curr_df_start.join(curr_df_summed,how="left",on="Sample")
+
+    ## CALCULATE RELATIVE COUNTS ## 
+    curr_df_summed["Rel_Counts"] = curr_df_summed["NumTranscripts"] / curr_df_summed["AllCts"]
+    curr_df_plot = curr_df_summed[["OfInterest","Sample","Rel_Counts"]]
+    pivoted = curr_df_plot.pivot(index='Sample', columns='OfInterest', values='Rel_Counts')
+
+    pivoted_agg = list(pivoted.sum(axis = 0, skipna = True))
+    chosen_cols = [curr for curr in range(len(pivoted_agg)) if pivoted_agg[curr] > 0.1]
+    pivoted = pivoted.iloc[:,chosen_cols]
+
+    c25 = ["dodgerblue2", "#E31A1C",\
+      "green4",\
+      "#6A3D9A",\
+      "#FF7F00",\
+      "black", "gold1",\
+      "skyblue2", "#FB9A99",\
+      "palegreen2",\
+      "#CAB2D6",\
+      "#FDBF6F",\
+      "gray70", "khaki2",\
+      "maroon", "orchid1", "deeppink1", "blue1", "steelblue4",\
+      "darkturquoise", "green1", "yellow4", "yellow3",\
+      "darkorange4", "brown"]
+
+    sns_palette = sns.palplot(sns.color_palette("Set1", n_colors=len(set(curr_df_plot["OfInterest"]))))
+
+    if use_counts == 0:
+        fig = plt.figure(figsize=(40,20))
+        pivoted.plot(kind='bar', stacked=True, color = sns_palette)
+        plt.tight_layout()
+        plt.savefig(l + '_transcripts.png',dpi=1000)
+        plt.show()
+    else:
+        f, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(40,20))
+        pivoted = createPlotDataFrame(curr_df_start, transcript_or_counts="NumTranscripts")
+        pivoted.plot(kind='bar', stacked=True, color = sns_palette, ax = ax1)
+        pivoted = createPlotDataFrame(curr_df_start, transcript_or_counts="Counts")
+        pivoted.plot(kind='bar', stacked=True, color = sns_palette, ax = ax1)
+        plt.tight_layout()
+        plt.savefig(l + '_counts_and_transcripts.png',dpi=1000)
+        plt.show()

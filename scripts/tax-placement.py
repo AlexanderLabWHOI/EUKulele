@@ -70,7 +70,7 @@ def lca(full_classifications):
         set_classifications = [curr[l] for curr in full_classifications_split]
         if len(set(set_classifications)) == 1:
             return classes[l], set_classifications[0], "; ".join(full_classifications_split[0][0:(l+1)])
-    return "","" # if there are no common ancestors
+    return "","","" # if there are no common ancestors
 
 def match_maker(dd, consensus_cutoff, tax_dict, use_counts):
     ambiguous = 0 # we assume unambiguous

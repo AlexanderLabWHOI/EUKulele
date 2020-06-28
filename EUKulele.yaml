@@ -4,7 +4,7 @@ __default__:
     time: 5000 # minutes
     mem: 180 # GB
     threads: 2
-    queue: scavenger # required
+    queue: compute # required
     nodes: 1
     command_options:
         slurm:
@@ -19,7 +19,7 @@ __default__:
             nodes: "-N {}"      # ntasks: 24
 
 align_METs_against_db: 
-    queue: scavenger
+    queue: compute
     threads: 8 
     mem: 50 
     time: 5000

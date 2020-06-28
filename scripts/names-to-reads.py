@@ -2,10 +2,10 @@ import pandas as pd
 import glob
 import os
 import yaml
+import sys
 
 with open("config.yaml", 'r') as configfile:
     config = yaml.safe_load(configfile)
-return config
 
 if os.path.isfile(os.path.join(config["reference"],config["names_to_reads"])):
     print("Salmon reads file previously created; new file will not be created from Salmon directory.")

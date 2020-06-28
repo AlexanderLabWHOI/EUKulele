@@ -231,7 +231,7 @@ rule estimate_taxonomy_METs:
         if [ {params.use_counts} == 1 ]; then
             python scripts/names-to-reads.py
         fi
-        time python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --names_to_reads {params.names_to_reads} --use-counts {params.use_counts} --outfile {output.outfile} --method {params.method} --consensus_cutoff {params.consensus}
+        time python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --names_to_reads {params.names_to_reads} --use_counts {params.use_counts} --outfile {output.outfile} --method {params.method} --consensus_cutoff {params.consensus}
         """
         
 rule visualize_taxonomy_METs:
