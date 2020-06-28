@@ -3,7 +3,7 @@ mets_or_mags: METs # answer METs or MAGs
 nucleotide_extension: .fasta
 protein_extension: .faa
 scratch: /vortexfs1/scratch/akrinos/EUKULELE
-use_salmon_counts: 1 # if this is set to 1, names_to_reads
+use_salmon_counts: 1 # if this is set to 1, names_to_reads is used
 salmon_dir: ../testoutput/salmon_indiv
 names_to_reads: namestoreads.csv # if this file exists in the reference directory (below), this file is used
 reference: /vortexfs1/omics/alexander/akrinos/EUKulele-Reference

@@ -212,7 +212,9 @@ if __name__ == "__main__":
     tax_dict = gen_dict(tax_table)
     consensus_cutoff = float(args.consensus_cutoff)
     if args.method == "parallel":
-        if (args.names_to_reads == 1):
+        if (int(args.use_counts) == 1):
+            print("Hello")
+            print(args.use_counts)
             reads_dict = gen_reads_dict(args.names_to_reads)
             classification_df = classify_taxonomy_parallel(args.diamond_file, tax_dict, reads_dict, pdict, consensus_cutoff)
         else:

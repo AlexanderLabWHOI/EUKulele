@@ -130,22 +130,41 @@ for curr in results_frame.keys():
         curr_df = counts_all[l]
         new_df = frame_results[curr][l]
         counts_all[l] = makeConcatFrame(curr_df, new_df, l.capitalize(), sample_name)
+
+def createPlotDataFrame(curr_df_start, transcript_or_counts="NumTranscripts"):
+    ## CREATE AGGREGATED COUNTS BY SAMPLE ##
+    curr_df_summed = curr_df_start.groupby("Sample")[transcript_or_counts].agg(AllCts='sum')
+    curr_df_summed = curr_df_start.join(curr_df_summed,how="left",on="Sample")
+
+    ## CALCULATE RELATIVE COUNTS ## 
+    curr_df_summed["Rel_Counts"] = curr_df_summed[transcript_or_counts] / curr_df_summed["AllCts"]
+    curr_df_plot = curr_df_summed[["OfInterest","Sample","Rel_Counts"]]
+    pivoted = curr_df_plot.pivot(index='Sample', columns='OfInterest', values='Rel_Counts')
+    pivoted = pivoted.reindex(sorted(pivoted.columns), axis=1)
+
+    pivoted_on_transcripts = curr_df_summed.pivot(index='Sample', columns='OfInterest', values='NumTranscripts')
+    pivoted_on_transcripts = pivoted_on_transcripts.reindex(sorted(pivoted_on_transcripts.columns), axis=1)
+    pivoted_agg = list(pivoted_on_transcripts.sum(axis = 0, skipna = True))
+    chosen_cols = [curr for curr in range(len(pivoted_agg)) if pivoted_agg[curr] > 0.1]
+    pivoted = pivoted.iloc[:,chosen_cols]
     
+    return pivoted
+
 for l in level_hierarchys:
+    ### SAVE THE CSVs OF THE DATA ###
     prefix = args.out_prefix
     counts_all[l].to_csv(os.path.join(args.output_dir, prefix + "all_" + l + "_counts.csv"))
     
+    ### INITIALIZE VARIABLES FOR LOOP ###
     Curr_Variable = l.capitalize()
     cutoff_counts = 100000
     cutoff_transcripts = 100
 
-    #####
+    ### GRAB DATAFRAME FROM SAVED DATA ###
     curr_df_start = counts_all[l] #read.csv(paste0(prefix,"all_",tolower(Curr_Variable),"_counts.csv"))
     curr_df_start["OfInterest"] = curr_df_start[Curr_Variable]
 
-    import seaborn as sns
     sns.set()
-    curr_df_start.iloc[1:10,:]
 
     ## CREATE AGGREGATED COUNTS BY SAMPLE ##
     curr_df_summed = curr_df_start.groupby("Sample")["NumTranscripts"].agg(AllCts='sum')
@@ -174,10 +193,12 @@ for l in level_hierarchys:
       "darkturquoise", "green1", "yellow4", "yellow3",\
       "darkorange4", "brown"]
 
-    sns_palette = sns.palplot(sns.color_palette("Set1", n_colors=len(set(curr_df_plot["OfInterest"]))))
+    sns_palette = sns.palplot(sns.color_palette("Set1", n_colors=len(set(curr_df_start["OfInterest"]))))
 
+    ### CREATE PLOTS ###
     if use_counts == 0:
         fig = plt.figure(figsize=(40,20))
+        pivoted = createPlotDataFrame(curr_df_start, transcript_or_counts="NumTranscripts")
         pivoted.plot(kind='bar', stacked=True, color = sns_palette)
         plt.tight_layout()
         plt.savefig(l + '_transcripts.png',dpi=1000)
