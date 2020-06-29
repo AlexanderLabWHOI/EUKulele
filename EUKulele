@@ -67,7 +67,7 @@ rule all:
         mt_prot = expand(os.path.join(OUTPUTDIR, "METs","{T}.{extension}"), T=MTS, extension=PEP_EXT),
         mt_aln = expand(os.path.join(OUTPUTDIR, "METs", "{aligner}", "{T}.{aligner}.{extension}"), T = MTS, aligner = ALIGNMENT_CHOICE, extension = OUTPUT_EXTENSION), 
         mt_tax = expand(os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy-{ifparallel}.out"), T = MTS, ifparallel = IFPARALLEL), 
-        mt_tax_viz = expand(os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1] + "all_species_counts_{ifparallel}.csv"),ifparallel = IFPARALLEL),
+        mt_tax_viz = expand(os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1] + "_all_species_counts_{ifparallel}.csv"),ifparallel = IFPARALLEL),
         mag_aln = expand(os.path.join(OUTPUTDIR, "MAGs", "{aligner}", "{G}.{aligner}.{extension}"), G = MAG, aligner = ALIGNMENT_CHOICE, extension = OUTPUT_EXTENSION), 
         mag_tax = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-estimated-taxonomy.out"), G = MAG), 
         mag_assignment = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-max-level.csv"), G = MAG)
