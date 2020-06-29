@@ -242,9 +242,11 @@ rule visualize_taxonomy_METs:
     params:
         prefix = OUTPUTDIR.split("/")[-1],
         outputdir = OUTPUTDIR
+    conda:
+        'envs/visualize.yaml'
     shell:
         """
-        python scripts/visualize-results.py --out_prefix {params.prefix} --out_dir {params.outputdir}
+        python scripts/visualize-results.py --out_prefix {params.prefix} --output_dir {params.outputdir}
         """
     
 

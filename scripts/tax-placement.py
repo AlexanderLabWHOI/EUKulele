@@ -132,7 +132,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cuto
         chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore']
         chunk['ssqid_TAXID']=chunk.sseqid.map(pdict)
         if namestoreads != 0:
-            chunk['counts']=[namestoreads[curr.split(".")[0]] for curr in chunk.qseqid]
+            chunk['counts']=[namestoreads[curr.split(".")[0]] if curr.split(".")[0] in namestoreads else 0 for curr in chunk.qseqid]
             use_counts = 1
         else:
             chunk['counts'] = [0] * len(chunk.qseqid) # if no reads dict, each count is just assumed to be 0 and isn't recorded later

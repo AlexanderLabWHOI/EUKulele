@@ -6,6 +6,7 @@ import seaborn as sns
 import math
 import sys
 import yaml
+import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--out_prefix')
@@ -14,7 +15,6 @@ args = parser.parse_args()
 
 with open("config.yaml", 'r') as configfile:
     config = yaml.safe_load(configfile)
-return config
 
 results_frame = dict()
 met_dir = os.path.join(config["output"],"METs")
@@ -42,12 +42,12 @@ def countClassifs(level, level_hierarchy, name_level, df):
     match_loc = int(np.where([curr == level for curr in level_hierarchy])[0])
     for curr in range(match_loc + 1,len(level_hierarchy)):
         classification_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["full_classification"])
-        correct_index = list(np.where([len(str(cr).split(";")) >= abs(-1-(curr-match_loc)) for cr in classification_curr]))
+        correct_index = list(np.where([len(str(cr).split(";")) >= abs(-1-(curr-match_loc)) for cr in classification_curr])[0])
         
         classification_curr = [classification_curr[cr2] for cr2 in correct_index]
         classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() for cr in classification_curr]
         counts_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["counts"])
-        counts_curr = [classification_curr[cr2] for cr2 in correct_index]
+        counts_curr = [counts_curr[cr2] for cr2 in correct_index]
         
         # add to running list
         classifications.extend(classifs_curr)
@@ -131,7 +131,7 @@ for curr in results_frame.keys():
         new_df = frame_results[curr][l]
         counts_all[l] = makeConcatFrame(curr_df, new_df, l.capitalize(), sample_name)
 
-def createPlotDataFrame(curr_df_start, transcript_or_counts="NumTranscripts"):
+def createPlotDataFrame(curr_df_start, cutoff_relative = 0.1, transcript_or_counts="NumTranscripts"):
     ## CREATE AGGREGATED COUNTS BY SAMPLE ##
     curr_df_summed = curr_df_start.groupby("Sample")[transcript_or_counts].agg(AllCts='sum')
     curr_df_summed = curr_df_start.join(curr_df_summed,how="left",on="Sample")
@@ -142,15 +142,24 @@ def createPlotDataFrame(curr_df_start, transcript_or_counts="NumTranscripts"):
     pivoted = curr_df_plot.pivot(index='Sample', columns='OfInterest', values='Rel_Counts')
     pivoted = pivoted.reindex(sorted(pivoted.columns), axis=1)
 
-    pivoted_on_transcripts = curr_df_summed.pivot(index='Sample', columns='OfInterest', values='NumTranscripts')
-    pivoted_on_transcripts = pivoted_on_transcripts.reindex(sorted(pivoted_on_transcripts.columns), axis=1)
-    pivoted_agg = list(pivoted_on_transcripts.sum(axis = 0, skipna = True))
-    chosen_cols = [curr for curr in range(len(pivoted_agg)) if pivoted_agg[curr] > 0.1]
+    ## If we're plotting both counts and transcripts, still decide on cutoff via transcripts ## 
+    if transcripts_or_counts == "Counts":
+        curr_df_summed = curr_df_start.groupby("Sample")["NumTranscripts"].agg(AllCts='sum')
+        curr_df_summed = curr_df_start.join(curr_df_summed,how="left",on="Sample")
+        curr_df_summed["Rel_Counts_Transcripts"] = curr_df_summed["NumTranscripts"] / curr_df_summed["AllCts"]
+        curr_df_summed = curr_df_summed[["OfInterest","Sample","Rel_Counts_Transcripts"]]
+        pivoted_on_transcripts = curr_df_summed.pivot(index='Sample', columns='OfInterest', values='Rel_Counts_Transcripts')
+        pivoted_on_transcripts = pivoted_on_transcripts.reindex(sorted(pivoted_on_transcripts.columns), axis=1)
+        pivoted_agg = list(pivoted_on_transcripts.max(axis = 0, skipna = True))
+    else:
+        pivoted_agg = list(pivoted.max(axis = 0, skipna = True))
+    
+    chosen_cols = [curr for curr in range(len(pivoted_agg)) if pivoted_agg[curr] > cutoff_relative]
     pivoted = pivoted.iloc[:,chosen_cols]
     
     return pivoted
 
-for l in level_hierarchys:
+for l in level_hierarchy:
     ### SAVE THE CSVs OF THE DATA ###
     prefix = args.out_prefix
     counts_all[l].to_csv(os.path.join(args.output_dir, prefix + "all_" + l + "_counts.csv"))
@@ -206,9 +215,9 @@ for l in level_hierarchys:
     else:
         f, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(40,20))
         pivoted = createPlotDataFrame(curr_df_start, transcript_or_counts="NumTranscripts")
-        pivoted.plot(kind='bar', stacked=True, color = sns_palette, ax = ax1)
+        pivoted.plot(kind='bar', stacked=True, width=1, color = sns_palette, title="Transcripts", ax = ax1)
         pivoted = createPlotDataFrame(curr_df_start, transcript_or_counts="Counts")
-        pivoted.plot(kind='bar', stacked=True, color = sns_palette, ax = ax1)
+        pivoted.plot(kind='bar', stacked=True, width=1, color = sns_palette, title="Counts", ax = ax2)
         plt.tight_layout()
         plt.savefig(l + '_counts_and_transcripts.png',dpi=1000)
         plt.show()
