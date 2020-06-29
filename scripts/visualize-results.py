@@ -11,6 +11,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--out_prefix')
 parser.add_argument('--output_dir')
+parser.add_argument('--parallel')
 args = parser.parse_args()
 
 with open("config.yaml", 'r') as configfile:
@@ -143,7 +144,7 @@ def createPlotDataFrame(curr_df_start, cutoff_relative = 0.1, transcript_or_coun
     pivoted = pivoted.reindex(sorted(pivoted.columns), axis=1)
 
     ## If we're plotting both counts and transcripts, still decide on cutoff via transcripts ## 
-    if transcripts_or_counts == "Counts":
+    if transcript_or_counts == "Counts":
         curr_df_summed = curr_df_start.groupby("Sample")["NumTranscripts"].agg(AllCts='sum')
         curr_df_summed = curr_df_start.join(curr_df_summed,how="left",on="Sample")
         curr_df_summed["Rel_Counts_Transcripts"] = curr_df_summed["NumTranscripts"] / curr_df_summed["AllCts"]
@@ -162,7 +163,7 @@ def createPlotDataFrame(curr_df_start, cutoff_relative = 0.1, transcript_or_coun
 for l in level_hierarchy:
     ### SAVE THE CSVs OF THE DATA ###
     prefix = args.out_prefix
-    counts_all[l].to_csv(os.path.join(args.output_dir, prefix + "all_" + l + "_counts.csv"))
+    counts_all[l].to_csv(os.path.join(args.output_dir, prefix + "all_" + l + "_counts_" + args.parallel + ".csv"))
     
     ### INITIALIZE VARIABLES FOR LOOP ###
     Curr_Variable = l.capitalize()
@@ -206,18 +207,21 @@ for l in level_hierarchy:
 
     ### CREATE PLOTS ###
     if use_counts == 0:
-        fig = plt.figure(figsize=(40,20))
+        fig = plt.figure(figsize=(20,10))
+        fig.set_facecolor('white')
         pivoted = createPlotDataFrame(curr_df_start, transcript_or_counts="NumTranscripts")
         pivoted.plot(kind='bar', stacked=True, color = sns_palette)
         plt.tight_layout()
-        plt.savefig(l + '_transcripts.png',dpi=1000)
+        plt.savefig(os.path.join(args.output_dir, l + '_transcripts.png'),dpi=100)
         plt.show()
     else:
-        f, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(40,20))
+        f, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(20,10))
+        ax1.set_facecolor('white')
+        ax2.set_facecolor('white')
         pivoted = createPlotDataFrame(curr_df_start, transcript_or_counts="NumTranscripts")
         pivoted.plot(kind='bar', stacked=True, width=1, color = sns_palette, title="Transcripts", ax = ax1)
         pivoted = createPlotDataFrame(curr_df_start, transcript_or_counts="Counts")
         pivoted.plot(kind='bar', stacked=True, width=1, color = sns_palette, title="Counts", ax = ax2)
         plt.tight_layout()
-        plt.savefig(l + '_counts_and_transcripts.png',dpi=1000)
+        plt.savefig(os.path.join(args.output_dir, l + '_counts_and_transcripts.png'),dpi=100)
         plt.show()

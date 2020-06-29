@@ -238,15 +238,16 @@ rule visualize_taxonomy_METs:
     input:
         lambda filename: get_all_names(parallel = filename.parallel, METs = MTS)
     output:
-        os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1] + "all_species_counts_{parallel}.csv")
+        os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1] + "_all_species_counts_{parallel}.csv")
     params:
         prefix = OUTPUTDIR.split("/")[-1],
-        outputdir = OUTPUTDIR
+        outputdir = OUTPUTDIR,
+        parallel = "{parallel}"
     conda:
         'envs/visualize.yaml'
     shell:
         """
-        python scripts/visualize-results.py --out_prefix {params.prefix} --output_dir {params.outputdir}
+        python scripts/visualize-results.py --out_prefix {params.prefix} --output_dir {params.outputdir} --parallel {params.parallel}
         """
     
 
