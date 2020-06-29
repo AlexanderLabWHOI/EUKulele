@@ -163,7 +163,7 @@ def createPlotDataFrame(curr_df_start, cutoff_relative = 0.1, transcript_or_coun
 for l in level_hierarchy:
     ### SAVE THE CSVs OF THE DATA ###
     prefix = args.out_prefix
-    counts_all[l].to_csv(os.path.join(args.output_dir, prefix + "all_" + l + "_counts_" + args.parallel + ".csv"))
+    counts_all[l].to_csv(os.path.join(args.output_dir, prefix + "_all_" + l + "_counts_" + args.parallel + ".csv"))
     
     ### INITIALIZE VARIABLES FOR LOOP ###
     Curr_Variable = l.capitalize()
