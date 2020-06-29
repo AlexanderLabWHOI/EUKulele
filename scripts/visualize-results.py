@@ -155,8 +155,14 @@ def createPlotDataFrame(curr_df_start, cutoff_relative = 0.1, transcript_or_coun
     else:
         pivoted_agg = list(pivoted.max(axis = 0, skipna = True))
     
+    ## Leave the columns that meet the threshold; sum the others into an "Other" column ##
     chosen_cols = [curr for curr in range(len(pivoted_agg)) if pivoted_agg[curr] > cutoff_relative]
+    chosen_cols_other = [curr for curr in range(len(pivoted_agg)) if pivoted_agg[curr] <= cutoff_relative]
+    pivoted_agg = list(pivoted.iloc[:,chosen_cols_other].sum(axis = 1, skipna = True))
+    
+    ## Modify the output dataframe accordingly ##
     pivoted = pivoted.iloc[:,chosen_cols]
+    pivoted["Other"] = pivoted_agg
     
     return pivoted
 
