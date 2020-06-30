@@ -75,6 +75,10 @@ def lca(full_classifications):
 def match_maker(dd, consensus_cutoff, tax_dict, use_counts):
     ambiguous = 0 # we assume unambiguous
     md = dd.pident.max()
+    transcript_name = set(list(dd["qseqid"]))
+    if len(transcript_name) > 1:
+        print("More than 1 transcript name included in the group.")
+    transcript_name = transcript_name[0]
     ds = list(set(dd[dd.pident==md]['ssqid_TAXID']))
     counts = list(set(dd[dd.pident==md]['counts']))
     if (len(counts) >= 1):
@@ -115,11 +119,11 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts):
                 assignment, best_classification, full_classification = lca(full_classification_0)
 
     if use_counts == 1:
-        return pd.DataFrame([[assignment, full_classification, best_classification, md, chosen_count, ambiguous]],\
-                       columns=['classification_level', 'full_classification', 'classification', 'max_pid', 'counts', 'ambiguous'])
+        return pd.DataFrame([[transcript_name, assignment, full_classification, best_classification, md, chosen_count, ambiguous]],\
+                       columns=['transcript_name','classification_level', 'full_classification', 'classification', 'max_pid', 'counts', 'ambiguous'])
     else:
-        return pd.DataFrame([[assignment, full_classification, best_classification, md, ambiguous]],\
-                       columns=['classification_level', 'full_classification', 'classification', 'max_pid', 'ambiguous'])
+        return pd.DataFrame([[transcript_name, assignment, full_classification, best_classification, md, ambiguous]],\
+                       columns=['transcript_name', 'classification_level', 'full_classification', 'classification', 'max_pid', 'ambiguous'])
 
 def apply_parallel(grouped_data, match_maker, consensus_cutoff, tax_dict, use_counts):
     resultdf = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(match_maker)(group, consensus_cutoff, tax_dict, use_counts) for name, group in grouped_data)
