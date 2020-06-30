@@ -213,10 +213,10 @@ rule estimate_taxonomy_METs:
     input: 
         file = lambda filename: get_alignment(ALIGNMENT_CHOICE, sampletype= "METs", filename = filename.T) 
     output: 
-        outfile = os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy-{parallel}.out")
+        outfile = os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy.out")
     params:
         consensus = CONSENSUS_CUTOFF,
-        method = "{parallel}",
+        method = IFPARALLEL,
         tax_file = os.path.join(config['reference'], config['ref_tax']),
         use_counts = USE_SALMON_COUNTS,
         names_to_reads = os.path.join(config['reference'], NAMES_TO_READS),
@@ -225,6 +225,9 @@ rule estimate_taxonomy_METs:
         cutoff = config['cutoff']
     conda: 
         'envs/estimate.yaml'
+    log:
+        err = os.path.join("logs","estimate-tax","{T}_err.log"),
+        out = os.path.join("logs","estimate-tax","{T}_out.log")
     shell:
         """
         echo {input.file}
@@ -257,14 +260,18 @@ rule estimate_taxonomy_MAG_proteins:
     output: os.path.join(OUTPUTDIR, "MAGs", "{G}-estimated-taxonomy.out")
     params:
         consensus = CONSENSUS_CUTOFF,
+        method = IFPARALLEL,
         tax_file = os.path.join(config['reference'], config['ref_tax']),
         prot_json = os.path.join(config['reference'], config['ref_prot']),
         cutoff = config['cutoff']
     conda: 
-        'envs/estimate.yaml'
+        'envs/estimate.yaml' 
+    log:
+        err = os.path.join("logs","estimate-tax","{G}_err.log"),
+        out = os.path.join("logs","estimate-tax","{G}_out.log")
     shell:
         """
-        python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output} --consensus_cutoff {params.consensus}
+        python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output} --consensus_cutoff {params.consensus} 2> {log.err} 1> {log.out} 
         """
 
 rule assign_MAG_taxonomy:
@@ -275,8 +282,11 @@ rule assign_MAG_taxonomy:
         levels_directory = os.path.join(OUTPUTDIR, "MAGs", "levels"),
         max_dir = os.path.join(OUTPUTDIR, "MAGs")
     conda: 
-        'envs/estimate.yaml'
+        'envs/estimate.yaml' 
+    log:
+        err = os.path.join("logs","mag-tax","{G}_err.log"),
+        out = os.path.join("logs","mag-tax","{G}_out.log")
     shell:
         """
-        python scripts/mag-stats.py --estimated-taxonomy-file {input} --out-prefix {params.prefix} --outdir {params.levels_directory} --max-out-dir {params.max_dir}
+        python scripts/mag-stats.py --estimated-taxonomy-file {input} --out-prefix {params.prefix} --outdir {params.levels_directory} --max-out-dir {params.max_dir} 2> {log.err} 1> {log.out}
         """
