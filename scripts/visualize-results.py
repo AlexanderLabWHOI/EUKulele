@@ -213,20 +213,20 @@ for l in level_hierarchy:
 
     ### CREATE PLOTS ###
     if use_counts == 0:
-        fig = plt.figure(figsize=(20,10))
+        fig = plt.figure(figsize=(15,7.5))
         fig.set_facecolor('white')
-        pivoted = createPlotDataFrame(curr_df_start, transcript_or_counts="NumTranscripts")
+        pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05, transcript_or_counts="NumTranscripts")
         pivoted.plot(kind='bar', stacked=True, color = sns_palette)
         plt.tight_layout()
         plt.savefig(os.path.join(args.output_dir, l + '_transcripts.png'),dpi=100)
         plt.show()
     else:
-        f, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(20,10))
+        f, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(15,7.5))
         ax1.set_facecolor('white')
         ax2.set_facecolor('white')
-        pivoted = createPlotDataFrame(curr_df_start, transcript_or_counts="NumTranscripts")
+        pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05, transcript_or_counts="NumTranscripts")
         pivoted.plot(kind='bar', stacked=True, width=1, color = sns_palette, title="Transcripts", ax = ax1)
-        pivoted = createPlotDataFrame(curr_df_start, transcript_or_counts="Counts")
+        pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05, transcript_or_counts="Counts")
         pivoted.plot(kind='bar', stacked=True, width=1, color = sns_palette, title="Counts", ax = ax2)
         plt.tight_layout()
         plt.savefig(os.path.join(args.output_dir, l + '_counts_and_transcripts.png'),dpi=100)
