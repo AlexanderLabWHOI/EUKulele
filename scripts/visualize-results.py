@@ -11,7 +11,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--out_prefix')
 parser.add_argument('--output_dir')
-parser.add_argument('--parallel')
+#parser.add_argument('--parallel')
 args = parser.parse_args()
 
 with open("config.yaml", 'r') as configfile:
@@ -28,7 +28,7 @@ use_counts = config["use_salmon_counts"]
 samples = os.listdir(samples_dir)
 for s in samples:
     if ("SH" in s) & ("merged" in s) & ((nucle_extension in s) | (prot_extension in s)):
-        file_name = s.split(".")[0] + "-estimated-taxonomy-parallel.out"
+        file_name = s.split(".")[0] + "-estimated-taxonomy.out"
         if not os.path.isfile(os.path.join(met_dir,file_name)):
             print("One of the files, " + s + ", in the sample directory did not complete successfully.")
             #sys.exit(1)
@@ -169,7 +169,7 @@ def createPlotDataFrame(curr_df_start, cutoff_relative = 0.1, transcript_or_coun
 for l in level_hierarchy:
     ### SAVE THE CSVs OF THE DATA ###
     prefix = args.out_prefix
-    counts_all[l].to_csv(os.path.join(args.output_dir, prefix + "_all_" + l + "_counts_" + args.parallel + ".csv"))
+    counts_all[l].to_csv(os.path.join(args.output_dir, prefix + "_all_" + l + "_counts.csv"))
     
     ### INITIALIZE VARIABLES FOR LOOP ###
     Curr_Variable = l.capitalize()
