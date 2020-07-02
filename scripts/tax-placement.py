@@ -78,7 +78,7 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts):
     transcript_name = set(list(dd["qseqid"]))
     if len(transcript_name) > 1:
         print("More than 1 transcript name included in the group.")
-    transcript_name = transcript_name[0]
+    transcript_name = list(transcript_name)[0]
     ds = list(set(dd[dd.pident==md]['ssqid_TAXID']))
     counts = list(set(dd[dd.pident==md]['counts']))
     if (len(counts) >= 1):

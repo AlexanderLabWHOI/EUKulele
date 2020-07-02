@@ -252,7 +252,6 @@ rule visualize_taxonomy_METs:
         python scripts/visualize-results.py --out_prefix {params.prefix} --output_dir {params.outputdir}
         """
     
-
 rule estimate_taxonomy_MAG_proteins:
     input: 
         file = lambda filename: get_alignment(ALIGNMENT_CHOICE, sampletype= "MAGs", filename = filename.G) 
