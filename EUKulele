@@ -276,7 +276,7 @@ rule assess_busco_completeness:
     input:
         lambda filename: get_all_names(METs = MTS)
     output:
-        directory(os.path.join(args.output_dir, "busco_run_{organism}_{taxonomic_level}"))
+        directory(os.path.join(OUTPUTDIR, "busco_run_{organism}_{taxonomic_level}"))
     params:
         organism = "{organism}",
         taxonomic_level = "{taxonomic_level}",
