@@ -12,7 +12,7 @@ import os
 import sys
 
 __author__ = "Arianna Krinos, Harriet Alexander"
-__copyright__ = "eukrhythmic"
+__copyright__ = "EUKulele"
 __license__ = "MIT"
 __email__ = "akrinos@mit.edu"
 
@@ -45,7 +45,7 @@ elif (args.download_busco):
 level_hierarchy = ['supergroup','division','class','order','family','genus','species']
 
 ## By default, BUSCO output will just be stored below the output directory
-busco_loc = os.path.join(args.output_dir, "busco_run_" + organism)
+busco_loc = os.path.join(args.output_dir, "busco_run_" + organism + "_" + taxonomy)
 busco_db_name = "eukaryota_odb10" # we can also change this to our downloaded BUSCO file; assess this in the future
 os.system("cp " + os.path.join("..","static","busco_config.ini") + " " + os.path.join(busco_loc,"config.ini"))
 os.system("sed -i '/out = /c\out = " + organism + "' " + os.path.join(busco_loc,"config.ini")) # the name of the output files

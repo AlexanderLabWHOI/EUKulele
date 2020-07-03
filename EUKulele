@@ -30,6 +30,15 @@ NAMES_TO_READS = config["names_to_reads"]
 
 assert mets_or_mags in ['mets', 'mags']
 
+if os.path.isdir(os.path.join(REFERENCE_DIR, REF_FASTA)): # if reference fasta variable is a directory
+    fasta_list = os.listdir(REF_FASTA)
+    REFERENCE_FASTAS = [os.path.join(REFERENCE_DIR, curr) for curr in fasta_list]
+elif os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA)):
+    REFERENCE_FASTAS = [os.path.join(REFERENCE_DIR, curr)]
+else:
+    print("You need to either provide a single fasta reference file, or the name of a directory containing multiple reference FASTA files.")
+    sys.exit(1)
+
 def get_all_names(METs):
     filenames = [os.path.join(OUTPUTDIR, "METs", curr + "-estimated-taxonomy.out") for curr in METs]
     return filenames
@@ -72,8 +81,18 @@ rule all:
         mag_tax = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-estimated-taxonomy.out"), G = MAG), 
         mag_assignment = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-max-level.csv"), G = MAG)
  
+rule concat_reference_fastas:
+    input: REFERENCE_FASTAS
+    output: os.path.join(OUTPUTDIR, "concatfasta.fasta")
+    params:
+        space_delim = " ".join(REFERENCE_FASTAS)
+    shell:
+        """
+        cat {params.space_delim}
+        """
+
 rule setup_reference:
-    input: os.path.join(REFERENCE_DIR, REF_FASTA)
+    input: os.path.join(OUTPUTDIR, "concatfasta.fasta")
     output: os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa') + ".dmnd")
     params:
         diamondfile = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa') + '.dmnd'),
@@ -83,6 +102,7 @@ rule setup_reference:
     shell:
         """
         diamond makedb --in {input} --db {params.db}
+        rm {input}
         """
         
 rule setup_reference_blast:
@@ -217,11 +237,11 @@ rule estimate_taxonomy_METs:
     params:
         consensus = CONSENSUS_CUTOFF,
         method = IFPARALLEL,
-        tax_file = os.path.join(config['reference'], config['ref_tax']),
+        tax_file = os.path.join(config['reference'], TAX_TAB),
         use_counts = USE_SALMON_COUNTS,
         names_to_reads = os.path.join(config['reference'], NAMES_TO_READS),
         outfile_series = os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy.out"),
-        prot_json = os.path.join(config['reference'], config['ref_prot']),
+        prot_json = os.path.join(config['reference'], PROT_TAB),
         cutoff = config['cutoff']
     conda: 
         'envs/estimate.yaml'
@@ -251,6 +271,22 @@ rule visualize_taxonomy_METs:
         """
         python scripts/visualize-results.py --out_prefix {params.prefix} --output_dir {params.outputdir}
         """
+
+rule assess_busco_completeness:
+    input:
+        lambda filename: get_all_names(METs = MTS)
+    output:
+        directory(os.path.join(args.output_dir, "busco_run_{organism}_{taxonomic_level}"))
+    params:
+        organism = "{organism}",
+        taxonomic_level = "{taxonomic_level}",
+        outputdir = os.path.join(OUTPUTDIR,"busco")
+    conda:
+        'envs/busco.yaml'
+    shell:
+        """
+        python scripts/query_busco.py --organism_group {params.organism} --taxonomic_level {params.taxonomic_level} --output_dir {params.outputdir}
+        """
     
 rule estimate_taxonomy_MAG_proteins:
     input: 
@@ -259,8 +295,8 @@ rule estimate_taxonomy_MAG_proteins:
     params:
         consensus = CONSENSUS_CUTOFF,
         method = IFPARALLEL,
-        tax_file = os.path.join(config['reference'], config['ref_tax']),
-        prot_json = os.path.join(config['reference'], config['ref_prot']),
+        tax_file = os.path.join(config['reference'], TAX_TAB),
+        prot_json = os.path.join(config['reference'], PROT_TAB),
         cutoff = config['cutoff']
     conda: 
         'envs/estimate.yaml' 
