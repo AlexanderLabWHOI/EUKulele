@@ -30,9 +30,11 @@ NAMES_TO_READS = config["names_to_reads"]
 
 assert mets_or_mags in ['mets', 'mags']
 
-if os.path.isdir(os.path.join(REFERENCE_DIR, REF_FASTA)): # if reference fasta variable is a directory
+if os.path.isdir(str(os.path.join(REF_FASTA))): # if reference fasta variable is a directory
     fasta_list = os.listdir(REF_FASTA)
     REFERENCE_FASTAS = [os.path.join(REFERENCE_DIR, curr) for curr in fasta_list]
+    REF_FASTA = "combined_fastas"
+    print(REF_FASTA)
 elif os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA)):
     REFERENCE_FASTAS = [os.path.join(REFERENCE_DIR, curr)]
 else:
@@ -85,10 +87,14 @@ rule concat_reference_fastas:
     input: REFERENCE_FASTAS
     output: os.path.join(OUTPUTDIR, "concatfasta.fasta")
     params:
-        space_delim = " ".join(REFERENCE_FASTAS)
+        space_delim = " ".join(REFERENCE_FASTAS),
+        ref_dir = REFERENCE_DIR
     shell:
         """
-        cat {params.space_delim}
+        INPUTFILES={params.ref_dir}/*.fasta
+        OUTPUTFILE=$({output})
+        touch $OUTPUTFILE
+        for currfile in $INPUTFILES; do ((cat "$currfile" | sed 's/\./N/g'); echo; echo) >> $OUTPUTFILE; done
         """
 
 rule setup_reference:
@@ -102,7 +108,7 @@ rule setup_reference:
     shell:
         """
         diamond makedb --in {input} --db {params.db}
-        rm {input}
+        #rm {input}
         """
         
 rule setup_reference_blast:

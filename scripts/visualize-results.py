@@ -54,7 +54,7 @@ def countClassifs(level, level_hierarchy, name_level, df):
         classifications.extend(classifs_curr)
         counts.extend(counts_curr)
         
-    classifications = [cr.strip().strip(""''"]['") for cr in classifications]
+    classifications = [str(cr).strip().strip(""''"]['") for cr in classifications]
     full_list = classifications
     set_list.update(set(classifications))
     
@@ -74,7 +74,7 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
         # add to running list
         classifications.extend(classifs_curr)
         
-    classifications = [cr.strip().strip(""''"]['") for cr in classifications]
+    classifications = [str(cr).strip().strip(""''"]['") for cr in classifications]
     full_list = classifications
     set_list.update(set(classifications))
     final_frame = list(zip(list(set_list), [full_list.count(curr) for curr in list(set_list)]))
@@ -208,7 +208,10 @@ for l in level_hierarchy:
       "maroon", "orchid1", "deeppink1", "blue1", "steelblue4",\
       "darkturquoise", "green1", "yellow4", "yellow3",\
       "darkorange4", "brown"]
-
+    
+    fig = plt.figure(figsize=(15,7.5))
+    if len(set(curr_df_start["OfInterest"])) == 0:
+        continue
     sns_palette = sns.palplot(sns.color_palette("Set1", n_colors=len(set(curr_df_start["OfInterest"]))))
 
     ### CREATE PLOTS ###

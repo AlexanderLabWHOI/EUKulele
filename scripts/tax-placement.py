@@ -49,10 +49,11 @@ def gen_dict(tax_table):
     classes = ['supergroup','division','class','order','family','genus','species']
     tax_table["Classification"] = ""
     for c in classes:
-        if str(tax_table["Classification"][0]) != "":
-            tax_table["Classification"] = tax_table["Classification"] + ";" + tax_table[c]
-        else:
-            tax_table["Classification"] = tax_table["Classification"] + tax_table[c]
+        if all([str(curr).lower() != "nan" for curr in list(tax_table[c])]):
+            if str(tax_table["Classification"][0]) != "":
+                tax_table["Classification"] = tax_table["Classification"] + ";" + tax_table[c]
+            else:
+                tax_table["Classification"] = tax_table["Classification"] + tax_table[c]
     return(dict(zip(tax_table.index, tax_table["Classification"])))
 
 def gen_reads_dict(names_to_reads):
@@ -61,7 +62,7 @@ def gen_reads_dict(names_to_reads):
 
 def lca(full_classifications):
     classes = ['supergroup','division','class','order','family','genus','species']
-    full_classifications_split = [[subtax.strip() for subtax in curr.split(";")] for curr in full_classifications]
+    full_classifications_split = [[str(subtax).strip() for subtax in curr.split(";")] for curr in full_classifications]
     length_classes = [len(curr) for curr in full_classifications_split]
     if len(set(length_classes)) != 1:
         print("Error: not all classifications at at the same taxonomic level.")
@@ -87,14 +88,19 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts):
         chosen_count = 0
     assignment, level = tax_placement(md) # most specific taxonomic level assigned
     if len(ds)==1:
-        full_classification = tax_dict[ds[0]].split(";")[0:level]
+        if ds[0] not in tax_dict:
+            print(dd[dd.pident==md])
+            return(pd.DataFrame(columns=['transcript_name','classification_level', 'full_classification', 'classification', 'max_pid', 'counts', 'ambiguous']))
+        full_classification = str(tax_dict[ds[0]]).split(";")[0:level]
         best_classification = full_classification[len(full_classification) - 1] # the most specific taxonomic level we can classify by
         full_classification = '; '.join(full_classification) # the actual assignments based on that
     else:
         classification_0 = []
         full_classification_0 = []
         for d in ds:
-            d_full_class = tax_dict[d].split(";")[0:level]
+            if d not in tax_dict:
+                return(pd.DataFrame(columns=['transcript_name','classification_level', 'full_classification', 'classification', 'max_pid', 'counts', 'ambiguous']))
+            d_full_class = str(tax_dict[d]).split(";")[0:level]
             classification_0.append(d_full_class[len(d_full_class) - 1]) # the most specific taxonomic level we can classify by
             full_classification_0.append('; '.join(d_full_class)) # the actual assignments based on that
         entries = list(set(full_classification_0))
@@ -111,7 +117,7 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts):
                 if (isinstance(curr_frac, float)) & (curr_frac > best_frac):
                     best_frac = curr_frac
                     best_full_class = e
-                    best_one_class = e.split(";")[len(e.split(";")) - 1].strip()
+                    best_one_class = str(e.split(";")[len(e.split(";")) - 1]).strip()
             if best_frac >= consensus_cutoff:
                 best_classification = best_one_class
                 full_classification = best_full_class
@@ -135,6 +141,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cuto
     for chunk in pd.read_csv(df, sep = '\t', header = None, chunksize=chunksize):
         chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore']
         chunk['ssqid_TAXID']=chunk.sseqid.map(pdict)
+        print(chunk['ssqid_TAXID'])
         if namestoreads != 0:
             chunk['counts']=[namestoreads[curr.split(".")[0]] if curr.split(".")[0] in namestoreads else 0 for curr in chunk.qseqid]
             use_counts = 1
@@ -214,6 +221,7 @@ if __name__ == "__main__":
     tax_cutoffs = read_in_tax_cutoffs(args.cutoff_file)
     pdict = read_in_protein_map(args.prot_map_file)
     tax_dict = gen_dict(tax_table)
+    print(tax_dict)
     consensus_cutoff = float(args.consensus_cutoff)
     if args.method == "parallel":
         if (int(args.use_counts) == 1):
