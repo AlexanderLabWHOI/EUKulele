@@ -205,33 +205,22 @@ def classify_taxonomy(df, tax_dict, consensus_cutoff):
         outdf.loc[t] =  [assignment, full_classification, best_classification, md, ambiguous]
     return outdf
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--tax_file')
-    parser.add_argument('--cutoff_file')
-    parser.add_argument('--consensus_cutoff')
-    parser.add_argument('--prot_map_file')
-    parser.add_argument('--use_counts')
-    parser.add_argument('--names_to_reads')
-    parser.add_argument('--diamond_file')
-    parser.add_argument('--outfile')
-    parser.add_argument('--method')
-    args = parser.parse_args()
-    tax_table = read_in_taxonomy(args.tax_file)
-    tax_cutoffs = read_in_tax_cutoffs(args.cutoff_file)
-    pdict = read_in_protein_map(args.prot_map_file)
+def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,use_counts,name_to_reads,diamond_file,outfile,method)
+    tax_table = read_in_taxonomy(tax_file)
+    tax_cutoffs = read_in_tax_cutoffs(cutoff_file)
+    pdict = read_in_protein_map(prot_map_file)
     tax_dict = gen_dict(tax_table)
     print(tax_dict)
-    consensus_cutoff = float(args.consensus_cutoff)
+    consensus_cutoff = float(consensus_cutoff)
     if args.method == "parallel":
-        if (int(args.use_counts) == 1):
+        if (int(use_counts) == 1):
             print("Hello")
-            print(args.use_counts)
-            reads_dict = gen_reads_dict(args.names_to_reads)
-            classification_df = classify_taxonomy_parallel(args.diamond_file, tax_dict, reads_dict, pdict, consensus_cutoff)
+            print(use_counts)
+            reads_dict = gen_reads_dict(names_to_reads)
+            classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, reads_dict, pdict, consensus_cutoff)
         else:
-            classification_df = classify_taxonomy_parallel(args.diamond_file, tax_dict, 0, pdict, consensus_cutoff)
+            classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, 0, pdict, consensus_cutoff)
     else:
-        diamond_df = read_in_diamond_file(args.diamond_file, pdict)
+        diamond_df = read_in_diamond_file(diamond_file, pdict)
         classification_df = classify_taxonomy(diamond_df, tax_dict, consensus_cutoff)
-    classification_df.to_csv(args.outfile, sep='\t')
+    classification_df.to_csv(outfile, sep='\t')
