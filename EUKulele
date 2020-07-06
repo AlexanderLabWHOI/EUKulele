@@ -278,20 +278,23 @@ rule visualize_taxonomy_METs:
         python scripts/visualize-results.py --out_prefix {params.prefix} --output_dir {params.outputdir}
         """
 
-rule assess_busco_completeness:
+rule assess_busco_completeness_MET:
     input:
-        lambda filename: get_all_names(METs = MTS)
+        fastafile = os.path.join(OUTPUTDIR, "concatfasta.fasta"),
+        taxonomy_file = os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy.out")
     output:
-        directory(os.path.join(OUTPUTDIR, "busco_run_{organism}_{taxonomic_level}"))
+        directory(os.path.join(OUTPUTDIR, "busco_run_{organism}_{taxonomic_level}_{T}_report.txt"))
     params:
+        sample = "{T}",
         organism = "{organism}",
         taxonomic_level = "{taxonomic_level}",
-        outputdir = os.path.join(OUTPUTDIR,"busco")
+        outputdir = os.path.join(OUTPUTDIR,"busco"),
+        taxfile_stub = os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1]) # this should match the stub from visualize_taxonomy_METs
     conda:
         'envs/busco.yaml'
     shell:
         """
-        python scripts/query_busco.py --organism_group {params.organism} --taxonomic_level {params.taxonomic_level} --output_dir {params.outputdir}
+        python scripts/query_busco.py --organism_group {params.organism} --taxonomic_level {params.taxonomic_level} --output_dir {params.outputdir} --fasta_file {input.fastafile} --sample_name {params.sample} --taxonomy_file {input.taxonomy_file}
         """
     
 rule estimate_taxonomy_MAG_proteins:

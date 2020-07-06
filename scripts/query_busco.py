@@ -20,6 +20,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--organism_group') # the focal name of species/genus/order/class etc.
 parser.add_argument('--taxonomic_level') # the taxonomic level of the specified focal name.
 parser.add_argument('--fasta_file') # the fasta file from which we pull sequences for the mock transcriptome.
+parser.add_argument('--taxonomy_file') # the taxonomy file we use to create the mock transcriptome.
+parser.add_argument('--sample_name') # name of the original sample being assessed.
 parser.add_argument('--download_busco',action='store_true') # if specified, we download BUSCO file from the url in the next argument
 parser.add_argument('--busco_url',default=0)
 parser.add_argument('--busco_location',default="busco") # location to store the BUSCO tar reference
@@ -34,6 +36,7 @@ level_hierarchy = ['supergroup','division','class','order','family','genus','spe
 curr_level = [ind for ind in range(len(level_hierarchy)) if level_hierarchy[ind] == taxonomy]
 max_level = len(level_hierarchy) - 1
 
+success = 0
 while (curr_level >= 0):
     #### CREATE THE MOCK TRANSCRIPTOME BY PULLING BY TAXONOMIC LEVEL ####
 
@@ -63,7 +66,16 @@ while (curr_level >= 0):
         data = file.read().replace('\n', '')
     busco_completeness = float(data.split("C:")[1].split("%")[0])
     if busco_completeness >= args.busco_threshold:
+        success = 1
         break
     curr_level = curr_level - 1
-    
-file_written = os.path.join(args.output_dir, organism + level_hierarchy[curr_level] + ".fasta")
+
+report_file = os.path.join(args.output_dir, "busco_run_" + organism + "_" + args.taxonomic_level + "_" + args.sample_name + "_report.txt")
+reported = open(report_file,"w")
+if success == 1:
+    file_written = os.path.join(args.output_dir, organism + level_hierarchy[curr_level] + ".fasta")
+    os.system("mv " + mock_file + " " + file_written)
+    reported.write("Taxonomy file successfully completed with BUSCO completeness " + str(busco_completeness) + "% at location " + str(file_written) + ".")
+else:
+    reported.write("Sufficient BUSCO completeness not found at threshold " + str(args.busco_threshold) + "%.")
+reported.close()

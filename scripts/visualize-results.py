@@ -40,6 +40,7 @@ def countClassifs(level, level_hierarchy, name_level, df):
     
     classifications = list(df.loc[df["classification_level"] == level]["classification"])
     counts = list(df.loc[df["classification_level"] == level]["counts"])
+    transcript_names = list(df.loc[df["classification_level"] == level]["transcript_name"])
     match_loc = int(np.where([curr == level for curr in level_hierarchy])[0])
     for curr in range(match_loc + 1,len(level_hierarchy)):
         classification_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["full_classification"])
@@ -49,35 +50,48 @@ def countClassifs(level, level_hierarchy, name_level, df):
         classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() for cr in classification_curr]
         counts_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["counts"])
         counts_curr = [counts_curr[cr2] for cr2 in correct_index]
+        transcripts_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["transcript_name"])
+        transcripts_curr = [transcripts_curr[cr2] for cr2 in correct_index]
         
         # add to running list
         classifications.extend(classifs_curr)
         counts.extend(counts_curr)
+        transcript_names.extend(transcripts_curr)
         
     classifications = [str(cr).strip().strip(""''"]['") for cr in classifications]
     full_list = classifications
     set_list.update(set(classifications))
     
-    full_frame = pd.DataFrame({name_level: classifications, "Counts": counts})
-    final_frame = full_frame.groupby(name_level)['Counts'].agg(Sum='sum', Count='count')
+    full_frame = pd.DataFrame({name_level: classifications, "Counts": counts, "TranscriptNames": transcript_names})
+    final_frame = full_frame.groupby(name_level)({'Counts' : [('Sum','sum'), ('Count','count')], 'TranscriptNames' : [("GroupedTranscripts", lambda x: ';'.join(x))]})
+    #full_frame.groupby(name_level)['Counts'].agg(Sum='sum', Count='count')
     return classifications, final_frame
     
 def countClassifsNoCounts(level, level_hierarchy, name_level, df):
     set_list = set()
     
     classifications = list(df.loc[df["classification_level"] == level]["classification"])
+    transcript_names = list(df.loc[df["classification_level"] == level]["transcript_name"])
     match_loc = int(np.where([curr == level for curr in level_hierarchy])[0])
     for curr in range(match_loc + 1,len(level_hierarchy)):
         classification_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["full_classification"])
+        correct_index = list(np.where([len(str(cr).split(";")) >= abs(-1-(curr-match_loc)) for cr in classification_curr])[0])
         classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() for cr in classification_curr if len(str(cr).split(";")) >= abs(-1-(curr-match_loc))]
+        
+        transcripts_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["transcript_name"])
+        transcripts_curr = [transcripts_curr[cr2] for cr2 in correct_index]
         
         # add to running list
         classifications.extend(classifs_curr)
+        transcript_names.extend(transcripts_curr)
         
     classifications = [str(cr).strip().strip(""''"]['") for cr in classifications]
     full_list = classifications
     set_list.update(set(classifications))
-    final_frame = list(zip(list(set_list), [full_list.count(curr) for curr in list(set_list)]))
+    
+    full_frame = pd.DataFrame({name_level: classifications, "TranscriptNames": transcript_names})
+    final_frame = full_frame.groupby(name_level)({'TranscriptNames' : [('Count','count'), ("GroupedTranscripts", lambda x: ';'.join(x))]})
+    #final_frame = list(zip(list(set_list), [full_list.count(curr) for curr in list(set_list)]))
     
     return classifications, final_frame
 
@@ -108,10 +122,10 @@ for curr in results_frame.keys():
 def makeConcatFrame(curr_df, new_df, level, sample_name):
     if use_counts == 1:
         new_df = pd.DataFrame(new_df.reset_index())
-        new_df.columns = [level,"Counts","NumTranscripts"]
+        new_df.columns = [level,"Counts","NumTranscripts","GroupedTranscripts"]
     else:
         new_df = pd.DataFrame(new_df)
-        new_df.columns = ["Species","NumTranscripts"]
+        new_df.columns = [level,"NumTranscripts","GroupedTranscripts"]
     
     new_df["Sample"] = sample_name
     return pd.concat([curr_df, new_df])

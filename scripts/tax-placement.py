@@ -81,7 +81,8 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts):
         print("More than 1 transcript name included in the group.")
     transcript_name = list(transcript_name)[0]
     ds = list(set(dd[dd.pident==md]['ssqid_TAXID']))
-    counts = list(set(dd[dd.pident==md]['counts']))
+    counts = list(set(list(dd[dd.pident==md]['counts'])))
+    print(counts)
     if (len(counts) >= 1):
         chosen_count = counts[0]
     else:
@@ -143,7 +144,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cuto
         chunk['ssqid_TAXID']=chunk.sseqid.map(pdict)
         print(chunk['ssqid_TAXID'])
         if namestoreads != 0:
-            chunk['counts']=[namestoreads[curr.split(".")[0]] if curr.split(".")[0] in namestoreads else 0 for curr in chunk.qseqid]
+            chunk['counts']=[namestoreads[str(curr.split(".")[0])] if str(curr.split(".")[0]) in namestoreads else 0 for curr in chunk.qseqid]
             use_counts = 1
         else:
             chunk['counts'] = [0] * len(chunk.qseqid) # if no reads dict, each count is just assumed to be 0 and isn't recorded later
@@ -221,7 +222,6 @@ if __name__ == "__main__":
     tax_cutoffs = read_in_tax_cutoffs(args.cutoff_file)
     pdict = read_in_protein_map(args.prot_map_file)
     tax_dict = gen_dict(tax_table)
-    print(tax_dict)
     consensus_cutoff = float(args.consensus_cutoff)
     if args.method == "parallel":
         if (int(args.use_counts) == 1):
