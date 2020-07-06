@@ -36,7 +36,7 @@ if os.path.isdir(str(os.path.join(REF_FASTA))): # if reference fasta variable is
     REF_FASTA = "combined_fastas"
     print(REF_FASTA)
 elif os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA)):
-    REFERENCE_FASTAS = [os.path.join(REFERENCE_DIR, curr)]
+    REFERENCE_FASTAS = [os.path.join(REFERENCE_DIR, REF_FASTA)]
 else:
     print("You need to either provide a single fasta reference file, or the name of a directory containing multiple reference FASTA files.")
     sys.exit(1)
@@ -83,6 +83,8 @@ rule all:
         mag_tax = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-estimated-taxonomy.out"), G = MAG), 
         mag_assignment = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-max-level.csv"), G = MAG)
  
+
+#INPUTFILES={params.ref_dir}/*.fasta
 rule concat_reference_fastas:
     input: REFERENCE_FASTAS
     output: os.path.join(OUTPUTDIR, "concatfasta.fasta")
@@ -91,10 +93,9 @@ rule concat_reference_fastas:
         ref_dir = REFERENCE_DIR
     shell:
         """
-        INPUTFILES={params.ref_dir}/*.fasta
         OUTPUTFILE=$({output})
         touch $OUTPUTFILE
-        for currfile in $INPUTFILES; do ((cat "$currfile" | sed 's/\./N/g'); echo; echo) >> $OUTPUTFILE; done
+        for currfile in {params.space_delim}; do ((cat "$currfile" | sed 's/\./N/g'); echo; echo) >> $OUTPUTFILE; done
         """
 
 rule setup_reference:
@@ -280,8 +281,9 @@ rule visualize_taxonomy_METs:
 
 rule assess_busco_completeness_MET:
     input:
-        fastafile = os.path.join(OUTPUTDIR, "concatfasta.fasta"),
-        taxonomy_file = os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy.out")
+        fastafile = os.path.join(SAMPLE_DIR, "METs", "{T}." + NT_EXT),
+        taxonomy_file = os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy.out"),
+        tax_file = os.path.join(config['reference'], TAX_TAB)
     output:
         directory(os.path.join(OUTPUTDIR, "busco_run_{organism}_{taxonomic_level}_{T}_report.txt"))
     params:
@@ -294,7 +296,7 @@ rule assess_busco_completeness_MET:
         'envs/busco.yaml'
     shell:
         """
-        python scripts/query_busco.py --organism_group {params.organism} --taxonomic_level {params.taxonomic_level} --output_dir {params.outputdir} --fasta_file {input.fastafile} --sample_name {params.sample} --taxonomy_file {input.taxonomy_file}
+        python scripts/query_busco.py --organism_group {params.organism} --taxonomic_level {params.taxonomic_level} --output_dir {params.outputdir} --fasta_file {input.fastafile} --sample_name {params.sample} --taxonomy_file_prefix {params.taxfile_stub} --tax_table {input.tax_file}
         """
     
 rule estimate_taxonomy_MAG_proteins:

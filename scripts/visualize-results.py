@@ -133,7 +133,7 @@ def makeConcatFrame(curr_df, new_df, level, sample_name):
 counts_all = dict()
 level_hierarchy = ['supergroup','division','class','order','family','genus','species']
 for l in level_hierarchy:
-    counts_all[l] = pd.DataFrame(columns = ["Species","NumTranscripts","Sample"])
+    counts_all[l] = pd.DataFrame(columns = [l,"NumTranscripts","Sample"])
     
 for curr in results_frame.keys():
     if "_merged" not in curr:
