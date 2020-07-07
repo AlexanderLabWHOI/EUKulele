@@ -10,6 +10,7 @@ import os
 import sys
 import argparse
 import chardet
+import glob
 
 __author__ = "Arianna Krinos, Harriet Alexander"
 __copyright__ = "EUKulele"
@@ -39,15 +40,20 @@ def read_in_taxonomy(infile):
     return tax_out
 
 args = parser.parse_args()
+organism_format = " ".join(args.organism_group.split("_"))
 organism = args.organism_group
 taxonomy = args.taxonomic_level
 tax_table = read_in_taxonomy(args.tax_table)
-full_taxonomy = tax_table.loc[tax_table[taxonomy] == organism] #[organism in curr for curr in tax_table[taxonomy]]
-if len(full_taxonomy).index < 1:
+print(tax_table[taxonomy])
+print("Now match!")
+full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in tax_table[taxonomy]],:] # tax_table.loc[tax_table[taxonomy] == organism] #
+print(full_taxonomy)
+if len(full_taxonomy.index) < 1:
     print("No taxonomy found for that organism and taxonomic level.")
     sys.exit(1)
 level_hierarchy = ['supergroup','division','class','order','family','genus','species']
-curr_level = [ind for ind in range(len(level_hierarchy)) if level_hierarchy[ind] == taxonomy]
+curr_level = [ind for ind in range(len(level_hierarchy)) if level_hierarchy[ind] == taxonomy][0]
+print(curr_level)
 max_level = len(level_hierarchy) - 1
 
 success = 0
@@ -55,13 +61,17 @@ busco_scores = []
 while (curr_level >= 0):
     
     #### GET THE CURRENT LEVEL OF TAXONOMY FROM THE TAX TABLE FILE ####
-    curr_taxonomy = str(full_taxonomy[level_hierarchy[curr_level]][0])
+    curr_tax_list = set(list(full_taxonomy[level_hierarchy[curr_level]]))
+    if len(curr_tax_list) > 1:
+        print(curr_tax_list)
+        print("More than 1 unique match found; using the first match (" + str(list(curr_tax_list)[0]) + ")")
+    curr_taxonomy = str(list(curr_tax_list)[0])
     if (curr_taxonomy == "") | (curr_taxonomy.lower() == "nan"):
         print("No taxonomy found at level " + level_hierarchy[curr_level])
         continue
         
     #### CREATE THE MOCK TRANSCRIPTOME BY PULLING BY TAXONOMIC LEVEL ####
-    taxonomy_file = pd.read_csv(args.taxonomy_file_prefix + "_all_" + str(level_hierarchy[curr_level]) + "_counts.csv", sep="\t")
+    taxonomy_file = pd.read_csv(args.taxonomy_file_prefix + "_all_" + str(level_hierarchy[curr_level]) + "_counts.csv", sep=",",header=0)
     taxonomy_file = taxonomy_file.loc[taxonomy_file[level_hierarchy[curr_level].capitalize()] == curr_taxonomy]
     transcripts_to_search = list(taxonomy_file["GroupedTranscripts"])
     
@@ -77,7 +87,7 @@ while (curr_level >= 0):
     #### USING BUSCO TO ASSESS COMPLETENESS OF THE MOCK TRANSCRIPTOME ####
     mock_file = mock_file_name # here will go path to FASTA file we create and assess completeness against
 
-    if (args.download_busco) & (busco_url != 0):
+    if (args.download_busco) & (args.busco_url != 0):
         os.system("wget -O busco_db.tar.gz " + args.busco_url)
         os.system("mkdir -p " + args.busco_location)
         os.system("tar -xzf busco_db.tar.gz -C " + args.busco_location)
@@ -87,6 +97,7 @@ while (curr_level >= 0):
 
     ## By default, BUSCO output will just be stored below the output directory
     busco_loc = os.path.join(args.output_dir, "busco_run_" + organism + "_" + taxonomy)
+    os.system("mkdir -p " + busco_loc)
     busco_db_name = "eukaryota_odb10" # we can also change this to our downloaded BUSCO file; assess this in the future
     os.system("cp " + os.path.join("..","static","busco_config.ini") + " " + os.path.join(busco_loc,"config.ini"))
     os.system("sed -i '/out = /c\out = " + organism + "' " + os.path.join(busco_loc,"config.ini")) # the name of the output files
