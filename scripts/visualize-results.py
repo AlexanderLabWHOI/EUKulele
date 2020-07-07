@@ -63,7 +63,7 @@ def countClassifs(level, level_hierarchy, name_level, df):
     set_list.update(set(classifications))
     
     full_frame = pd.DataFrame({name_level: classifications, "Counts": counts, "TranscriptNames": transcript_names})
-    final_frame = full_frame.groupby(name_level)({'Counts' : [('Sum','sum'), ('Count','count')], 'TranscriptNames' : [("GroupedTranscripts", lambda x: ';'.join(x))]})
+    final_frame = full_frame.groupby(name_level).agg({'Counts' : [('Sum','sum'), ('Count','count')], 'TranscriptNames' : [("GroupedTranscripts", lambda x: ';'.join(x))]})
     #full_frame.groupby(name_level)['Counts'].agg(Sum='sum', Count='count')
     return classifications, final_frame
     
@@ -90,7 +90,7 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
     set_list.update(set(classifications))
     
     full_frame = pd.DataFrame({name_level: classifications, "TranscriptNames": transcript_names})
-    final_frame = full_frame.groupby(name_level)({'TranscriptNames' : [('Count','count'), ("GroupedTranscripts", lambda x: ';'.join(x))]})
+    final_frame = full_frame.groupby(name_level).agg({'TranscriptNames' : [('Count','count'), ("GroupedTranscripts", lambda x: ';'.join(x))]})
     #final_frame = list(zip(list(set_list), [full_list.count(curr) for curr in list(set_list)]))
     
     return classifications, final_frame

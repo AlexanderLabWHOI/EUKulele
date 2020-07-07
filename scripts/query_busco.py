@@ -42,7 +42,7 @@ args = parser.parse_args()
 organism = args.organism_group
 taxonomy = args.taxonomic_level
 tax_table = read_in_taxonomy(args.tax_table)
-full_taxonomy = tax_table.loc[tax_table[taxonomy] == organism]
+full_taxonomy = tax_table.loc[tax_table[taxonomy] == organism] #[organism in curr for curr in tax_table[taxonomy]]
 if len(full_taxonomy).index < 1:
     print("No taxonomy found for that organism and taxonomic level.")
     sys.exit(1)
@@ -91,7 +91,7 @@ while (curr_level >= 0):
     os.system("cp " + os.path.join("..","static","busco_config.ini") + " " + os.path.join(busco_loc,"config.ini"))
     os.system("sed -i '/out = /c\out = " + organism + "' " + os.path.join(busco_loc,"config.ini")) # the name of the output files
     os.system("sed -i '/out_path = /c\out_path = " + busco_loc + "' " + os.path.join(busco_loc,"config.ini")) # what directory the output will be stored in
-    os.system("busco -i " + mock_file + " -l " + busco_db_name + " -m transcriptome --cpu " + str(args.available_cpus) " --config " + os.path.join(busco_loc,"config.ini") + " -f")
+    os.system("busco -i " + mock_file + " -l " + busco_db_name + " -m transcriptome --cpu " + str(args.available_cpus) + " --config " + os.path.join(busco_loc,"config.ini") + " -f")
 
     #### PROCESS BUSCO OUTPUT ####
     busco_short_result = glob.glob(os.path.join(busco_loc,"short_summary*.txt"))
@@ -105,7 +105,8 @@ while (curr_level >= 0):
         break
     curr_level = curr_level - 1
 
-report_file = os.path.join(args.output_dir, "busco_run_" + organism + "_" + args.taxonomic_level + "_" + args.sample_name + "_report.txt")
+report_file = os.path.join(OUTPUTDIR, "busco_run", organism, args.taxonomic_level, args.sample_name + "_report.txt")
+#report_file = os.path.join(args.output_dir, "busco_run_" + organism + "_" + args.taxonomic_level + "_" + args.sample_name + "_report.txt")
 reported = open(report_file,"w")
 if success == 1:
     file_written = os.path.join(args.output_dir, organism + level_hierarchy[curr_level] + ".fasta")

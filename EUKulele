@@ -81,7 +81,8 @@ rule all:
         mt_tax_viz = expand(os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1] + "_all_species_counts.csv")),#,ifparallel = IFPARALLEL),
         mag_aln = expand(os.path.join(OUTPUTDIR, "MAGs", "{aligner}", "{G}.{aligner}.{extension}"), G = MAG, aligner = ALIGNMENT_CHOICE, extension = OUTPUT_EXTENSION), 
         mag_tax = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-estimated-taxonomy.out"), G = MAG), 
-        mag_assignment = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-max-level.csv"), G = MAG)
+        mag_assignment = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-max-level.csv"), G = MAG),
+        busco_results = expand(os.path.join(OUTPUTDIR, "busco_run", "{organism}", "{taxonomic_level}", "{T}_report.txt"), zip, organism = "Phaeocystis_antarctica", taxonomic_level = "species", T = MTS)
  
 
 #INPUTFILES={params.ref_dir}/*.fasta
@@ -93,9 +94,9 @@ rule concat_reference_fastas:
         ref_dir = REFERENCE_DIR
     shell:
         """
-        OUTPUTFILE=$({output})
-        touch $OUTPUTFILE
-        for currfile in {params.space_delim}; do ((cat "$currfile" | sed 's/\./N/g'); echo; echo) >> $OUTPUTFILE; done
+        #OUTPUTFILE=$({output})
+        #touch $OUTPUTFILE
+        for currfile in {params.space_delim}; do ((cat "$currfile" | sed 's/\./N/g'); echo; echo) >> {output}; done
         """
 
 rule setup_reference:
@@ -285,10 +286,10 @@ rule assess_busco_completeness_MET:
         taxonomy_file = os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy.out"),
         tax_file = os.path.join(config['reference'], TAX_TAB)
     output:
-        directory(os.path.join(OUTPUTDIR, "busco_run_{organism}_{taxonomic_level}_{T}_report.txt"))
+        os.path.join(OUTPUTDIR, "busco_run", "{organism}", "{taxonomic_level}", "{T}_report.txt")
     params:
         sample = "{T}",
-        organism = "{organism}",
+        organism = " ".join("{organism}".split("_")),
         taxonomic_level = "{taxonomic_level}",
         outputdir = os.path.join(OUTPUTDIR,"busco"),
         taxfile_stub = os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1]) # this should match the stub from visualize_taxonomy_METs
