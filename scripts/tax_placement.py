@@ -206,13 +206,17 @@ def classify_taxonomy(df, tax_dict, consensus_cutoff):
     return outdf
 
 def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,use_counts,name_to_reads,diamond_file,outfile,method)
+    if os.path.isfile(outfile):
+        print("Taxonomic placement already complete; will not re-run step.")
+        return 0
+    
     tax_table = read_in_taxonomy(tax_file)
     tax_cutoffs = read_in_tax_cutoffs(cutoff_file)
     pdict = read_in_protein_map(prot_map_file)
     tax_dict = gen_dict(tax_table)
     print(tax_dict)
     consensus_cutoff = float(consensus_cutoff)
-    if args.method == "parallel":
+    if method:
         if (int(use_counts) == 1):
             print("Hello")
             print(use_counts)
@@ -224,3 +228,4 @@ def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,use_count
         diamond_df = read_in_diamond_file(diamond_file, pdict)
         classification_df = classify_taxonomy(diamond_df, tax_dict, consensus_cutoff)
     classification_df.to_csv(outfile, sep='\t')
+    return outfile
