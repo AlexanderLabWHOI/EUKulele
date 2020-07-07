@@ -164,7 +164,7 @@ SALMON_DIR = config["salmon_dir"]
 NAMES_TO_READS = os.path.join(REFERENCE_DIR, config["names_to_reads"])
 
 ORGANISMS = args.organisms
-ORGANISMS_TAXONOMY = args.organisms_taxonomy
+ORGANISMS_TAXONOMY = args.taxonomy_organisms
 BUSCO_FILE = args.busco_file
 if (BUSCO_FILE != "") & (os.path.isfile(BUSCO_FILE)):
     busco_file_read = read.csv(BUSCO_FILE, sep = "\t")
