@@ -1,15 +1,15 @@
-#!/usr/bin/env python3
-
 # Query BUSCO for a given species or functional group. 
 # A script that takes a given functional group as input, along with the taxonomic level of that group
 # (e.g. Phaeocystis antarctica, species), and then checks for BUSCO completeness among the contigs
 # identified as that taxonomic level or lower, also evaluating the number of copies of the BUSCO
-# matches to differentiate between multiple strains.
+# matches to differentiate between multiple strains. # !/ usr/bin/env python3
 
 import pandas as pd
 import numpy as np
 import os
 import sys
+import argparse
+import chardet
 
 __author__ = "Arianna Krinos, Harriet Alexander"
 __copyright__ = "EUKulele"
