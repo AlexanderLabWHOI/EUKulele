@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Query BUSCO for a given species or functional group. 
 # A script that takes a given functional group as input, along with the taxonomic level of that group

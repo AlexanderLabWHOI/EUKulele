@@ -284,7 +284,8 @@ rule assess_busco_completeness_MET:
     input:
         fastafile = os.path.join(SAMPLE_DIR, "METs", "{T}." + NT_EXT),
         taxonomy_file = os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy.out"),
-        tax_file = os.path.join(config['reference'], TAX_TAB)
+        tax_file = os.path.join(config['reference'], TAX_TAB),
+        species_file = os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1] + "_all_species_counts.csv")
     output:
         os.path.join(OUTPUTDIR, "busco_run", "{organism}", "{taxonomic_level}", "{T}_report.txt")
     params:
