@@ -26,6 +26,7 @@ parser.add_argument('--taxonomy_file_prefix') # the taxonomy file we use to crea
 parser.add_argument('--tax_table') # the taxonomy table to get the full classification of the organism as assessed by the database being used.
 parser.add_argument('--sample_name') # name of the original sample being assessed.
 parser.add_argument('--download_busco',action='store_true') # if specified, we download BUSCO file from the url in the next argument
+parser.add_argument('--create_fasta',action='store_true') # if specified, we create a "transcriptome fasta" when we query for the organisms
 parser.add_argument('--busco_url',default=0)
 parser.add_argument('--busco_location',default="busco") # location to store the BUSCO tar reference
 parser.add_argument('--output_dir',default="output")
@@ -73,7 +74,7 @@ while (curr_level >= 0):
         print("No taxonomy found at level " + level_hierarchy[curr_level])
         continue
         
-    #### CREATE THE MOCK TRANSCRIPTOME BY PULLING BY TAXONOMIC LEVEL ####
+    #### CREATE A "MOCK TRANSCRIPTOME" BY PULLING BY TAXONOMIC LEVEL ####
     taxonomy_file = pd.read_csv(args.taxonomy_file_prefix + "_all_" + str(level_hierarchy[curr_level]) + "_counts.csv", sep=",",header=0)
     taxonomy_file = taxonomy_file.loc[taxonomy_file[level_hierarchy[curr_level].capitalize()] == curr_taxonomy]
     transcripts_to_search = list(taxonomy_file["GroupedTranscripts"])
@@ -92,17 +93,24 @@ while (curr_level >= 0):
         break
     curr_level = curr_level - 1
 
-report_dir = os.path.join(OUTPUTDIR, "busco_run", organism, args.taxonomic_level)
+report_dir = os.path.join(args.output_dir, organism, args.taxonomic_level)
+os.system("mkdir -p " + os.path.join(args.output_dir, organism))
 os.system("mkdir -p " + report_dir)
 report_file = os.path.join(report_dir, args.sample_name + "_report.txt")
-#report_file = os.path.join(args.output_dir, "busco_run_" + organism + "_" + args.taxonomic_level + "_" + args.sample_name + "_report.txt")
 reported = open(report_file,"w")
 if success == 1:
-    file_written = os.path.join(args.output_dir, organism + level_hierarchy[curr_level] + ".fasta")
+    file_written = os.path.join(args.output_dir, organism, level_hierarchy[curr_level] + ".txt")
     os.system("mv " + mock_file + " " + file_written)
-    reported.write("Taxonomy file successfully completed with BUSCO completeness " + str(busco_completeness) + "% at location " + str(file_written) + ". \n")
-    reported.write("The BUSCO scores found at the various taxonomic levels were: " + str(busco_scores))
+    with open(file_written, 'w') as filehandle:
+        for transcript_name in transcripts_to_search_sep:
+            filehandle.write(transcript_name + '\n')
+    if (args.create_fasta):
+        mock_file_name = organism + "_" + level_hierarchy[curr_level] + "_" + args.sample_name + "_BUSCO_complete.fasta"
+        os.system("grep -w -A 2 -f " + file_written + " " + args.fasta_file + " --no-group-separator > " + mock_file_name)
+            
+    reported.write("Taxonomy file successfully completed with BUSCO completeness " + str(busco_completeness) + "% at location " + str(file_written) + ". The file containing the transcript names for the mock transcriptome corresponding to this taxonomic level is located here: " + str(file_written) + ".\n")
+    reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(args.taxonomic_level) + ") were: " + str(busco_scores))
 else:
     reported.write("Sufficient BUSCO completeness not found at threshold " + str(args.busco_threshold) + "%. \n")
-    reported.write("The BUSCO scores found at the various taxonomic levels were: " + str(busco_scores))
+    reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(args.taxonomic_level) + ") were: " + str(busco_scores))
 reported.close()
