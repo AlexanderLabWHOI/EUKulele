@@ -4,6 +4,7 @@ __default__:
     time: 5000 # minutes
     mem: 180 # GB
     threads: 2
+    cpuspertask: 18
     queue: compute # required
     nodes: 1
     command_options:

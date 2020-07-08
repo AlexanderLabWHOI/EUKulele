@@ -18,6 +18,7 @@ __license__ = "MIT"
 __email__ = "akrinos@mit.edu"
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--busco_out') # the output from the BUSCO run on the full sample file
 parser.add_argument('--organism_group') # the focal name of species/genus/order/class etc.
 parser.add_argument('--taxonomic_level') # the taxonomic level of the specified focal name.
 parser.add_argument('--fasta_file') # the fasta file from which we pull sequences for the mock transcriptome.
@@ -44,10 +45,7 @@ organism_format = " ".join(args.organism_group.split("_"))
 organism = args.organism_group
 taxonomy = args.taxonomic_level
 tax_table = read_in_taxonomy(args.tax_table)
-print(tax_table[taxonomy])
-print("Now match!")
-full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in tax_table[taxonomy]],:] # tax_table.loc[tax_table[taxonomy] == organism] #
-print(full_taxonomy)
+full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in tax_table[taxonomy]],:]
 if len(full_taxonomy.index) < 1:
     print("No taxonomy found for that organism and taxonomic level.")
     sys.exit(1)
@@ -58,6 +56,11 @@ max_level = len(level_hierarchy) - 1
 
 success = 0
 busco_scores = []
+busco_out_file = pd.read_csv(args.busco_out, sep = "\t", comment = "#", names = ["BuscoID","Status","Sequence","Score","Length"])
+good_buscos = busco_out_file.loc[(busco_out_file.Status == "Complete") | (busco_out_file.Status == "Fragmented"),:]
+good_busco_sequences = set(list(good_buscos.Sequence))
+total_buscos = len(busco_out_file.index)
+
 while (curr_level >= 0):
     
     #### GET THE CURRENT LEVEL OF TAXONOMY FROM THE TAX TABLE FILE ####
@@ -74,39 +77,12 @@ while (curr_level >= 0):
     taxonomy_file = pd.read_csv(args.taxonomy_file_prefix + "_all_" + str(level_hierarchy[curr_level]) + "_counts.csv", sep=",",header=0)
     taxonomy_file = taxonomy_file.loc[taxonomy_file[level_hierarchy[curr_level].capitalize()] == curr_taxonomy]
     transcripts_to_search = list(taxonomy_file["GroupedTranscripts"])
+    transcripts_to_search_sep = []
+    for transcript_name in transcripts_to_search:
+        transcripts_to_search_sep.extend(transcript_name.split(";"))
     
-    ## Write the candidate transcripts to a file for easy grepping ##
-    searchfile = organism + "_" + args.taxonomic_level + "_" + args.sample_name + "_transcriptnames.txt"
-    with open(searchfile, 'w') as filehandle:
-        for transcript_name in transcripts_to_search:
-            filehandle.write(transcript_name + '\n')
+    set_transcripts_to_search = set(transcripts_to_search_sep)
     
-    mock_file_name = organism + "_" + args.taxonomic_level + "_" + args.sample_name + "_curr.fasta"
-    os.system("grep -w -A 2 -f " + searchfile + " " + args.fasta_file + " --no-group-separator > " + mock_file_name)
-
-    #### USING BUSCO TO ASSESS COMPLETENESS OF THE MOCK TRANSCRIPTOME ####
-    mock_file = mock_file_name # here will go path to FASTA file we create and assess completeness against
-
-    if (args.download_busco) & (args.busco_url != 0):
-        os.system("wget -O busco_db.tar.gz " + args.busco_url)
-        os.system("mkdir -p " + args.busco_location)
-        os.system("tar -xzf busco_db.tar.gz -C " + args.busco_location)
-    elif (args.download_busco):
-        print("You asked to download a BUSCO database, but didn't provide a URL for one.")
-        sys.exit(1)
-
-    ## By default, BUSCO output will just be stored below the output directory
-    busco_loc = os.path.join(args.output_dir, "busco_run_" + organism + "_" + taxonomy)
-    os.system("mkdir -p " + busco_loc)
-    busco_db_name = "eukaryota_odb10" # we can also change this to our downloaded BUSCO file; assess this in the future
-    os.system("cp " + os.path.join("..","static","busco_config.ini") + " " + os.path.join(busco_loc,"config.ini"))
-    os.system("sed -i '/out = /c\out = " + organism + "' " + os.path.join(busco_loc,"config.ini")) # the name of the output files
-    os.system("sed -i '/out_path = /c\out_path = " + busco_loc + "' " + os.path.join(busco_loc,"config.ini")) # what directory the output will be stored in
-    os.system("busco -i " + mock_file + " -l " + busco_db_name + " -m transcriptome --cpu " + str(args.available_cpus) + " --config " + os.path.join(busco_loc,"config.ini") + " -f")
-
-    #### PROCESS BUSCO OUTPUT ####
-    busco_short_result = glob.glob(os.path.join(busco_loc,"short_summary*.txt"))
-    print(busco_short_result)
     with open(busco_short_result[0], 'r') as file:
         data = file.read().replace('\n', '')
     busco_completeness = float(data.split("C:")[1].split("%")[0])
@@ -116,7 +92,9 @@ while (curr_level >= 0):
         break
     curr_level = curr_level - 1
 
-report_file = os.path.join(OUTPUTDIR, "busco_run", organism, args.taxonomic_level, args.sample_name + "_report.txt")
+report_dir = os.path.join(OUTPUTDIR, "busco_run", organism, args.taxonomic_level)
+os.system("mkdir -p " + report_dir)
+report_file = os.path.join(report_dir, args.sample_name + "_report.txt")
 #report_file = os.path.join(args.output_dir, "busco_run_" + organism + "_" + args.taxonomic_level + "_" + args.sample_name + "_report.txt")
 reported = open(report_file,"w")
 if success == 1:
