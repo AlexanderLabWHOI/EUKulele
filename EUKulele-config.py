@@ -12,7 +12,7 @@ with open("config.yaml", 'r') as configfile:
 args = ""
 
 ## CHECK THAT ALL OPTIONS WITHOUT DEFAULTS EXIST IN CONFIGURATION FILE ##
-required_entries = ["mets_or_mags","create_tax_table","database","reference","output","samples","ref_fasta","cutoff"]
+required_entries = ["mets_or_mags","create_tax_table","reference","samples","ref_fasta","cutoff"]
 for r in required_entries:
     if r not in config:
         print("You did not include required entry: " + str(r) + " in the configuration file.")
@@ -20,11 +20,13 @@ for r in required_entries:
         
 ## BASIC OPTIONS ##
 args = args + " --mets_or_mags " + str(config["mets_or_mags"])
-args = args + " --database " + str(config["database"])
 args = args + " --reference_dir " + str(config["reference"])
-args = args + " --out_dir " + str(config["output"])
 args = args + " --sample_dir " + str(config["samples"])
 args = args + " --ref_fasta " + str(config["ref_fasta"])
+if "output" in config:
+    args = args + " --out_dir " + str(config["output"])
+if "database" in config:
+    args = args + " --database " + str(config["database"])
 if "nucleotide_extension" in config:
     args = args + " --nucleotide_extension " + str(config["nucleotide_extension"])
 if "protein_extension" in config:

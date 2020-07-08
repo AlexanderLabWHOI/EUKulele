@@ -115,7 +115,7 @@ def makeConcatFrame(curr_df, new_df, level, sample_name):
     new_df["Sample"] = sample_name
     return pd.concat([curr_df, new_df])
 
-def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extension, prot_extension, use_counts):
+def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extension, nucle_extension, use_counts):
     results_frame = dict()
 
     ### READ IN RESULTS FILES FROM MET DIR THAT FIT SAMPLE SPEC FROM CONFIG ###

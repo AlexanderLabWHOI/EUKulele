@@ -87,6 +87,14 @@ def align_to_database(alignment_choice, sample_name):
             return 1
         return blast_out
 
+def run_busco(sample_name, outputdir, busco_db):
+    fastaname = os.path.join(OUTPUTDIR, "METs",  sample_name + "." + PEP_EXT)
+    os.system("chmod 755 scripts/run_busco.sh")
+    p1 = subprocess.Popen(["./scripts/run_busco.sh " + str(outputdir) + " static/busco_config.ini " + outputdir + "/config_" + sample_name + ".ini " + fastaname + " " + str(CPUS) + " " + busco_db])
+    p1.wait()
+    rc1 = p1.returncode
+    return rc1
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--mets_or_mags', required = True) 
 parser.add_argument('--nucleotide_extension', default = ".fasta") 
@@ -99,9 +107,9 @@ parser.add_argument('--salmon_dir') # salmon directory is required if use_salmon
 parser.add_argument('--names_to_reads',default=0) # a file to be created or used if it exists that relates transcript names to salmon counts from the salmon directory 
 
 ## WHERE FILES ARE LOCATED ##
-parser.add_argument('--database', required = True) # the name of the database to be used to assess the reads
+parser.add_argument('--database', default="mmetsp") # the name of the database to be used to assess the reads
 parser.add_argument('--reference_dir', required = True) # folder containing the reference files for the chosen database
-parser.add_argument('-o','--out_dir', dest = "out_dir", required = True) # folder where the output will be written
+parser.add_argument('-o','--out_dir', dest = "out_dir", default = "output") # folder where the output will be written
 parser.add_argument('--sample_dir', required = True) # folder where the input data is located (the protein or peptide files to be assessed)
 parser.add_argument('--ref_fasta', required = True) # either a file in the reference directory where the fasta file for the database is located, or a directory containing multiple fasta files that constitute the database.
 parser.add_argument('--ref_fasta_ext', default = ".fasta") # if a directory is given for ref_fasta and the extension of the files differs from .fasta, specify it via this argument.
@@ -148,20 +156,23 @@ SAMPLE_DIR = args.sample_dir
 REF_FASTA = args.ref_fasta
 TAX_TAB = os.path.join(REFERENCE_DIR, args.tax_table)
 PROT_TAB = os.path.join(REFERENCE_DIR, args.protein_map)
-ALIGNMENT_CHOICE = config['alignment_choice']
-IFPARALLEL = config['choose_parallel']
+ALIGNMENT_CHOICE = args.alignment_choice
+IFPARALLEL = "series"
+if args.p:
+    IFPARALLEL = "parallel"
 OUTPUT_EXTENSION = "txt"
 DBEXTENSION = ""
-TRANSDECODERORFSIZE=config['transdecoder_orfsize']
+TRANSDECODERORFSIZE=args.transdecoder_orfsize
 if ALIGNMENT_CHOICE == "diamond":
     OUTPUT_EXTENSION = "out"
     DBEXTENSION = ".dmnd"
-NT_EXT = config['nucleotide_extension'].strip('.')
-PEP_EXT = config['protein_extension'].strip('.')
-mets_or_mags=config['mets_or_mags'].lower()
-USE_SALMON_COUNTS = config["use_salmon_counts"]
-SALMON_DIR = config["salmon_dir"]
-NAMES_TO_READS = os.path.join(REFERENCE_DIR, config["names_to_reads"])
+NT_EXT = args.nucleotide_extension.strip('.')
+PEP_EXT = args.protein_extension.strip('.')
+mets_or_mags=args.mets_or_mags.lower()
+USE_SALMON_COUNTS = args.use_salmon_counts
+SALMON_DIR = args.salmon_dir
+NAMES_TO_READS = os.path.join(REFERENCE_DIR, args.names_to_reads)
+CPUS = args.CPUs                         
 
 ORGANISMS = args.organisms
 ORGANISMS_TAXONOMY = args.taxonomy_organisms
@@ -225,7 +236,7 @@ if any([curr == 1 for curr in alignment_res]):
        
 ## Next to do taxonomy estimation ##
 if (USE_SALMON_COUNTS == 1):
-    p1 = subprocess.Popen(["python scripts/names-to-reads.py"])
+    p1 = subprocess.Popen(["python scripts/names_to_reads.py"])
     p1.wait()
     
 outfiles = [os.path.join(OUTPUTDIR, "METs", samp + "-estimated-taxonomy.out") for samp in MTS]
@@ -235,4 +246,9 @@ taxonomy_res = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(place_taxono
 out_prefix = OUTPUTDIR.split("/")[-1]
 visualize_all_results(out_prefix, OUTPUTDIR, os.path.join(OUTPUTDIR, "METs"), os.path.join(OUTPUTDIR, "METs"), PEP_EXT, NT_EXT, USE_SALMON_COUNTS)
 
-
+## Run BUSCO on the full dataset ##
+busco_res = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(run_busco)(sample_name) for sample_name in MTS)
+all_codes = sum(busco_res)
+if all_codes > 0:
+    print("BUSCO did not complete successfully.")
+    sys.exit(1)
