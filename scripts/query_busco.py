@@ -60,9 +60,12 @@ max_level = len(level_hierarchy) - 1
 success = 0
 busco_scores = []
 busco_out_file = pd.read_csv(args.busco_out, sep = "\t", comment = "#", names = ["BuscoID","Status","Sequence","Score","Length"])
-good_buscos = busco_out_file.loc[(busco_out_file.Status == "Complete") | (busco_out_file.Status == "Fragmented"),:]
-good_busco_sequences = set([curr.split(".")[0] for curr in list(good_buscos.Sequence)])
+select_inds = [ (busco_out_file.Status[curr] == "Complete") | (busco_out_file.Status[curr] == "Fragmented") | (busco_out_file.Status[curr] == "Duplicated") for curr in range(len(busco_out_file.index))]
+good_buscos = busco_out_file.loc[select_inds,:]
+good_busco_sequences = [curr.split(".")[0] for curr in list(good_buscos.Sequence)]
+Covered_IDs = list(good_buscos.BuscoID)
 total_buscos = len(set(list(busco_out_file.BuscoID)))
+print(total_buscos)
 
 while (curr_level >= 0):
     
@@ -70,23 +73,27 @@ while (curr_level >= 0):
     curr_tax_list = set(list(full_taxonomy[level_hierarchy[curr_level]]))
     if len(curr_tax_list) > 1:
         print(curr_tax_list)
-        print("More than 1 unique match found; using the first match (" + str(list(curr_tax_list)[0]) + ")")
-    curr_taxonomy = str(list(curr_tax_list)[0])
+        print("More than 1 unique match found; using both matches: " + str("".join(curr_tax_list)))
+              #using the first match (" + str(list(curr_tax_list)[0]) + ")")
+    curr_taxonomy = ";".join(curr_tax_list) #str(list(curr_tax_list)[0])
     if (curr_taxonomy == "") | (curr_taxonomy.lower() == "nan"):
         print("No taxonomy found at level " + level_hierarchy[curr_level])
         continue
         
     #### CREATE A "MOCK TRANSCRIPTOME" BY PULLING BY TAXONOMIC LEVEL ####
     taxonomy_file = pd.read_csv(args.taxonomy_file_prefix + "_all_" + str(level_hierarchy[curr_level]) + "_counts.csv", sep=",",header=0)
-    taxonomy_file = taxonomy_file.loc[taxonomy_file[level_hierarchy[curr_level].capitalize()] == curr_taxonomy]
+    taxonomy_file = taxonomy_file.loc[[tax in curr_taxonomy for tax in list(taxonomy_file[level_hierarchy[curr_level].capitalize()])],:]
     transcripts_to_search = list(taxonomy_file["GroupedTranscripts"])
     transcripts_to_search_sep = []
     for transcript_name in transcripts_to_search:
         transcripts_to_search_sep.extend([curr.split(".")[0] for curr in transcript_name.split(";")])
     
     set_transcripts_to_search = set(transcripts_to_search_sep)
+    good_busco_sequences_list = list(good_busco_sequences)
+    BUSCOs_covered = set([Covered_IDs[curr] for curr in range(len(good_busco_sequences_list)) if good_busco_sequences_list[curr] in list(set_transcripts_to_search)])
     
-    busco_completeness = len(set_transcripts_to_search.intersection(good_busco_sequences)) / total_buscos
+    busco_completeness = len(BUSCOs_covered) / total_buscos * 100
+    #len(set_transcripts_to_search.intersection(good_busco_sequences)) / total_buscos * 100
     busco_scores.append(busco_completeness)
     if busco_completeness >= args.busco_threshold:
         success = 1
@@ -100,8 +107,7 @@ os.system("mkdir -p " + report_dir)
 report_file = os.path.join(report_dir, args.sample_name + "_report.txt")
 reported = open(report_file,"w")
 if success == 1:
-    file_written = os.path.join(args.output_dir, organism, level_hierarchy[curr_level] + ".txt")
-    os.system("mv " + mock_file + " " + file_written)
+    file_written = os.path.join(args.output_dir, organism, level_hierarchy[curr_level] + "_" + args.sample_name + ".txt")
     with open(file_written, 'w') as filehandle:
         for transcript_name in transcripts_to_search_sep:
             filehandle.write(transcript_name + '\n')
