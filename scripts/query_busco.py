@@ -47,6 +47,8 @@ organism = args.organism_group
 taxonomy = args.taxonomic_level
 tax_table = read_in_taxonomy(args.tax_table)
 full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in tax_table[taxonomy]],:]
+print(organism_format)
+print(full_taxonomy)
 if len(full_taxonomy.index) < 1:
     print("No taxonomy found for that organism and taxonomic level.")
     sys.exit(1)
@@ -59,8 +61,8 @@ success = 0
 busco_scores = []
 busco_out_file = pd.read_csv(args.busco_out, sep = "\t", comment = "#", names = ["BuscoID","Status","Sequence","Score","Length"])
 good_buscos = busco_out_file.loc[(busco_out_file.Status == "Complete") | (busco_out_file.Status == "Fragmented"),:]
-good_busco_sequences = set(list(good_buscos.Sequence))
-total_buscos = len(busco_out_file.index)
+good_busco_sequences = set([curr.split(".")[0] for curr in list(good_buscos.Sequence)])
+total_buscos = len(set(list(busco_out_file.BuscoID)))
 
 while (curr_level >= 0):
     
@@ -80,13 +82,11 @@ while (curr_level >= 0):
     transcripts_to_search = list(taxonomy_file["GroupedTranscripts"])
     transcripts_to_search_sep = []
     for transcript_name in transcripts_to_search:
-        transcripts_to_search_sep.extend(transcript_name.split(";"))
+        transcripts_to_search_sep.extend([curr.split(".")[0] for curr in transcript_name.split(";")])
     
     set_transcripts_to_search = set(transcripts_to_search_sep)
     
-    with open(busco_short_result[0], 'r') as file:
-        data = file.read().replace('\n', '')
-    busco_completeness = float(data.split("C:")[1].split("%")[0])
+    busco_completeness = len(set_transcripts_to_search.intersection(good_busco_sequences)) / total_buscos
     busco_scores.append(busco_completeness)
     if busco_completeness >= args.busco_threshold:
         success = 1
@@ -96,6 +96,7 @@ while (curr_level >= 0):
 report_dir = os.path.join(args.output_dir, organism, args.taxonomic_level)
 os.system("mkdir -p " + os.path.join(args.output_dir, organism))
 os.system("mkdir -p " + report_dir)
+
 report_file = os.path.join(report_dir, args.sample_name + "_report.txt")
 reported = open(report_file,"w")
 if success == 1:
@@ -112,5 +113,5 @@ if success == 1:
     reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(args.taxonomic_level) + ") were: " + str(busco_scores))
 else:
     reported.write("Sufficient BUSCO completeness not found at threshold " + str(args.busco_threshold) + "%. \n")
-    reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(args.taxonomic_level) + ") were: " + str(busco_scores))
+    reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(args.taxonomic_level) + ") were: " + str(busco_scores) + "\n")
 reported.close()

@@ -82,7 +82,7 @@ rule all:
         mag_aln = expand(os.path.join(OUTPUTDIR, "MAGs", "{aligner}", "{G}.{aligner}.{extension}"), G = MAG, aligner = ALIGNMENT_CHOICE, extension = OUTPUT_EXTENSION), 
         mag_tax = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-estimated-taxonomy.out"), G = MAG), 
         mag_assignment = expand(os.path.join(OUTPUTDIR, "MAGs", "{G}-max-level.csv"), G = MAG),
-        busco_results = expand(os.path.join(OUTPUTDIR, "busco_run", "{organism}", "{taxonomic_level}", "{T}_report.txt"), organism = "Phaeocystis_antarctica", taxonomic_level = "species", T = MTS)
+        busco_results = expand(os.path.join(OUTPUTDIR, "busco", "{organism}", "{taxonomic_level}", "{T}_report.txt"), organism = "Phaeocystis_antarctica", taxonomic_level = "species", T = MTS)
  
 
 #INPUTFILES={params.ref_dir}/*.fasta
@@ -292,9 +292,10 @@ rule run_busco:
         sample = "{T}",
         busco_db_name = "eukaryota" + "_odb10",
         CPUs = 18,
-        outputdir = os.path.join(OUTPUTDIR,"busco","{T}"),
+        outputdir = os.path.join(OUTPUTDIR,"busco"),
+        buscodir = os.path.join(OUTPUTDIR,"busco","{T}"),
         static_config = os.path.join("static","busco_config.ini"),
-        config_loc = os.path.join(OUTPUTDIR,"busco","{T}","config.ini")
+        config_loc = os.path.join(OUTPUTDIR,"busco","{T}","config_{T}.ini")
     conda:
         'envs/busco.yaml'
     shell:
@@ -304,16 +305,18 @@ rule run_busco:
         sed -i '/out = /c\out = {params.sample}' {params.config_loc} # the name of the output files
         sed -i '/out_path = /c\out_path = {params.outputdir}' {params.config_loc} # what directory the output will be stored in
         busco -i {input.fastafile} -l {params.busco_db_name} -m proteins --cpu {params.CPUs} --config {params.config_loc} -f
+        mv {params.buscodir}/*/* {params.buscodir}
         """
         
 rule assess_busco_completeness_MET:
     input:
+        fastafile = os.path.join(OUTPUTDIR, "METs",  "{T}." + PEP_EXT),
         taxonomy_file = os.path.join(OUTPUTDIR, "METs", "{T}-estimated-taxonomy.out"),
         tax_file = os.path.join(config['reference'], TAX_TAB),
         species_file = os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1] + "_all_species_counts.csv"),
         busco_table = os.path.join(OUTPUTDIR, "busco", "{T}", "full_table.tsv")
     output:
-        os.path.join(OUTPUTDIR, "busco_run", "{organism}", "{taxonomic_level}", "{T}_report.txt")
+        os.path.join(OUTPUTDIR, "busco", "{organism}", "{taxonomic_level}", "{T}_report.txt")
     params:
         sample = "{T}",
         organism = "{organism}",
