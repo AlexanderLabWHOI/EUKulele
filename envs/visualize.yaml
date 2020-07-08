@@ -1,0 +1,14 @@
+name: visualize
+channels:
+    - bioconda
+    - conda-forge
+    - defaults
+dependencies:
+    - ujson
+    - pandas
+    - yaml=0.1.7
+    - chardet
+    - pyyaml=5.1.2
+    - numpy 
+    - argparse
+    - seaborn

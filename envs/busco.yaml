@@ -1,0 +1,9 @@
+name: busco 
+channels:
+    - bioconda 
+    - anaconda
+dependencies:
+    - busco=4.0.5 
+    - python
+    - pandas
+    - chardet
