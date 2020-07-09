@@ -12,14 +12,14 @@ import argparse
 import multiprocessing
 import subprocess
 import shutil
+import glob
 from joblib import Parallel, delayed
 sys.path.insert(1, 'scripts')
 
 import tax_placement
 from tax_placement import *
 
-import query_busco
-from query_busco import *
+#from query_busco import *
 
 import visualize_results
 from visualize_results import *
@@ -49,7 +49,7 @@ def transdecode_to_peptide(sample_name):
     shutil.rmtree(shutil.rmtree(merged_name + ".transdecoder_dir*"))
     return rc1 + rc2
 
-def align_to_database(alignment_choice, sample_name):
+def align_to_database(alignment_choice, sample_name, filter_metric):
     if alignment_choice == "diamond":
         diamond_out = os.path.join(OUTPUTDIR, "METs", "diamond", sample_name + ".diamond.out")
         if os.path.isfile(diamond_out):
@@ -62,7 +62,11 @@ def align_to_database(alignment_choice, sample_name):
         outfmt = 6
         k = 100
         e = 1e-5
-        p1 = subprocess.Popen(["diamond blastp --db " + align_db + " -q " + {input.fasta} + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " -e " + str(e)])
+        bitscore = 50
+        if filter_metric == "bitscore":
+            p1 = subprocess.Popen(["diamond blastp --db " + align_db + " -q " + {input.fasta} + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " --min-score " + str(bitscore)])
+        else:
+            p1 = subprocess.Popen(["diamond blastp --db " + align_db + " -q " + {input.fasta} + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " -e " + str(e)])
         p1.wait()
         rc1 = p1.returncode
         if rc1 != 0:
@@ -79,7 +83,7 @@ def align_to_database(alignment_choice, sample_name):
         outfmt = 6 # tabular output format
         e = 1e-5
         os.system("export BLASTDB=" + align_db)
-        p1 subprocess.Popen(["blastp -query " + align_db + " -db " + align_db + " -out " + blast_out + " -outfmt " + str(outfmt) + " -evalue " + str(e)])
+        p1 = subprocess.Popen(["blastp -query " + align_db + " -db " + align_db + " -out " + blast_out + " -outfmt " + str(outfmt) + " -evalue " + str(e)])
         p1.wait()
         rc1 = p1.returncode
         if rc1 != 0:
@@ -111,8 +115,9 @@ parser.add_argument('--database', default="mmetsp") # the name of the database t
 parser.add_argument('--reference_dir', required = True) # folder containing the reference files for the chosen database
 parser.add_argument('-o','--out_dir', dest = "out_dir", default = "output") # folder where the output will be written
 parser.add_argument('--sample_dir', required = True) # folder where the input data is located (the protein or peptide files to be assessed)
-parser.add_argument('--ref_fasta', required = True) # either a file in the reference directory where the fasta file for the database is located, or a directory containing multiple fasta files that constitute the database.
-parser.add_argument('--ref_fasta_ext', default = ".fasta") # if a directory is given for ref_fasta and the extension of the files differs from .fasta, specify it via this argument.
+# NOTE: make sure that the default reference.fasta name is used when later I provide a mechanism for downloading and formatting select databases.
+parser.add_argument('--ref_fasta', default = "reference.pep.fa") # either a file in the reference directory where the fasta file for the database is located, or a directory containing multiple fasta files that constitute the database.
+#parser.add_argument('--ref_fasta_ext', default = ".fasta") # if a directory is given for ref_fasta and the extension of the files differs from .fasta, specify it via this argument.
 
 ## TAXONOMY TABLE AND PROTEIN JSON FILE ## 
 parser.add_argument('--create_tax_table', action='store_true') # include this file if you wish for the protein dictionary file and the taxonomy table to be created from the reference fasta(s) that you have provided. Otherwise, these files should be called "tax-table.txt" and "protein-map.json" and should be located in your reference_dir, unless specified via the below flags.
@@ -132,12 +137,12 @@ parser.add_argument('--alignment_choice', default = "diamond", choices = ["diamo
 
 ## OPTIONS FOR CHECKING BUSCO COMPLETENESS FOR TAXONOMY ##
 parser.add_argument('--busco_file', default = "", type = str) # if specified, the following two arguments ("--organisms" and "--taxonomy_organisms" are overwritten by the two columns of this tab-separated file
-parser.add_argument('--organisms', default = "", type = list, narg = "+") # list of organisms to check BUSCO completeness on
-parser.add_argument('--taxonomy_organisms', default = "", type = list, narg = "+") # taxonomic level of organisms specified in organisms tag
+parser.add_argument('--organisms', default = "", type = list, nargs = "+") # list of organisms to check BUSCO completeness on
+parser.add_argument('--taxonomy_organisms', default = "", type = list, nargs = "+") # taxonomic level of organisms specified in organisms tag
 
 ## OTHER USER CHOICES ## 
-parser.add_argument('--cutoff', default = "static/tax-cutoffs.yaml")
-parser.add_argument('--cutoff_metric', default = "pid", choices = ["pid", "evalue"])
+parser.add_argument('--cutoff_file', default = "static/tax-cutoffs.yaml")
+parser.add_argument('--filter_metric', default = "evalue", choices = ["pid", "evalue", "bitscore"])
 parser.add_argument('--consensus_cutoff', default = 0.75, type = float)
 parser.add_argument('--transdecoder_orfsize', default = 100, type = int)
 
@@ -154,6 +159,18 @@ OUTPUTDIR = args.out_dir
 DATABASE_DIR = os.path.join(REFERENCE_DIR, "database")
 SAMPLE_DIR = args.sample_dir
 REF_FASTA = args.ref_fasta
+## Convert reference FASTA file or directory to the proper path.
+if os.path.isdir(str(os.path.join(REF_FASTA))): # if reference fasta variable is a directory
+    fasta_list = os.listdir(REF_FASTA)
+    REFERENCE_FASTAS = [os.path.join(REFERENCE_DIR, curr) for curr in fasta_list]
+    REF_FASTA = "combined_fastas"
+    print(REF_FASTA)
+elif os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA)):
+    REFERENCE_FASTAS = [os.path.join(REFERENCE_DIR, REF_FASTA)]
+else:
+    print("You need to either provide a single fasta reference file, or the name of a directory containing multiple reference FASTA files.")
+    sys.exit(1)
+
 TAX_TAB = os.path.join(REFERENCE_DIR, args.tax_table)
 PROT_TAB = os.path.join(REFERENCE_DIR, args.protein_map)
 ALIGNMENT_CHOICE = args.alignment_choice
@@ -190,6 +207,8 @@ if (len(ORGANISMS) != len(ORGANISMS_TAXONOMY)):
     sys.exit(1)
 
 ## SETUP STEPS ##
+os.system("mkdir -p " + OUTPUTDIR)
+os.system("mkdir -p log")
 if args.create_tax_table:
     if args.original_tax_table == "":
         print("You must provide a taxonomy table via the argument 'original_tax_table' if you wish to run a taxonomy.")
@@ -203,23 +222,26 @@ if args.create_tax_table:
 ## Concatenate potential list of input FASTA files ##
 space_delim = " ".join(REFERENCE_FASTAS)
 concatenated_file = os.path.join(OUTPUTDIR, "concatfasta.fasta")
-p1 = subprocess.Popen(["for currfile in " + space_delim + "; do ((cat $currfile | sed 's/\./N/g'); echo; echo) >> " + concatenated_file + "; done"])
-p1.wait()
+p1 = os.system("for currfile in " + space_delim + "; do ((cat $currfile | sed 's/\./N/g'); echo; echo) >> " + concatenated_file + "; done")
 
+output_log = "alignment_out.log"
+error_log = "alignment_err.log"
 if args.alignment_choice == "diamond":
-    ## DIAMOND database creation ##
-    db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa'))
-    p1 = subprocess.Popen(["diamond makedb --in " + concatenated_file + " --db " + db])
-    p1.wait()
+    align_db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa') + '.dmnd')
+    if not os.path.isfile(align_db):
+        ## DIAMOND database creation ##
+        db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa'))
+        os.system("diamond makedb --in " + concatenated_file + " --db " + db + " 1> " + output_log + " 2> " + error_log)
+    else:
+        print("Diamond database file already created; will not re-create database.")
 else:
     db = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa'), "database")
     db_type = "prot"
     blast_version = 5
-    p1 = subprocess.Popen(["makeblastdb -in " + concatenated_file + " -parse_seqids -blastdb_version " + str(blast_version) + " -title " + args.database + " -dbtype " + db_type + " -out " + db])
-    p1.wait()
+    os.system("makeblastdb -in " + concatenated_file + " -parse_seqids -blastdb_version " + str(blast_version) + " -title " + args.database + " -dbtype " + db_type + " -out " + db)
     
 ## Now for some TransDecoding ##
-MTS, = glob_wildcards(os.path.join(SAMPLE_DIR, "METs", "{T}"+ "." + NT_EXT)) 
+MTS, = [os.path.join(SAMPLE_DIR, "{T}"+ "." + NT_EXT)]
 MAG, = glob_wildcards(os.path.join(SAMPLE_DIR, "MAGs", "{G}"+ "." + PEP_EXT))
 
 transdecoder_res = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(transdecode_to_peptide)(sample_name) for sample_name in MTS)
@@ -229,7 +251,7 @@ if all_codes > 0:
     sys.exit(1)
     
 ## Next to align against our database of choice ##
-alignment_res = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(align_to_database)(args.alignment_choice, sample_name) for sample_name in MTS)
+alignment_res = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(align_to_database)(args.alignment_choice, sample_name, args.filter_metric) for sample_name in MTS)
 if any([curr == 1 for curr in alignment_res]):
     print("Alignment did not complete successfully.")
     sys.exit(1)
@@ -247,8 +269,12 @@ out_prefix = OUTPUTDIR.split("/")[-1]
 visualize_all_results(out_prefix, OUTPUTDIR, os.path.join(OUTPUTDIR, "METs"), os.path.join(OUTPUTDIR, "METs"), PEP_EXT, NT_EXT, USE_SALMON_COUNTS)
 
 ## Run BUSCO on the full dataset ##
-busco_res = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(run_busco)(sample_name) for sample_name in MTS)
+busco_db = "eukaryota_odb10"
+busco_res = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(run_busco)(sample_name, os.path.join(OUTPUTDIR, "busco"), busco_db) for sample_name in MTS)
 all_codes = sum(busco_res)
 if all_codes > 0:
     print("BUSCO did not complete successfully.")
     sys.exit(1)
+    
+## Assess BUSCO completeness on the most prevalent members of the metatranscriptome at each taxonomic level ##
+#python scripts/query_busco.py --organism_group {params.organism} --taxonomic_level {params.taxonomic_level} --output_dir {params.outputdir} --fasta_file {input.fastafile} --sample_name {params.sample} --taxonomy_file_prefix {params.taxfile_stub} --tax_table {input.tax_file} --busco_out {input.busco_table}

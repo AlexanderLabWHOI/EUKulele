@@ -205,7 +205,7 @@ def classify_taxonomy(df, tax_dict, consensus_cutoff):
         outdf.loc[t] =  [assignment, full_classification, best_classification, md, ambiguous]
     return outdf
 
-def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,use_counts,name_to_reads,diamond_file,outfile,method)
+def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,use_counts,name_to_reads,diamond_file,outfile,method):
     if os.path.isfile(outfile):
         print("Taxonomic placement already complete; will not re-run step.")
         return 0

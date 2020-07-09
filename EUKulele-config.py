@@ -12,7 +12,7 @@ with open("config.yaml", 'r') as configfile:
 args = ""
 
 ## CHECK THAT ALL OPTIONS WITHOUT DEFAULTS EXIST IN CONFIGURATION FILE ##
-required_entries = ["mets_or_mags","create_tax_table","reference","samples","ref_fasta","cutoff"]
+required_entries = ["mets_or_mags","reference","samples","cutoff"]
 for r in required_entries:
     if r not in config:
         print("You did not include required entry: " + str(r) + " in the configuration file.")
@@ -22,7 +22,8 @@ for r in required_entries:
 args = args + " --mets_or_mags " + str(config["mets_or_mags"])
 args = args + " --reference_dir " + str(config["reference"])
 args = args + " --sample_dir " + str(config["samples"])
-args = args + " --ref_fasta " + str(config["ref_fasta"])
+if "ref_fasta" in config: # otherwise, this will default to reference.pep.fa! This works for auto-downloaded databases.
+    args = args + " --ref_fasta " + str(config["ref_fasta"])
 if "output" in config:
     args = args + " --out_dir " + str(config["output"])
 if "database" in config:
@@ -60,11 +61,12 @@ if "choose_parallel" in config:
 ## ALIGNMENT AND BUSCO OPTIONS ##
 if "alignment_choice" in config: 
     args = args + " --alignment_choice " + str(config["alignment_choice"])
-args = args + " --cutoff " + config["cutoff"]
-if "cutoff_metric" in config:
-    args = args + " --cutoff_metric " + config["cutoff_metric"]
+if "cutoff_file" in config:    
+    args = args + " --cutoff_file " + config["cutoff_file"]
+if "filter_metric" in config:
+    args = args + " --filter_metric " + config["filter_metric"]
 if "consensus_cutoff" in config:
-    args = args + " --consensus_cutoff " + config["consensus_cutoff"]
+    args = args + " --consensus_cutoff " + str(config["consensus_cutoff"])
 if "busco_file" in config:
     args = args + " --busco_file " + str(config["busco_file"])
 if "organisms" in config:
@@ -75,7 +77,7 @@ if "busco_threshold" in config:
     args = args + " --busco_threshold " + str(config["busco_threshold"])
                                        
 ## AUTOMATIC TAXONOMY TABLE CREATION ##
-if (config["create_tax_table"] == 1):
+if ("create_tax_table" in config) & (config["create_tax_table"] == 1):
     args = args + " --create_tax_table"
     if ("original_tax_table" not in config):
         print("You have specified that the program should create a formatted tax table, but did not provide an original taxonomy file.")
