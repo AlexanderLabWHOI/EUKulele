@@ -258,7 +258,7 @@ rule estimate_taxonomy_METs:
         if [ {params.use_counts} == 1 ]; then
             python scripts/names-to-reads.py
         fi
-        time python ../scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --names_to_reads {params.names_to_reads} --use_counts {params.use_counts} --outfile {output.outfile} --method {params.method} --consensus_cutoff {params.consensus}
+        time python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --names_to_reads {params.names_to_reads} --use_counts {params.use_counts} --outfile {output.outfile} --method {params.method} --consensus_cutoff {params.consensus}
         """
         
 rule visualize_taxonomy_METs:
@@ -289,7 +289,7 @@ rule assess_busco_completeness:
         '../envs/busco.yaml'
     shell:
         """
-        python ../scripts/query_busco.py --organism_group {params.organism} --taxonomic_level {params.taxonomic_level} --output_dir {params.outputdir}
+        python scripts/query_busco.py --organism_group {params.organism} --taxonomic_level {params.taxonomic_level} --output_dir {params.outputdir}
         """
     
 rule estimate_taxonomy_MAG_proteins:
@@ -309,7 +309,7 @@ rule estimate_taxonomy_MAG_proteins:
         out = os.path.join("logs","estimate-tax","{G}_out.log")
     shell:
         """
-        python ../scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output} --consensus_cutoff {params.consensus} 2> {log.err} 1> {log.out} 
+        python scripts/tax-placement.py --tax_file {params.tax_file} --cutoff_file {params.cutoff} --prot_map_file {params.prot_json} --diamond_file {input.file} --outfile {output} --consensus_cutoff {params.consensus} 2> {log.err} 1> {log.out} 
         """
 
 rule assign_MAG_taxonomy:
@@ -326,5 +326,5 @@ rule assign_MAG_taxonomy:
         out = os.path.join("logs","mag-tax","{G}_out.log")
     shell:
         """
-        python ../scripts/mag-stats.py --estimated-taxonomy-file {input} --out-prefix {params.prefix} --outdir {params.levels_directory} --max-out-dir {params.max_dir} 2> {log.err} 1> {log.out}
+        python scripts/mag-stats.py --estimated-taxonomy-file {input} --out-prefix {params.prefix} --outdir {params.levels_directory} --max-out-dir {params.max_dir} 2> {log.err} 1> {log.out}
         """

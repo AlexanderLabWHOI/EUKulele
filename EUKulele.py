@@ -32,19 +32,23 @@ __email__ = "akrinos@mit.edu"
 ## FUNCTIONS TO USE IN PIPELINE ##
 
 def transdecode_to_peptide(sample_name):
-    if os.path.isfile(os.path.join(OUTPUTDIR, "METs",  "{T}." + PEP_EXT)):
+    if os.path.isfile(os.path.join(OUTPUTDIR, "METs",  sample_name + "." + PEP_EXT)):
         print("TransDecoder file already detected; will not re-run step.")
         return 0
-    p1 = subprocess.Popen(["TransDecoder.LongOrfs -t " + os.path.join(SAMPLE_DIR, "METs", sample_name + "." + NT_EXT) + " -m " + " 2> " + os.path.join("logs", "trandecoder_error_" + sample_name + ".out") + " 1> " + os.path.join("logs", "trandecoder_out_" + sample_name + ".out")])
-    p1.wait()
-    rc1 = p1.returncode
-    p2 = subprocess.Popen(["TransDecoder.Predict -t " + os.path.join(SAMPLE_DIR, "METs", sample_name + "." + NT_EXT) + " --no_refine_starts 2>> " + os.path.join("logs", "trandecoder_error_" + sample_name + ".out") + " 1>> " + os.path.join("logs", "trandecoder_out_" + sample_name + ".out")])
-    p2.wait()
-    rc2 = p2.returncode
-    os.replace(merged_name + ".transdecoder.pep", os.path.join(OUTPUTDIR, "METs",  "{T}." + PEP_EXT))
-    os.replace(merged_name + ".transdecoder.cds", os.path.join(OUTPUTDIR, "METs", "transdecoder", "{T}.fasta.transdecoder.bed"))
-    os.replace(merged_name + ".transdecoder.gff3", os.path.join(OUTPUTDIR, "METs", "transdecoder", "{T}.fasta.transdecoder.gff3"))
-    os.replace(merged_name + ".transdecoder.bed", os.path.join(OUTPUTDIR, "METs", "transdecoder", "{T}.fasta.transdecoder.bed"))
+    returncode1 = os.system("TransDecoder.LongOrfs -t " + os.path.join(SAMPLE_DIR, "METs", sample_name + "." + NT_EXT) + " -m " + " 2> " + os.path.join("log", "trandecoder_error_" + sample_name + ".out") + " 1> " + os.path.join("log", "trandecoder_out_" + sample_name + ".out"))
+    rc1 = returncode1
+    returncode2 = os.system("TransDecoder.Predict -t " + os.path.join(SAMPLE_DIR, "METs", sample_name + "." + NT_EXT) + " --no_refine_starts 2>> " + os.path.join("log", "trandecoder_error_" + sample_name + ".out") + " 1>> " + os.path.join("log", "trandecoder_out_" + sample_name + ".out"))
+    rc2 = returncode2
+    if (rc1 + rc2) != 0:
+        print("TransDecoder did not complete successfully. Check log/ folder for details.")
+        sys.exit(1)
+    merged_name = sample_name + "." + NT_EXT
+    os.system("mkdir -p " + os.path.join(OUTPUTDIR, "METs"))
+    os.system("mkdir -p " + os.path.join(OUTPUTDIR, "METs", "transdecoder"))
+    os.replace(merged_name + ".transdecoder.pep", os.path.join(OUTPUTDIR, "METs",  sample_name + "." + PEP_EXT))
+    os.replace(merged_name + ".transdecoder.cds", os.path.join(OUTPUTDIR, "METs", "transdecoder", sample_name + ".fasta.transdecoder.bed"))
+    os.replace(merged_name + ".transdecoder.gff3", os.path.join(OUTPUTDIR, "METs", "transdecoder", sample_name + ".fasta.transdecoder.gff3"))
+    os.replace(merged_name + ".transdecoder.bed", os.path.join(OUTPUTDIR, "METs", "transdecoder", sample_name + ".fasta.transdecoder.bed"))
     os.remove(glob.glob("pipeliner*"))
     shutil.rmtree(shutil.rmtree(merged_name + ".transdecoder_dir*"))
     return rc1 + rc2
@@ -241,8 +245,10 @@ else:
     os.system("makeblastdb -in " + concatenated_file + " -parse_seqids -blastdb_version " + str(blast_version) + " -title " + args.database + " -dbtype " + db_type + " -out " + db)
     
 ## Now for some TransDecoding ##
-MTS, = [os.path.join(SAMPLE_DIR, "{T}"+ "." + NT_EXT)]
-MAG, = glob_wildcards(os.path.join(SAMPLE_DIR, "MAGs", "{G}"+ "." + PEP_EXT))
+print(os.listdir(SAMPLE_DIR))
+print(NT_EXT)
+MTS = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(SAMPLE_DIR) if curr.split(".")[-1] == NT_EXT] # [os.path.join(SAMPLE_DIR, "{T}"+ "." + NT_EXT)]
+MAG = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(SAMPLE_DIR) if curr.split(".")[-1] == PEP_EXT] #glob_wildcards(os.path.join(SAMPLE_DIR, "MAGs", "{G}"+ "." + PEP_EXT))
 
 transdecoder_res = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(transdecode_to_peptide)(sample_name) for sample_name in MTS)
 all_codes = sum(transdecoder_res)
