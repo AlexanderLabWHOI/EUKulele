@@ -1,0 +1,12 @@
+numpy
+pandas
+yaml
+chardet
+argparse
+multiprocessing
+subprocess
+shutil
+glob
+joblib
+json
+pyyaml

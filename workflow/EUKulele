@@ -103,7 +103,7 @@ rule setup_reference:
         diamondfile = os.path.join(REFERENCE_DIR, REF_FASTA.strip('.fa') + '.dmnd'),
         db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa'))
     conda:
-         "../envs/diamond.yaml"
+         "envs/diamond.yaml"
     shell:
         """
         diamond makedb --in {input} --db {params.db}
@@ -118,7 +118,7 @@ rule setup_reference_blast:
         db_type = "prot",
         blast_version = 5
     conda:
-         "../envs/blast.yaml"
+         "envs/blast.yaml"
     shell:
         """
         makeblastdb -in {input} -parse_seqids -blastdb_version {params.blast_version} -title {params.db_name} -dbtype {params.db_type} -out {params.db}
@@ -139,7 +139,7 @@ rule transdecoder:
         merged = "{T}."+ NT_EXT,
         size = TRANSDECODERORFSIZE
     conda: 
-        "../envs/transdecoder-env.yaml"
+        "envs/transdecoder-env.yaml"
     shell:
         """
         TransDecoder.LongOrfs -t {input.nt_mets} -m {params.size} 2> {log.err} 1> {log.out}
@@ -165,7 +165,7 @@ rule align_METs_against_db:
         k = 100,
         e = 1e-5
     conda:
-        "../envs/diamond.yaml"
+        "envs/diamond.yaml"
     shell:
         """
         diamond blastp --db {input.dmnd} -q {input.fasta} -o {output} --outfmt {params.outfmt} -k {params.k} -e {params.e}
@@ -183,7 +183,7 @@ rule align_METs_against_db_blast:
         outfmt = 6, # tabular output format
         e = 1e-5
     conda:
-        "../envs/blast.yaml"
+        "envs/blast.yaml"
     shell:
         """
         export BLASTDB={params.db}
@@ -203,7 +203,7 @@ rule align_MAGs_against_db:
         k = 100,
         e = 1e-5
     conda:
-        "../envs/diamond.yaml"
+        "envs/diamond.yaml"
     shell:
         """
         diamond blastp --db {input.dmnd} -q {input.fasta} -o {output} --outfmt {params.outfmt} -k {params.k} -e {params.e}
@@ -221,7 +221,7 @@ rule align_MAGs_against_db_blast:
         outfmt = 6, # tabular output format
         e = 1e-5
     conda:
-        "../envs/blast.yaml"
+        "envs/blast.yaml"
     shell:
         """
         export BLASTDB={params.db}
@@ -248,7 +248,7 @@ rule estimate_taxonomy_METs:
         prot_json = os.path.join(config['reference'], PROT_TAB),
         cutoff = config['cutoff']
     conda: 
-        '../envs/estimate.yaml'
+        'envs/estimate.yaml'
     log:
         err = os.path.join("logs","estimate-tax","{T}_err.log"),
         out = os.path.join("logs","estimate-tax","{T}_out.log")
@@ -270,7 +270,7 @@ rule visualize_taxonomy_METs:
         prefix = OUTPUTDIR.split("/")[-1],
         outputdir = OUTPUTDIR
     conda:
-        '../envs/visualize.yaml'
+        'envs/visualize.yaml'
     shell:
         """
         python scripts/visualize-results.py --out_prefix {params.prefix} --output_dir {params.outputdir}
@@ -286,7 +286,7 @@ rule assess_busco_completeness:
         taxonomic_level = "{taxonomic_level}",
         outputdir = os.path.join(OUTPUTDIR,"busco")
     conda:
-        '../envs/busco.yaml'
+        'envs/busco.yaml'
     shell:
         """
         python scripts/query_busco.py --organism_group {params.organism} --taxonomic_level {params.taxonomic_level} --output_dir {params.outputdir}
@@ -303,7 +303,7 @@ rule estimate_taxonomy_MAG_proteins:
         prot_json = os.path.join(config['reference'], PROT_TAB),
         cutoff = config['cutoff']
     conda: 
-        '../envs/estimate.yaml' 
+        'envs/estimate.yaml' 
     log:
         err = os.path.join("logs","estimate-tax","{G}_err.log"),
         out = os.path.join("logs","estimate-tax","{G}_out.log")
@@ -320,7 +320,7 @@ rule assign_MAG_taxonomy:
         levels_directory = os.path.join(OUTPUTDIR, "MAGs", "levels"),
         max_dir = os.path.join(OUTPUTDIR, "MAGs")
     conda: 
-        '../envs/estimate.yaml' 
+        'envs/estimate.yaml' 
     log:
         err = os.path.join("logs","mag-tax","{G}_err.log"),
         out = os.path.join("logs","mag-tax","{G}_out.log")

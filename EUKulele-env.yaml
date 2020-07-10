@@ -1,10 +1,13 @@
-name: estimate
+name: EUKulele
 channels:
     - bioconda
     - conda-forge
     - defaults
-    - anaconda
+    - anaconda 
 dependencies:
+    - blast 
+    - diamond
+    - transdecoder
     - ujson
     - pandas
     - yaml=0.1.7
@@ -12,3 +15,5 @@ dependencies:
     - pyyaml=5.1.2
     - numpy
     - joblib
+    - pandas 
+    - os

@@ -9,7 +9,7 @@ names_to_reads: namestoreads_WAP_2July2020.csv # if this file exists in the refe
 database: phylodb
 reference: /vortexfs1/omics/alexander/akrinos/EUKulele-Reference #/vortexfs1/omics/alexander/data/euk-prot-db/proteins #/vortexfs1/omics/alexander/akrinos/EUKulele-Reference /vortexfs1/omics/alexander/data/mmetsp/reference_dir
 output: ../EUKulele_output_WAP_PhyloDB_counts_busco #EukProt_counts #PhyloDB_counts
-samples: /vortexfs1/omics/alexander/akrinos/WAP_out/cluster_by_assembly_group #samples #/vortexfs1/omics/saito/BATS2019-clio-metaT/eukrhythmic_output/merged 
+samples: /vortexfs1/omics/alexander/akrinos/WAP_out/cluster_by_assembly_group/METs #samples #/vortexfs1/omics/saito/BATS2019-clio-metaT/eukrhythmic_output/merged 
 ref_fasta: phylodb_1.076.pep.fa #/vortexfs1/omics/alexander/data/euk-prot-db/proteins #reference-pep.fa  #phylodb.pep.fa #reference-pep.fa # amino acid sequences
 
 # Path for reference taxonomy table and protein JSON file should be relative to reference entry above.
