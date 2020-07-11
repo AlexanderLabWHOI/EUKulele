@@ -149,8 +149,8 @@ def run_busco(sample_name, outputdir, busco_db):
     return rc1
 
 parser = argparse.ArgumentParser()
-parser.add_argument('subroutine', dest="subroutine", type=str, default="all", choices = ["all","setup","alignment","busco"], help='Choice of subroutine to run.')
-parser.add_argument('--mets_or_mags', required = True, choices = ["mets","mags"]) 
+parser.add_argument('subroutine', metavar="subroutine", type=str, default="all", choices = ["all","setup","alignment","busco"], help='Choice of subroutine to run.')
+parser.add_argument('--mets_or_mags', required = True) 
 parser.add_argument('--nucleotide_extension', default = ".fasta") 
 parser.add_argument('--protein_extension', default = ".faa") 
 parser.add_argument('--scratch', default = '../scratch') # the scratch location to store intermediate files
@@ -236,6 +236,10 @@ if ALIGNMENT_CHOICE == "diamond":
 NT_EXT = args.nucleotide_extension.strip('.')
 PEP_EXT = args.protein_extension.strip('.')
 mets_or_mags=args.mets_or_mags.lower()
+if (mets_or_mags != "mets") & (mets_or_mags != "mags"):
+    print("Only METs or MAGs are supported as input data types. Please update the 'mets_or_mags' flag accordingly.")
+    sys.exit(1)
+    
 USE_SALMON_COUNTS = args.use_salmon_counts
 SALMON_DIR = args.salmon_dir
 NAMES_TO_READS = os.path.join(REFERENCE_DIR, args.names_to_reads)
