@@ -70,6 +70,8 @@ if "consensus_cutoff" in config:
 if "busco_file" in config:
     args = args + " --busco_file " + str(config["busco_file"])
 if "organisms" in config:
+    args = args + " --individual_or_summary " + str(config["individual_or_summary"])
+if "organisms" in config:
     args = args + " --organisms " + str(config["organisms"])
 if "taxonomy_organisms" in config:
     args = args + " --taxonomy_organisms " + str(config["taxonomy_organisms"])

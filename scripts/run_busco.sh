@@ -18,6 +18,7 @@ CPUS=$5
 BUSCO_DB=$6
 
 mkdir -p $OUTPUTDIR
+./busco_configurator.py $BUSCO_CONFIG_FILE {params.static_config}
 cp $STATIC_CONFIG $CONFIG_LOC
 sed -i '/out = /c\out = '$SAMPLENAME $CONFIG_LOC # the name of the output files
 sed -i '/out_path = /c\out_path = '$OUTPUTDIR $CONFIG_LOC # what directory the output will be stored in

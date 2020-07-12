@@ -29,6 +29,7 @@ choose_parallel: parallel # parallel or series; whether to run estimate taxonomy
 transdecoder_orfsize: 100
 
 # Options for BUSCO assessment
+individual_or_summary: individual
 organisms:
     - Phaeocystis;antarctica
 taxonomy_organisms:

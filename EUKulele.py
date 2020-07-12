@@ -39,8 +39,7 @@ def setup():
         eukprot = ""
         if args.database == "eukprot":
             eukprot = " --euk-prot "
-        p1 = subprocess.Popen(["python scripts/create_protein_table --infile_peptide " + REF_FASTA + " --infile_taxonomy " + args.original_tax_table + " --output " + TAX_TAB  + " --outfile_json " + PROT_TAB + " --delim " + args.delimiter + " --strain_col_id " + args.strain_col_id + " --taxonomy_col_id " + args.taxonomy_col_id + " --column " + args.column + " --reformat_tax " + args.reformat + eukprot])
-        p1.wait()
+        rc1 = os.system("python scripts/create_protein_table --infile_peptide " + REF_FASTA + " --infile_taxonomy " + args.original_tax_table + " --output " + TAX_TAB  + " --outfile_json " + PROT_TAB + " --delim " + args.delimiter + " --strain_col_id " + args.strain_col_id + " --taxonomy_col_id " + args.taxonomy_col_id + " --column " + args.column + " --reformat_tax " + args.reformat + eukprot)
 
     ## Concatenate potential list of input FASTA files ##
     space_delim = " ".join(REFERENCE_FASTAS)
@@ -64,23 +63,24 @@ def setup():
         os.system("makeblastdb -in " + concatenated_file + " -parse_seqids -blastdb_version " + str(blast_version) + " -title " + args.database + " -dbtype " + db_type + " -out " + db)
 
 def transdecode_to_peptide(sample_name):
-    if os.path.isfile(os.path.join(OUTPUTDIR, "METs",  sample_name + "." + PEP_EXT)):
-        print("TransDecoder file already detected; will not re-run step.")
+    if os.path.isfile(os.path.join(OUTPUTDIR, mets_or_mags,  sample_name + "." + PEP_EXT)):
+        print("TransDecoder file already detected for sample " + str(sample_name) + "; will not re-run step.")
         return 0
     returncode1 = os.system("TransDecoder.LongOrfs -t " + os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT) + " -m " + str(TRANSDECODERORFSIZE) + " 2> " + os.path.join("log", "transdecoder_error_" + sample_name + ".err") + " 1> " + os.path.join("log", "transdecoder_out_" + sample_name + ".out"))
     rc1 = returncode1
     returncode2 = os.system("TransDecoder.Predict -t " + os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT) + " --no_refine_starts 2>> " + os.path.join("log", "transdecoder_error_" + sample_name + ".err") + " 1>> " + os.path.join("log", "transdecoder_out_" + sample_name + ".out"))
     rc2 = returncode2
     if (rc1 + rc2) != 0:
-        print("TransDecoder did not complete successfully. Check log/ folder for details.")
+        print("TransDecoder did not complete successfully for sample " + str(sample_name) + ". Check log/ folder for details.")
         sys.exit(1)
     merged_name = sample_name + "." + NT_EXT
-    os.system("mkdir -p " + os.path.join(OUTPUTDIR, "METs"))
+    os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags))
     os.system("mkdir -p " + os.path.join(OUTPUTDIR, "METs", "transdecoder"))
-    os.replace(merged_name + ".transdecoder.pep", os.path.join(OUTPUTDIR, "METs",  sample_name + "." + PEP_EXT))
-    os.replace(merged_name + ".transdecoder.cds", os.path.join(OUTPUTDIR, "METs", "transdecoder", sample_name + ".fasta.transdecoder.cds"))
-    os.replace(merged_name + ".transdecoder.gff3", os.path.join(OUTPUTDIR, "METs", "transdecoder", sample_name + ".fasta.transdecoder.gff3"))
-    os.replace(merged_name + ".transdecoder.bed", os.path.join(OUTPUTDIR, "METs", "transdecoder", sample_name + ".fasta.transdecoder.bed"))
+    os.replace(merged_name + ".transdecoder.pep", os.path.join(OUTPUTDIR, mets_or_mags,  sample_name + "." + PEP_EXT))
+    os.replace(merged_name + ".transdecoder.cds", os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder", sample_name + ".fasta.transdecoder.cds"))
+    os.replace(merged_name + ".transdecoder.gff3", os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder", sample_name + ".fasta.transdecoder.gff3"))
+    os.replace(merged_name + ".transdecoder.bed", os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder", sample_name + ".fasta.transdecoder.bed"))
+    shutil.rmtree(merged_name + ".transdecoder_dir*")
     return rc1 + rc2
 
 def align_to_database(alignment_choice, sample_name, filter_metric):
@@ -101,9 +101,9 @@ def align_to_database(alignment_choice, sample_name, filter_metric):
         e = 1e-5
         bitscore = 50
         if filter_metric == "bitscore":
-            rc1 = os.system("diamond blastp --db " + align_db + " -q " + {input.fasta} + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " --min-score " + str(bitscore))
+            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " --min-score " + str(bitscore))
         else:
-            rc1 = os.system("diamond blastp --db " + align_db + " -q " + {input.fasta} + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " -e " + str(e))
+            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " -e " + str(e))
         if rc1 != 0:
             print("Diamond did not complete successfully.")
             return 1
@@ -143,13 +143,11 @@ def run_busco(sample_name, outputdir, busco_db):
     else:
         fastaname = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
     os.system("chmod 755 scripts/run_busco.sh")
-    p1 = subprocess.Popen(["./scripts/run_busco.sh " + str(outputdir) + " static/busco_config.ini " + outputdir + "/config_" + sample_name + ".ini " + fastaname + " " + str(CPUS) + " " + busco_db])
-    p1.wait()
-    rc1 = p1.returncode
+    rc1 = os.system("./scripts/run_busco.sh " + str(outputdir) + " static/busco_config.ini " + outputdir + "/config_" + sample_name + ".ini " + fastaname + " " + str(CPUS) + " " + busco_db)
     return rc1
 
 parser = argparse.ArgumentParser()
-parser.add_argument('subroutine', metavar="subroutine", type=str, default="all", choices = ["all","setup","alignment","busco"], help='Choice of subroutine to run.')
+parser.add_argument('subroutine', metavar="subroutine", nargs='?', type=str, default="all", choices = ["all","setup","alignment","busco"], help='Choice of subroutine to run.')
 parser.add_argument('--mets_or_mags', required = True) 
 parser.add_argument('--nucleotide_extension', default = ".fasta") 
 parser.add_argument('--protein_extension', default = ".faa") 
@@ -187,6 +185,8 @@ parser.add_argument('--alignment_choice', default = "diamond", choices = ["diamo
 
 ## OPTIONS FOR CHECKING BUSCO COMPLETENESS FOR TAXONOMY ##
 parser.add_argument('--busco_file', default = "", type = str) # if specified, the following two arguments ("--organisms" and "--taxonomy_organisms" are overwritten by the two columns of this tab-separated file
+parser.add_argument('--individual_or_summary','-i',default="summary",choices=["summary","individual"])
+# These arguments are used if "individual" is specified. 
 parser.add_argument('--organisms', default = "", type = list, nargs = "+") # list of organisms to check BUSCO completeness on
 parser.add_argument('--taxonomy_organisms', default = "", type = list, nargs = "+") # taxonomic level of organisms specified in organisms tag
 
@@ -287,8 +287,10 @@ if (mets_or_mags == "mets"):
         if all_codes > 0:
             print("TransDecoder did not complete successfully; check log folder for details.")
             sys.exit(1)
-        os.remove(glob.glob("pipeliner*"))
-        shutil.rmtree(shutil.rmtree(merged_name + ".transdecoder_dir*"))
+        print("At previous endpoint.")
+        rcodes = [os.remove(curr) for curr in glob.glob("pipeliner*")]
+        print(rcodes)
+        #shutil.rmtree(merged_name + ".transdecoder_dir*")
 else:
     samples = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(SAMPLE_DIR) if curr.split(".")[-1] == PEP_EXT]
     
@@ -330,4 +332,17 @@ if BUSCO:
         sys.exit(1)
     
 ## Assess BUSCO completeness on the most prevalent members of the metatranscriptome at each taxonomic level ##
-#python scripts/query_busco.py --organism_group {params.organism} --taxonomic_level {params.taxonomic_level} --output_dir {params.outputdir} --fasta_file {input.fastafile} --sample_name {params.sample} --taxonomy_file_prefix {params.taxfile_stub} --tax_table {input.tax_file} --busco_out {input.busco_table}
+if args.individual_or_summary == "individual":
+    for sample_name in MTS:
+        busco_table = os.path.join(OUTPUTDIR, "busco", sample_name, "full_table.tsv") # the BUSCO table that we're interested in using that contains the BUSCO matches and their level of completeness
+        taxtfile_stub = os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1]) # the prefix to specify where the taxonomy estimation output files are located
+        
+        if mets_or_mags == "mets":
+            fasta = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
+        else:
+            fasta = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
+            
+        query_busco_log = os.path.join("log","busco_query_" + sample_name + ".log")
+        rc = os.system("python scripts/query_busco.py --organism_group " + " ".join(args.organisms) + " --taxonomic_level " + " ".join(args.taxonomy_organisms) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " > " + query_busco_log)
+        if rc != 0:
+            print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")

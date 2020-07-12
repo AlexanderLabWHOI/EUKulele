@@ -11,6 +11,8 @@ import sys
 import argparse
 import chardet
 import glob
+import multiprocessing
+from joblib import Parallel, delayed
 
 __author__ = "Arianna Krinos, Harriet Alexander"
 __copyright__ = "EUKulele"
@@ -21,8 +23,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--busco_out',default="busco") # the output from the BUSCO run on the full sample file
 parser.add_argument('--individual_or_summary','-i',default="summary",choices=["summary","individual"])
 # Not necessary if we are running in summary mode.
-parser.add_argument('--organism_group',default="") # the focal name of species/genus/order/class etc.
-parser.add_argument('--taxonomic_level',default="") # the taxonomic level of the specified focal name.
+parser.add_argument('--organism_group', default = "", type = list, nargs = "+") # the focal name(s) of species/genus/order/class etc.
+parser.add_argument('--taxonomic_level', default = "", type = list, nargs = "+") # the taxonomic level(s) of the specified focal name.
 parser.add_argument('--fasta_file') # the fasta file from which we pull sequences for the mock transcriptome.
 parser.add_argument('--taxonomy_file_prefix') # the taxonomy file we use to create the mock transcriptome.
 parser.add_argument('--tax_table') # the taxonomy table to get the full classification of the organism as assessed by the database being used.
@@ -35,13 +37,14 @@ parser.add_argument('--output_dir',default="output")
 parser.add_argument('--available_cpus',default=1)
 parser.add_argument('--busco_threshold',default=50)
 
+level_hierarchy = ['supergroup','division','class','order','family','genus','species']
+
 def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcript_file):
     organism_format = " ".join(organism.split("_"))
     full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in tax_table[taxonomy]],:]
     if len(full_taxonomy.index) < 1:
         print("No taxonomy found for that organism and taxonomic level.")
         sys.exit(1)
-    level_hierarchy = ['supergroup','division','class','order','family','genus','species']
     curr_level = [ind for ind in range(len(level_hierarchy)) if level_hierarchy[ind] == taxonomy][0]
     max_level = len(level_hierarchy) - 1
 
@@ -128,14 +131,26 @@ tax_table = read_in_taxonomy(args.tax_table)
             
 full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in tax_table[taxonomy]],:]
             
-if (args.individual_or_summary == "individual") & ((args.organism_group == "") | (args.taxonomic_level == "")):
+if (args.individual_or_summary == "individual") & ((len(args.organism_group) == 0) | (len(args.taxonomic_level) == 0)):
     print("You specified individual mode, but then did not provide a taxonomic group and/or accompanying taxonomic level.")
+    sys.exit(1)
+if (len(args.organism_group) == 0) != (len(args.taxonomic_level) == 0):
+    print("The number of organisms you specified is not equal to the number of taxonomic levels you specified. " + str(len(args.organism_group)) + " organisms were specified, while " + str(args.taxonomic_level) + " taxonomic levels were specified.")
     sys.exit(1)
 
 if (args.individual_or_summary == "individual"):
-    results_frame = evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcript_file)
+    results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(evaluate_organism)(organism[curr], taxonomy[curr], tax_table, create_fasta, write_transcript_file) for curr in range(len(organism)))
     results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, organism, "summary_" + args.sample_name + ".tsv"), sep = "\t")
 else:
-    print("Not implemented.")
+    for curr_level in level_hierarchy:
+        taxonomy = level_hierarchy[curr_level]
+        taxonomy_file = pd.read_csv(args.taxonomy_file_prefix + "_all_" + str(level_hierarchy[curr_level]) + "_counts.csv", sep=",",header=0)
+        curr_frame = taxonomy_file.nlargest(multiprocessing.cpu_count(), 'NumTranscripts') # change this to number of CPUs 
+        organisms = list(curr_frame[level_hierarchy[curr_level].capitalize()])
+        # now do multiprocessing for each of these organisms and get BUSCO results for each
+        # need to pull in argument for whether or not to save CSVs 
+        results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(
+    evaluate_organism)(organism, taxonomy, tax_table, create_fasta, write_transcript_file) for organism in range(len(organisms)))
+        results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, args.sample_name, taxonomy + "_combined", "summary_" + taxonomy + "_" +  args.sample_name + ".tsv"), sep = "\t")
     # here's where we're doing the cascade through the most popular. Requires that we create a helper function to grab then evaluate those.
     # TODO: assessing the copies of each of the BUSCOs found in the cascade. 
