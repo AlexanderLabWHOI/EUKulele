@@ -1,0 +1,7 @@
+name: transdecoder
+channels:
+    - bioconda
+    - conda-forge
+dependencies:
+    - python
+    - transdecoder

@@ -1,0 +1,5 @@
+name: diamond 
+channels:
+    - bioconda 
+dependencies:
+    - diamond 

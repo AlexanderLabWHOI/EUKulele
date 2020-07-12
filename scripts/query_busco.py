@@ -23,8 +23,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--busco_out',default="busco") # the output from the BUSCO run on the full sample file
 parser.add_argument('--individual_or_summary','-i',default="summary",choices=["summary","individual"])
 # Not necessary if we are running in summary mode.
-parser.add_argument('--organism_group', default = "", type = list, nargs = "+") # the focal name(s) of species/genus/order/class etc.
-parser.add_argument('--taxonomic_level', default = "", type = list, nargs = "+") # the taxonomic level(s) of the specified focal name.
+parser.add_argument('--organism_group', default = [], type = list, nargs = "+") # the focal name(s) of species/genus/order/class etc.
+parser.add_argument('--taxonomic_level', default = [], type = list, nargs = "+") # the taxonomic level(s) of the specified focal name.
 parser.add_argument('--fasta_file') # the fasta file from which we pull sequences for the mock transcriptome.
 parser.add_argument('--taxonomy_file_prefix') # the taxonomy file we use to create the mock transcriptome.
 parser.add_argument('--tax_table') # the taxonomy table to get the full classification of the organism as assessed by the database being used.
@@ -49,8 +49,15 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
     max_level = len(level_hierarchy) - 1
 
     success = 0
+    success_level = ""
     busco_scores = []
     levels_out = []
+    percent_multiples = []
+    number_duplicated = [] 
+    number_tripled = []
+    number_quadrupled = []
+    number_higher_mult = []
+    number_covered = []
     busco_out_file = pd.read_csv(args.busco_out, sep = "\t", comment = "#", names = ["BuscoID","Status","Sequence","Score","Length"])
     select_inds = [ (busco_out_file.Status[curr] == "Complete") | (busco_out_file.Status[curr] == "Fragmented") | (busco_out_file.Status[curr] == "Duplicated") for curr in range(len(busco_out_file.index))]
     good_buscos = busco_out_file.loc[select_inds,:]
@@ -81,14 +88,26 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
 
         set_transcripts_to_search = set(transcripts_to_search_sep)
         good_busco_sequences_list = list(good_busco_sequences)
-        BUSCOs_covered = set([Covered_IDs[curr] for curr in range(len(good_busco_sequences_list)) if good_busco_sequences_list[curr] in list(set_transcripts_to_search)])
-
+        BUSCOs_covered_all = [Covered_IDs[curr] for curr in range(len(good_busco_sequences_list)) if good_busco_sequences_list[curr] in list(set_transcripts_to_search)]
+        BUSCOs_covered = set(BUSCOs_covered_all)
+        number_appearences = [BUSCOs_covered_all.count(curr_busco) for curr_busco in list(BUSCOs_covered)]
+        multiples = [curr_appear for curr_appear in number_appearences if curr_appear >= 2]
+        
+        ## KEEP TRACK OF WHETHER DUPLICATES/TRIPLES/ETC. ARE COMMON ##
+        number_covered.append(number_appearences)
+        number_duplicated.append(number_appearences.count(2))
+        number_tripled.append(number_appearences.count(3))
+        number_quadrupled.append(number_appearences.count(4))
+        number_higher_mult.append(len([curr_appear for curr_appear in number_appearences if curr_appear > 4]))
+        prop_duplicated = len(multiples) / len(BUSCOs_covered) * 100
+        percent_multiples.append(prop_duplicated)
+        
         busco_completeness = len(BUSCOs_covered) / total_buscos * 100
-        #len(set_transcripts_to_search.intersection(good_busco_sequences)) / total_buscos * 100
         busco_scores.append(busco_completeness)
         levels_out.append(level_hierarchy[curr_level])
         if busco_completeness >= args.busco_threshold:
             success = 1
+            success_level = level_hierarchy[curr_level]
         curr_level = curr_level - 1
 
     report_dir = os.path.join(args.output_dir, organism, args.taxonomic_level)
@@ -107,13 +126,13 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
             mock_file_name = organism + "_" + level_hierarchy[curr_level] + "_" + args.sample_name + "_BUSCO_complete.fasta"
             os.system("grep -w -A 2 -f " + file_written + " " + args.fasta_file + " --no-group-separator > " + mock_file_name)
 
-        reported.write("Taxonomy file successfully completed with BUSCO completeness " + str(busco_completeness) + "% at location " + str(file_written) + ". The file containing the transcript names for the mock transcriptome corresponding to this taxonomic level is located here: " + str(file_written) + ".\n")
+        reported.write("Taxonomy file successfully completed with BUSCO completeness " + str(busco_completeness) + "% at location " + str(file_written) + "This was at taxonomic level " + str(success_level) + ". The file containing the transcript names for the mock transcriptome corresponding to this taxonomic level is located here: " + str(file_written) + ".\n")
         reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(args.taxonomic_level) + ") were: " + str(busco_scores))
     else:
         reported.write("Sufficient BUSCO completeness not found at threshold " + str(args.busco_threshold) + "%. \n")
-        reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(args.taxonomic_level) + ") were: " + str(busco_scores) + "\n")
+        reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(args.taxonomic_level) + ") were: " + reversed(str(busco_scores)) + "\n")
     reported.close()
-    return pd.DataFrame({"Organism":[organism] * len(levels_out),"TaxonomicLevel":[levels_out],"BuscoCompleteness":[busco_scores]})
+    return pd.DataFrame({"Organism":[organism] * len(levels_out),"TaxonomicLevel":levels_out,"BuscoCompleteness":busco_scores,"NumberCovered":number_covered,"CtTwoCopies":number_duplicated,"CtThreeCopies":number_tripled,"CtFourCopies":number_quadrupled,"CtFivePlusCopies":number_higher_mult,"PercentageDuplicated":percent_multiples})
 
 def read_in_taxonomy(infile):
     with open(infile, 'rb') as f:

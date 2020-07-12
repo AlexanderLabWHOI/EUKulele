@@ -85,6 +85,7 @@ def transdecode_to_peptide(sample_name):
 
 def align_to_database(alignment_choice, sample_name, filter_metric):
     if alignment_choice == "diamond":
+        os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags, "diamond"))
         diamond_out = os.path.join(OUTPUTDIR, mets_or_mags, "diamond", sample_name + ".diamond.out")
         if os.path.isfile(diamond_out):
             print("Diamond alignment file already detected; will not re-run step.")
@@ -100,12 +101,15 @@ def align_to_database(alignment_choice, sample_name, filter_metric):
         k = 100
         e = 1e-5
         bitscore = 50
+        diamond_log = os.path.join("log","diamond_align_" + sample_name + ".log")
+        diamond_err = os.path.join("log","diamond_align_" + sample_name + ".err")
         if filter_metric == "bitscore":
-            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " --min-score " + str(bitscore))
+            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " --min-score " + str(bitscore) + " 1> " + diamond_log + " 2> " + diamond_err)
         else:
-            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " -e " + str(e))
+            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " -e " + str(e) + " 1> " + diamond_log + " 2> " + diamond_err)
         if rc1 != 0:
             print("Diamond did not complete successfully.")
+            os.system("rm -f " + diamond_out)
             return 1
         return diamond_out
     else:
@@ -248,17 +252,18 @@ CPUS = args.CPUs
 ORGANISMS = args.organisms
 ORGANISMS_TAXONOMY = args.taxonomy_organisms
 BUSCO_FILE = args.busco_file
-if (BUSCO_FILE != "") & (os.path.isfile(BUSCO_FILE)):
-    busco_file_read = read.csv(BUSCO_FILE, sep = "\t")
-    ORGANISMS = list(busco_file_read.iloc[:,0])
-    ORGANISMS_TAXONOMY = list(busco_file_read.iloc[:,1])
-    print("Organisms and their taxonomy levels for BUSCO analysis were read from file.")
-else:
-    print("No BUSCO file specified/found; using argument-specified organisms and taxonomy for BUSCO analysis.")
+if args.individual_or_summary == "individual":
+    if (BUSCO_FILE != "") & (os.path.isfile(BUSCO_FILE)):
+        busco_file_read = read.csv(BUSCO_FILE, sep = "\t")
+        ORGANISMS = list(busco_file_read.iloc[:,0])
+        ORGANISMS_TAXONOMY = list(busco_file_read.iloc[:,1])
+        print("Organisms and their taxonomy levels for BUSCO analysis were read from file.")
+    else:
+        print("No BUSCO file specified/found; using argument-specified organisms and taxonomy for BUSCO analysis.")
 
-if (len(ORGANISMS) != len(ORGANISMS_TAXONOMY)):
-    print("Organisms and taxonomic specifications for BUSCO analysis do not contain the same number of entries. Please revise such that each organism flagged for BUSCO analysis also includes its original taxonomic level.")
-    sys.exit(1)
+    if (len(ORGANISMS) != len(ORGANISMS_TAXONOMY)):
+        print("Organisms and taxonomic specifications for BUSCO analysis do not contain the same number of entries. Please revise such that each organism flagged for BUSCO analysis also includes its original taxonomic level.")
+        sys.exit(1)
     
 SETUP = False
 ALIGNMENT = False
@@ -343,6 +348,20 @@ if args.individual_or_summary == "individual":
             fasta = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
             
         query_busco_log = os.path.join("log","busco_query_" + sample_name + ".log")
-        rc = os.system("python scripts/query_busco.py --organism_group " + " ".join(args.organisms) + " --taxonomic_level " + " ".join(args.taxonomy_organisms) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " > " + query_busco_log)
+        rc = os.system("python scripts/query_busco.py --organism_group " + " ".join(args.organisms) + " --taxonomic_level " + " ".join(args.taxonomy_organisms) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + "-i individual > " + query_busco_log)
+        if rc != 0:
+            print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
+else:
+    for sample_name in MTS:
+        busco_table = os.path.join(OUTPUTDIR, "busco", sample_name, "full_table.tsv") # the BUSCO table that we're interested in using that contains the BUSCO matches and their level of completeness
+        taxtfile_stub = os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1]) # the prefix to specify where the taxonomy estimation output files are located
+        
+        if mets_or_mags == "mets":
+            fasta = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
+        else:
+            fasta = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
+            
+        query_busco_log = os.path.join("log","busco_query_" + sample_name + ".log")
+        rc = os.system("python scripts/query_busco.py --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i summary > " + query_busco_log)
         if rc != 0:
             print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")

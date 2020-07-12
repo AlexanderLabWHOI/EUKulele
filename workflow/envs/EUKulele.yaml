@@ -1,0 +1,10 @@
+name: EUKulele
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - biopython=1.74
+  - snakemake
+  - pandas 
+  - os
