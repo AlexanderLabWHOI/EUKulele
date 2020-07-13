@@ -6,9 +6,10 @@ import yaml
 import chardet
 import argparse
 import multiprocessing
+import os
 from joblib import Parallel, delayed
 
-def tax_placement(pident):
+def tax_placement(pident, tax_cutoffs):
     if pident >= tax_cutoffs['species']:
         out = 'species'; level = 7;
     elif pident >= tax_cutoffs['genus']:
@@ -73,7 +74,7 @@ def lca(full_classifications):
             return classes[l], set_classifications[0], "; ".join(full_classifications_split[0][0:(l+1)])
     return "","","" # if there are no common ancestors
 
-def match_maker(dd, consensus_cutoff, tax_dict, use_counts):
+def match_maker(dd, consensus_cutoff, tax_dict, use_counts, tax_cutoffs):
     ambiguous = 0 # we assume unambiguous
     md = dd.pident.max()
     transcript_name = set(list(dd["qseqid"]))
@@ -86,7 +87,7 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts):
         chosen_count = counts[0]
     else:
         chosen_count = 0
-    assignment, level = tax_placement(md) # most specific taxonomic level assigned
+    assignment, level = tax_placement(md, tax_cutoffs) # most specific taxonomic level assigned
     if len(ds)==1:
         if ds[0] not in tax_dict:
             print(dd[dd.pident==md])
@@ -131,14 +132,14 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts):
         return pd.DataFrame([[transcript_name, assignment, full_classification, best_classification, md, ambiguous]],\
                        columns=['transcript_name', 'classification_level', 'full_classification', 'classification', 'max_pid', 'ambiguous'])
 
-def apply_parallel(grouped_data, match_maker, consensus_cutoff, tax_dict, use_counts):
-    resultdf = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(match_maker)(group, consensus_cutoff, tax_dict, use_counts) for name, group in grouped_data)
+def apply_parallel(grouped_data, match_maker, consensus_cutoff, tax_dict, use_counts, tax_cutoffs):
+    resultdf = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(match_maker)(group, consensus_cutoff, tax_dict, use_counts, tax_cutoffs) for name, group in grouped_data)
     return pd.concat(resultdf)
 
-def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cutoff):
+def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cutoff, tax_cutoffs):
     chunksize = 10 ** 6
     counter = 0
-    for chunk in pd.read_csv(df, sep = '\t', header = None, chunksize=chunksize):
+    for chunk in pd.read_csv(str(df), sep = '\t', header = None, chunksize=chunksize):
         chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore']
         chunk['ssqid_TAXID']=chunk.sseqid.map(pdict)
         print(chunk['ssqid_TAXID'])
@@ -150,15 +151,17 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cuto
             use_counts = 0
             
         if counter == 0:
-            outdf = apply_parallel(chunk.groupby('qseqid'), match_maker, consensus_cutoff, tax_dict, use_counts)
+            outdf = apply_parallel(chunk.groupby('qseqid'), match_maker, consensus_cutoff, tax_dict, use_counts, tax_cutoffs)
         else:
-            outdf = pd.concat([outdf, apply_parallel(chunk.groupby('qseqid'), match_maker, consensus_cutoff, tax_dict, use_counts)], axis = 0)
+            outdf = pd.concat([outdf, apply_parallel(chunk.groupby('qseqid'), match_maker, consensus_cutoff, tax_dict, use_counts, tax_cutoffs)], axis = 0)
         counter = counter + 1
+    print(outdf)
+    print(outdf.head())
     return outdf
 
 # create a dictionary for all of the mmetsp and then just split by ";" and then take the top X based on the tax class level.
 # time the difference between the new function and the original.
-def classify_taxonomy(df, tax_dict, consensus_cutoff):
+def classify_taxonomy(df, tax_dict, consensus_cutoff, tax_cutoffs):
     level_dict = {'class':['supergroup','division','class'],
                        'order':['supergroup','division','class', 'order'],
                        'family':['supergroup','division','class', 'order', 'family'],
@@ -170,7 +173,7 @@ def classify_taxonomy(df, tax_dict, consensus_cutoff):
         ambiguous = 0 # we assume unambiguous
         md = dd.pident.max()
         ds = list(set(dd[dd.pident==md]['ssqid_TAXID']))
-        assignment, level = tax_placement(md) # most specific taxonomic level assigned
+        assignment, level = tax_placement(md, tax_cutoffs) # most specific taxonomic level assigned
         if len(ds)==1:
             full_classification = tax_dict[ds[0]].split(";")[0:level]
             best_classification = full_classification[len(full_classification) - 1] # the most specific taxonomic level we can classify by
@@ -205,8 +208,8 @@ def classify_taxonomy(df, tax_dict, consensus_cutoff):
         outdf.loc[t] =  [assignment, full_classification, best_classification, md, ambiguous]
     return outdf
 
-def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,use_counts,name_to_reads,diamond_file,outfile,method):
-    if os.path.isfile(outfile):
+def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,use_counts,names_to_reads,diamond_file,outfile,method,rerun):
+    if (os.path.isfile(outfile)) | rerun:
         print("Taxonomic placement already complete; will not re-run step.")
         return 0
     
@@ -214,18 +217,18 @@ def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,use_count
     tax_cutoffs = read_in_tax_cutoffs(cutoff_file)
     pdict = read_in_protein_map(prot_map_file)
     tax_dict = gen_dict(tax_table)
-    print(tax_dict)
     consensus_cutoff = float(consensus_cutoff)
     if method:
         if (int(use_counts) == 1):
             print("Hello")
             print(use_counts)
             reads_dict = gen_reads_dict(names_to_reads)
-            classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, reads_dict, pdict, consensus_cutoff)
+            classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, reads_dict, pdict, consensus_cutoff, tax_cutoffs)
         else:
             classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, 0, pdict, consensus_cutoff)
     else:
         diamond_df = read_in_diamond_file(diamond_file, pdict)
-        classification_df = classify_taxonomy(diamond_df, tax_dict, consensus_cutoff)
+        classification_df = classify_taxonomy(diamond_df, tax_dict, consensus_cutoff, tax_cutoffs)
+    print(classification_df)
     classification_df.to_csv(outfile, sep='\t')
     return outfile

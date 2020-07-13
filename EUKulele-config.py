@@ -36,6 +36,9 @@ if "scratch" in config:
     args = args + " --scratch " + str(config["scratch"])
 if "ref_fasta_ext" in config:
     args = args + " --ref_fasta_ext " + str(config["ref_fasta_ext"])
+if "force_rerun" in config:
+    if config["force_rerun"] == 1:
+        args = args + " --force_rerun"
     
 ## SALMON OPTIONS ##
 if "use_salmon_counts" in config:
@@ -87,26 +90,26 @@ if ("create_tax_table" in config) & (config["create_tax_table"] == 1):
     original_tax_table = config["original_tax_table"]
     args = args + " --original_tax_table " + str(original_tax_table)
     
-    if ("strain_col_id" in config):
-        strain_col_id = config["strain_col_id"]
-        args = args + " --strain_col_id " + str(strain_col_id)
-    if ("taxonomy_col_id" in config):
-        taxonomy_col_id = config["taxonomy_col_id"]
-        args = args + " --taxonomy_col_id " + str(taxonomy_col_id)
-    if ("column" in config):
-        column = config["column"]
-        args = args + " --column " + str(column)
-    if ("reformat_tax" in config):
-        column = config["reformat_tax"]
-        args = args + " --reformat_tax"
-    if ("delimiter" in config):
-        column = config["delimiter"]
-        args = args + " --delimiter " + str(delimiter)
-    if ("tax_table" in config): # unique, non-default name for formatted taxonomy table
-        column = config["tax_table"]
-        args = args + " --tax_table " + str(tax_table)
-    if ("protein_map" in config): # unique, non-default name for formatted protein map
-        column = config["protein_map"]
-        args = args + " --protein_map " + str(protein_map)
+if ("strain_col_id" in config):
+    strain_col_id = config["strain_col_id"]
+    args = args + " --strain_col_id " + str(strain_col_id)
+if ("taxonomy_col_id" in config):
+    taxonomy_col_id = config["taxonomy_col_id"]
+    args = args + " --taxonomy_col_id " + str(taxonomy_col_id)
+if ("column" in config):
+    column = config["column"]
+    args = args + " --column " + str(column)
+if ("reformat_tax" in config):
+    column = config["reformat_tax"]
+    args = args + " --reformat_tax"
+if ("delimiter" in config):
+    delimiter = config["delimiter"]
+    args = args + " --delimiter " + str(delimiter)
+if ("tax_table" in config): # unique, non-default name for formatted taxonomy table
+    tax_table = config["tax_table"]
+    args = args + " --tax_table " + str(tax_table)
+if ("protein_map" in config): # unique, non-default name for formatted protein map
+    protein_map = config["protein_map"]
+    args = args + " --protein_map " + str(protein_map)
         
 os.system("python EUKulele.py " + str(args))        

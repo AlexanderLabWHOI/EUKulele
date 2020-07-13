@@ -1,4 +1,5 @@
 numpy
+conda
 pandas
 yaml
 chardet

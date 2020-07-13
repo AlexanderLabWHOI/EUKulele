@@ -42,20 +42,23 @@ def setup():
         rc1 = os.system("python scripts/create_protein_table --infile_peptide " + REF_FASTA + " --infile_taxonomy " + args.original_tax_table + " --output " + TAX_TAB  + " --outfile_json " + PROT_TAB + " --delim " + args.delimiter + " --strain_col_id " + args.strain_col_id + " --taxonomy_col_id " + args.taxonomy_col_id + " --column " + args.column + " --reformat_tax " + args.reformat + eukprot)
 
     ## Concatenate potential list of input FASTA files ##
-    space_delim = " ".join(REFERENCE_FASTAS)
     concatenated_file = os.path.join(OUTPUTDIR, "concatfasta.fasta")
-    p1 = os.system("for currfile in " + space_delim + "; do ((cat $currfile | sed 's/\./N/g'); echo; echo) >> " + concatenated_file + "; done")
+    if (not os.path.isfile(concatenated_file)) | RERUN_RULES:
+        space_delim = " ".join(REFERENCE_FASTAS)
+        p1 = os.system("for currfile in " + space_delim + "; do ((cat $currfile | sed 's/\./N/g'); echo; echo) >> " + concatenated_file + "; done")
+    else:
+        print("Concatenated file already found in output directory; will not re-run step.", flush = True)
 
     output_log = "alignment_out.log"
     error_log = "alignment_err.log"
     if args.alignment_choice == "diamond":
         align_db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa') + '.dmnd')
-        if not os.path.isfile(align_db):
+        if (not os.path.isfile(align_db)) | RERUN_RULES:
             ## DIAMOND database creation ##
             db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa'))
             os.system("diamond makedb --in " + concatenated_file + " --db " + db + " 1> " + output_log + " 2> " + error_log)
         else:
-            print("Diamond database file already created; will not re-create database.")
+            print("Diamond database file already created; will not re-create database.", flush = True)
     else:
         db = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa'), "database")
         db_type = "prot"
@@ -63,7 +66,8 @@ def setup():
         os.system("makeblastdb -in " + concatenated_file + " -parse_seqids -blastdb_version " + str(blast_version) + " -title " + args.database + " -dbtype " + db_type + " -out " + db)
 
 def transdecode_to_peptide(sample_name):
-    if os.path.isfile(os.path.join(OUTPUTDIR, mets_or_mags,  sample_name + "." + PEP_EXT)):
+    os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder"))
+    if (os.path.isfile(os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT))) | RERUN_RULES:
         print("TransDecoder file already detected for sample " + str(sample_name) + "; will not re-run step.")
         return 0
     returncode1 = os.system("TransDecoder.LongOrfs -t " + os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT) + " -m " + str(TRANSDECODERORFSIZE) + " 2> " + os.path.join("log", "transdecoder_error_" + sample_name + ".err") + " 1> " + os.path.join("log", "transdecoder_out_" + sample_name + ".out"))
@@ -75,7 +79,7 @@ def transdecode_to_peptide(sample_name):
         sys.exit(1)
     merged_name = sample_name + "." + NT_EXT
     os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags))
-    os.system("mkdir -p " + os.path.join(OUTPUTDIR, "METs", "transdecoder"))
+    os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder"))
     os.replace(merged_name + ".transdecoder.pep", os.path.join(OUTPUTDIR, mets_or_mags,  sample_name + "." + PEP_EXT))
     os.replace(merged_name + ".transdecoder.cds", os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder", sample_name + ".fasta.transdecoder.cds"))
     os.replace(merged_name + ".transdecoder.gff3", os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder", sample_name + ".fasta.transdecoder.gff3"))
@@ -87,9 +91,9 @@ def align_to_database(alignment_choice, sample_name, filter_metric):
     if alignment_choice == "diamond":
         os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags, "diamond"))
         diamond_out = os.path.join(OUTPUTDIR, mets_or_mags, "diamond", sample_name + ".diamond.out")
-        if os.path.isfile(diamond_out):
+        if (os.path.isfile(diamond_out)) | RERUN_RULES:
             print("Diamond alignment file already detected; will not re-run step.")
-            return 0
+            return diamond_out
         
         align_db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa') + '.dmnd')
         if mets_or_mags == "mets":
@@ -104,9 +108,9 @@ def align_to_database(alignment_choice, sample_name, filter_metric):
         diamond_log = os.path.join("log","diamond_align_" + sample_name + ".log")
         diamond_err = os.path.join("log","diamond_align_" + sample_name + ".err")
         if filter_metric == "bitscore":
-            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " --min-score " + str(bitscore) + " 1> " + diamond_log + " 2> " + diamond_err)
+            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " --min-score " + str(bitscore) + " 2> " + diamond_log + " 1> " + diamond_err)
         else:
-            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " -e " + str(e) + " 1> " + diamond_log + " 2> " + diamond_err)
+            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " -e " + str(e) + " 2> " + diamond_log + " 1> " + diamond_err)
         if rc1 != 0:
             print("Diamond did not complete successfully.")
             os.system("rm -f " + diamond_out)
@@ -114,9 +118,9 @@ def align_to_database(alignment_choice, sample_name, filter_metric):
         return diamond_out
     else:
         blast_out = os.path.join(OUTPUTDIR, mets_or_mags, "blast", sample_name + ".blast.txt")
-        if os.path.isfile(blast_out):
+        if (os.path.isfile(blast_out)) | RERUN_RULES:
             print("BLAST alignment file already detected; will not re-run step.")
-            return 0
+            return blast_out
         align_db = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa'), "database")
         if mets_or_mags == "mets":
             fasta = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
@@ -155,6 +159,7 @@ parser.add_argument('subroutine', metavar="subroutine", nargs='?', type=str, def
 parser.add_argument('--mets_or_mags', required = True) 
 parser.add_argument('--nucleotide_extension', default = ".fasta") 
 parser.add_argument('--protein_extension', default = ".faa") 
+parser.add_argument('--force_rerun', action='store_true', default=False)
 parser.add_argument('--scratch', default = '../scratch') # the scratch location to store intermediate files
 
 ## SALMON OPTIONS ##
@@ -252,6 +257,7 @@ CPUS = args.CPUs
 ORGANISMS = args.organisms
 ORGANISMS_TAXONOMY = args.taxonomy_organisms
 BUSCO_FILE = args.busco_file
+RERUN_RULES = args.force_rerun
 if args.individual_or_summary == "individual":
     if (BUSCO_FILE != "") & (os.path.isfile(BUSCO_FILE)):
         busco_file_read = read.csv(BUSCO_FILE, sep = "\t")
@@ -276,6 +282,21 @@ if (args.subroutine == "all") | (args.subroutine == "busco"):
     BUSCO = True
 
 ## SETUP STEPS ##
+print("Setting things up...")
+#rc1 = os.system("conda activate EUKulele")
+rc1 = subprocess.call(["activate", "euk-env/EUKulele"])
+print(rc1)
+
+if (rc1 != 0): # & (not os.path.isdir("./euk-env")):
+    print("No EUKulele conda environment found; generating environment from EUKulele-env.yaml file...")
+    os.system("conda env create -f EUKulele-env.yaml --force --prefix ./euk-env")
+    p1 = subprocess.call(["activate", "EUKulele"])
+    p1.wait()
+    rc1 = subprocess.returncode
+    if (rc != 0):
+        print("Could not successfully generate and activate conda environment.")
+        sys.exit(1)
+        
 os.system("mkdir -p " + OUTPUTDIR)
 os.system("mkdir -p log")
 if SETUP:
@@ -284,7 +305,9 @@ if SETUP:
 if (mets_or_mags == "mets"):
     ## Now for some TransDecoding ##
     samples = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(SAMPLE_DIR) if curr.split(".")[-1] == NT_EXT]
-    
+    print("Performing TransDecoder steps...", flush=True)
+    if len(samples) == 0:
+        print("No samples found in sample directory with specified nucleotide extension.")
     if ALIGNMENT:
         n_jobs_align = min(multiprocessing.cpu_count(), len(samples))
         transdecoder_res = Parallel(n_jobs=n_jobs_align)(delayed(transdecode_to_peptide)(sample_name) for sample_name in samples)
@@ -292,45 +315,51 @@ if (mets_or_mags == "mets"):
         if all_codes > 0:
             print("TransDecoder did not complete successfully; check log folder for details.")
             sys.exit(1)
-        print("At previous endpoint.")
         rcodes = [os.remove(curr) for curr in glob.glob("pipeliner*")]
-        print(rcodes)
         #shutil.rmtree(merged_name + ".transdecoder_dir*")
 else:
     samples = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(SAMPLE_DIR) if curr.split(".")[-1] == PEP_EXT]
     
+    if len(samples) == 0:
+        print("No samples found in sample directory with specified peptide extension.")
+    
 if ALIGNMENT:
+    print("Performing alignment steps...", flush=True)
     ## Next to align against our database of choice ##
     n_jobs_align = min(multiprocessing.cpu_count(), len(samples))
     alignment_res = Parallel(n_jobs=n_jobs_align)(delayed(align_to_database)(args.alignment_choice, sample_name, args.filter_metric) for sample_name in samples)
-    if any([curr == 1 for curr in alignment_res]):
+    if any([(curr == None) for curr in alignment_res]):
         print("Alignment did not complete successfully.")
         sys.exit(1)
 
     ## Next to do taxonomy estimation ##
     if (USE_SALMON_COUNTS == 1):
-        p1 = subprocess.Popen(["python scripts/names_to_reads.py"])
-        p1.wait()
+        rc1 = os.system("python scripts/names_to_reads.py")
 
+    print("Performing taxonomic estimation steps...", flush=True)
     outfiles = [os.path.join(OUTPUTDIR, mets_or_mags, samp + "-estimated-taxonomy.out") for samp in samples]
     n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res))
-    taxonomy_res = Parallel(n_jobs=n_jobs_align)(delayed(place_taxonomy)(TAX_TAB,args.cutoff,CONSENSUS_CUTOFF,PROT_TAB,USE_SALMON_COUNTS,NAMES_TO_READS,alignment_res[t],outfiles[t],IFPARALLEL) for t in range(len(alignment_res)))
+    taxonomy_res = Parallel(n_jobs=n_jobs_align)(delayed(place_taxonomy)(TAX_TAB,args.cutoff_file,CONSENSUS_CUTOFF,PROT_TAB,USE_SALMON_COUNTS,NAMES_TO_READS,alignment_res[t],outfiles[t],IFPARALLEL,RERUN_RULES) for t in range(len(alignment_res)))
 
     ## Now to visualize the taxonomy ##
+    print("Performing taxonomic visualization steps...", flush=True)
     out_prefix = OUTPUTDIR.split("/")[-1]
-    visualize_all_results(out_prefix, OUTPUTDIR, os.path.join(OUTPUTDIR, mets_or_mags), os.path.join(OUTPUTDIR, mets_or_mags), PEP_EXT, NT_EXT, USE_SALMON_COUNTS)
+    visualize_all_results(out_prefix, OUTPUTDIR, os.path.join(OUTPUTDIR, mets_or_mags), os.path.join(OUTPUTDIR, mets_or_mags), PEP_EXT, NT_EXT, USE_SALMON_COUNTS, RERUN_RULES)
     
     if mets_or_mags == "mags":
+        print("Performing taxonomic assignment steps...", flush=True)
         n_jobs_viz = min(multiprocessing.cpu_count(), len(samples))
         assign_res = Parallel(n_jobs=n_jobs_viz)(delayed(assign_taxonomy)(samp) for samp in samples)
         if sum(assign_res) != 0:
             print("Taxonomic assignment of MAGs did not complete successfully. Check log files for details.")
             sys.exit(1)
-            
+
+print("Performing BUSCO steps...", flush=True)
 if BUSCO:
+    print("running busco")
     ## Run BUSCO on the full dataset ##
     busco_db = "eukaryota_odb10"
-    busco_res = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(run_busco)(sample_name, os.path.join(OUTPUTDIR, "busco"), busco_db) for sample_name in MTS)
+    busco_res = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(run_busco)(sample_name, os.path.join(OUTPUTDIR, "busco"), busco_db) for sample_name in samples)
     all_codes = sum(busco_res)
     if all_codes > 0:
         print("BUSCO did not complete successfully.")
