@@ -12,7 +12,7 @@ setup(
     author_email="akrinos@mit.edu",
     license="MIT",
     include=['code'],
-    install_requires=['setuptools',\
+    install_requires=['setuptools','conda',\
         'pandas','numpy','matplotlib','argparse',\
         'yaml','multiprocessing','subprocess','chardet',\
         'shutil','glob','joblib','json','pyyaml'],
