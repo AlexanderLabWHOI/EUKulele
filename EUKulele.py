@@ -151,7 +151,7 @@ def run_busco(sample_name, outputdir, busco_db):
     else:
         fastaname = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
     os.system("chmod 755 scripts/run_busco.sh")
-    rc1 = os.system("./scripts/run_busco.sh " + str(outputdir) + " static/busco_config.ini " + outputdir + "/config_" + sample_name + ".ini " + fastaname + " " + str(CPUS) + " " + busco_db)
+    rc1 = os.system("./scripts/run_busco.sh " + str(sample_name) + " " + str(outputdir) + " static/busco_config.ini " + outputdir + "/config_" + sample_name + ".ini " + fastaname + " " + str(CPUS) + " " + busco_db)
     return rc1
 
 parser = argparse.ArgumentParser()
@@ -284,16 +284,14 @@ if (args.subroutine == "all") | (args.subroutine == "busco"):
 ## SETUP STEPS ##
 print("Setting things up...")
 #rc1 = os.system("conda activate EUKulele")
-rc1 = subprocess.call(["activate", "euk-env/EUKulele"])
+rc1 = subprocess.call(["activate", "./euk-env"])
 print(rc1)
 
 if (rc1 != 0): # & (not os.path.isdir("./euk-env")):
     print("No EUKulele conda environment found; generating environment from EUKulele-env.yaml file...")
     os.system("conda env create -f EUKulele-env.yaml --force --prefix ./euk-env")
-    p1 = subprocess.call(["activate", "EUKulele"])
-    p1.wait()
-    rc1 = subprocess.returncode
-    if (rc != 0):
+    rc1 = subprocess.call(["activate", "./euk-env"])
+    if (rc1 != 0):
         print("Could not successfully generate and activate conda environment.")
         sys.exit(1)
         

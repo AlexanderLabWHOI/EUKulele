@@ -18,8 +18,10 @@ CPUS=$5
 BUSCO_DB=$6
 
 mkdir -p $OUTPUTDIR
-./euk-env/bin/busco_configurator.py $BUSCO_CONFIG_FILE {params.static_config}
-cp $STATIC_CONFIG $CONFIG_LOC
+#python ./euk-env/bin/busco_configurator.py $BUSCO_CONFIG_FILE {params.static_config}
+echo $BUSCO_CONFIG_FILE
+#python ./euk-env/bin/busco_configurator.py euk-env/config/config.ini {params.static_config}
+cp euk-env/config/config.ini $CONFIG_LOC
 sed -i '/out = /c\out = '$SAMPLENAME $CONFIG_LOC # the name of the output files
 sed -i '/out_path = /c\out_path = '$OUTPUTDIR $CONFIG_LOC # what directory the output will be stored in
 busco -i $INPUT_FASTA -l $BUSCO_DB -m proteins --cpu $CPUS --config $CONFIG_LOC -f
