@@ -13,7 +13,7 @@ args = parser.parse_args()
 if (args.configfile == "") | (not os.path.isfile(args.configfile)):
     arglist = sys.argv[1:]
     print("Running EUKulele with command line arguments, as no valid configuration file was provided.")
-    os.system("python EUKulele.py " + str(arglist))
+    os.system("python EUKulele-main.py " + str(arglist))
     sys.exit(1)
     
 with open(args.configfile, 'r') as configfile:
@@ -122,4 +122,4 @@ if ("protein_map" in config): # unique, non-default name for formatted protein m
     protein_map = config["protein_map"]
     args = args + " --protein_map " + str(protein_map)
         
-os.system("python EUKulele.py " + str(args))        
+os.system("python EUKulele-main.py " + str(args))        
