@@ -113,7 +113,7 @@ def makeConcatFrame(curr_df, new_df, level, sample_name, use_counts):
         new_df.columns = ["Species","NumTranscripts"]
     
     new_df["Sample"] = sample_name
-    return pd.concat([curr_df, new_df])
+    return pd.concat([curr_df, new_df], sort=True)
 
 def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extension, nucle_extension, use_counts, rerun):
     results_frame = dict()
@@ -212,6 +212,7 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
             plt.tight_layout()
             plt.savefig(os.path.join(out_dir, l + '_transcripts.png'),dpi=100)
             plt.show()
+            plt.close()
         else:
             f, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(15,7.5))
             ax1.set_facecolor('white')
@@ -223,3 +224,4 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
             plt.tight_layout()
             plt.savefig(os.path.join(out_dir, l + '_counts_and_transcripts.png'),dpi=100)
             plt.show()
+            plt.close()

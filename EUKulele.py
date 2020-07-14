@@ -150,9 +150,13 @@ def run_busco(sample_name, outputdir, busco_db):
         fastaname = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
     else:
         fastaname = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
+    os.system("chmod 755 scripts/configure_busco.sh")
     os.system("chmod 755 scripts/run_busco.sh")
-    rc1 = os.system("./scripts/run_busco.sh " + str(sample_name) + " " + str(outputdir) + " static/busco_config.ini " + outputdir + "/config_" + sample_name + ".ini " + fastaname + " " + str(CPUS) + " " + busco_db)
-    return rc1
+    rc2 = 0
+    if not os.path.isdir(os.path.join("busco_downloads","lineages","eukaryota_odb10")):
+        rc2 = os.system(" ".join(["./scripts/configure_busco.sh", str(sample_name), str(outputdir), "static/busco_config.ini", outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]))
+    rc1 = os.system(" ".join(["./scripts/run_busco.sh", str(sample_name), str(outputdir), "static/busco_config.ini", outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]))
+    return rc1 + rc2
 
 parser = argparse.ArgumentParser()
 parser.add_argument('subroutine', metavar="subroutine", nargs='?', type=str, default="all", choices = ["all","setup","alignment","busco"], help='Choice of subroutine to run.')
@@ -365,7 +369,7 @@ if BUSCO:
     
 ## Assess BUSCO completeness on the most prevalent members of the metatranscriptome at each taxonomic level ##
 if args.individual_or_summary == "individual":
-    for sample_name in MTS:
+    for sample_name in samples:
         busco_table = os.path.join(OUTPUTDIR, "busco", sample_name, "full_table.tsv") # the BUSCO table that we're interested in using that contains the BUSCO matches and their level of completeness
         taxtfile_stub = os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1]) # the prefix to specify where the taxonomy estimation output files are located
         
@@ -375,7 +379,7 @@ if args.individual_or_summary == "individual":
             fasta = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
             
         query_busco_log = os.path.join("log","busco_query_" + sample_name + ".log")
-        rc = os.system("python scripts/query_busco.py --organism_group " + " ".join(args.organisms) + " --taxonomic_level " + " ".join(args.taxonomy_organisms) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + "-i individual > " + query_busco_log)
+        rc = os.system("python scripts/query_busco.py --organism_group " + str(" ".join(args.organisms)) + " --taxonomic_level " + str(" ".join(args.taxonomy_organisms)) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + "-i individual > " + query_busco_log)
         if rc != 0:
             print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
 else:

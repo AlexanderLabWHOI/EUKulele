@@ -17,11 +17,10 @@ INPUT_FASTA=$5
 CPUS=$6
 BUSCO_DB=$7
 
-mkdir -p $OUTPUTDIR
-        
-cp euk-env/config/config.ini $CONFIG_LOC
-sed -i '/out = /c\out = '$SAMPLENAME $CONFIG_LOC # the name of the output files
-sed -i '/out_path = /c\out_path = '$OUTPUTDIR $CONFIG_LOC # what directory the output will be stored in
-sed -i '/download_path = /c\download_path = ./busco_downloads/' $CONFIG_LOC
-busco -i $INPUT_FASTA -l $BUSCO_DB -m proteins --cpu $CPUS --config $CONFIG_LOC -o $SAMPLENAME -f --offline
-mv $OUTPUTDIR/$SAMPLENAME/*/* $OUTPUTDIR/$SAMPLENAME
+URL="https://busco-data.ezlab.org/v4/data"
+
+mkdir -p busco_downloads
+wget -nd -r --no-parent -A $BUSCO_DB.*.tar.gz $URL/lineages/
+tar -xvzf $BUSCO_DB.*.tar.gz
+rm $BUSCO_DB.*.tar.gz
+mv $BUSCO_DB busco_downloads/lineages/$BUSCO_DB
