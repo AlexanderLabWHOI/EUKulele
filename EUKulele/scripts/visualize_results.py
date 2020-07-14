@@ -54,7 +54,7 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
     
     return classifications, final_frame
 
-def stripClassifData(df):
+def stripClassifData(df, use_counts):
     level_hierarchy = ['supergroup','division','class','order','family','genus','species']
     
     return_dict_list = dict()
@@ -104,7 +104,7 @@ def createPlotDataFrame(curr_df_start, cutoff_relative = 0.1, transcript_or_coun
     
     return pivoted
 
-def makeConcatFrame(curr_df, new_df, level, sample_name):
+def makeConcatFrame(curr_df, new_df, level, sample_name, use_counts):
     if use_counts == 1:
         new_df = pd.DataFrame(new_df.reset_index())
         new_df.columns = [level,"Counts","NumTranscripts"]
@@ -113,28 +113,34 @@ def makeConcatFrame(curr_df, new_df, level, sample_name):
         new_df.columns = ["Species","NumTranscripts"]
     
     new_df["Sample"] = sample_name
-    return pd.concat([curr_df, new_df])
+    return pd.concat([curr_df, new_df], sort=True)
 
-def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extension, nucle_extension, use_counts):
+def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extension, nucle_extension, use_counts, rerun):
     results_frame = dict()
 
     ### READ IN RESULTS FILES FROM MET DIR THAT FIT SAMPLE SPEC FROM CONFIG ###
     samples = os.listdir(samples_dir)
+    good_samples = 0
     for s in samples:
-        if ("SH" in s) & ("merged" in s) & ((nucle_extension in s) | (prot_extension in s)):
+        if ((nucle_extension in s) | (prot_extension in s)):
             file_name = s.split(".")[0] + "-estimated-taxonomy.out"
             if not os.path.isfile(os.path.join(met_dir,file_name)):
                 print("One of the files, " + s + ", in the sample directory did not complete successfully.")
                 #sys.exit(1)
             else:
                 results_frame[file_name] = pd.read_csv(os.path.join(met_dir,file_name), sep = "\t", index_col=0)
+            good_samples = good_samples + 1
+            
+    if good_samples == 0:
+        print("No taxonomic estimation files found! Exiting...")
+        sys.exit(1)
 
     list_results = dict()
     frame_results = dict()
 
     # characterizing by major classes 
     for curr in results_frame.keys():
-        list_results[curr], frame_results[curr] = stripClassifData(results_frame[curr])
+        list_results[curr], frame_results[curr] = stripClassifData(results_frame[curr], use_counts)
 
     counts_all = dict()
     level_hierarchy = ['supergroup','division','class','order','family','genus','species']
@@ -142,20 +148,17 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
         counts_all[l] = pd.DataFrame(columns = ["Species","NumTranscripts","Sample"])
 
     for curr in results_frame.keys():
-        if "_merged" not in curr:
-            continue
-
         sample_name = curr.split("_")[0]
 
         for l in level_hierarchy:
             curr_df = counts_all[l]
             new_df = frame_results[curr][l]
-            counts_all[l] = makeConcatFrame(curr_df, new_df, l.capitalize(), sample_name)
+            counts_all[l] = makeConcatFrame(curr_df, new_df, l.capitalize(), sample_name, use_counts)
 
     for l in level_hierarchy:
         ### SAVE THE CSVs OF THE DATA ###
         prefix = out_prefix
-        counts_all[l].to_csv(os.path.join(output_dir, prefix + "_all_" + l + "_counts.csv"))
+        counts_all[l].to_csv(os.path.join(out_dir, prefix + "_all_" + l + "_counts.csv"))
 
         ### INITIALIZE VARIABLES FOR LOOP ###
         Curr_Variable = l.capitalize()
@@ -209,6 +212,7 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
             plt.tight_layout()
             plt.savefig(os.path.join(out_dir, l + '_transcripts.png'),dpi=100)
             plt.show()
+            plt.close()
         else:
             f, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(15,7.5))
             ax1.set_facecolor('white')
@@ -220,3 +224,4 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
             plt.tight_layout()
             plt.savefig(os.path.join(out_dir, l + '_counts_and_transcripts.png'),dpi=100)
             plt.show()
+            plt.close()

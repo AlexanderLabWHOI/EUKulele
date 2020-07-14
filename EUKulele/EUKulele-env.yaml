@@ -6,7 +6,9 @@ channels:
     - anaconda 
 dependencies:
     - blast 
+    - busco=4.0.6
     - diamond
+    - transdecoder
     - ujson
     - pandas
     - yaml=0.1.7
@@ -14,6 +16,4 @@ dependencies:
     - pyyaml=5.1.2
     - numpy
     - joblib
-    - pandas 
-    - os
-    - transdecoder
+    - pandas

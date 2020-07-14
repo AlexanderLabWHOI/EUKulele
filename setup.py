@@ -16,5 +16,5 @@ setup(
         'pandas','numpy','matplotlib','argparse',\
         'yaml','multiprocessing','subprocess','chardet',\
         'shutil','glob','joblib','json','pyyaml'],
-    packages=['EUKulele','EUKulele.test','EUKulele.scripts'],
+    packages=['EUKulele','tests','EUKulele.scripts'],
 )

@@ -6,7 +6,17 @@ import sys
 import yaml
 import argparse
 
-with open("config.yaml", 'r') as configfile:
+parser = argparse.ArgumentParser()
+parser.add_argument("--config", dest = "configfile", default = "")
+args = parser.parse_args()
+
+if (args.configfile == "") | (not os.path.isfile(args.configfile)):
+    arglist = sys.argv[1:]
+    print("Running EUKulele with command line arguments, as no valid configuration file was provided.")
+    os.system("python EUKulele.py " + str(arglist))
+    sys.exit(1)
+    
+with open(args.configfile, 'r') as configfile:
     config = yaml.safe_load(configfile)
 
 args = ""
