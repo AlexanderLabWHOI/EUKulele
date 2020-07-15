@@ -161,8 +161,8 @@ def run_busco(sample_name, outputdir, busco_db):
 parser = argparse.ArgumentParser()
 parser.add_argument('subroutine', metavar="subroutine", nargs='?', type=str, default="all", choices = ["all","setup","alignment","busco"], help='Choice of subroutine to run.')
 parser.add_argument('--mets_or_mags', required = True) 
-parser.add_argument('--nucleotide_extension', default = ".fasta") 
-parser.add_argument('--protein_extension', default = ".faa") 
+parser.add_argument('--n_ext', '--nucleotide_extension', default = ".fasta") 
+parser.add_argument('--p_ext', '--protein_extension', default = ".faa") 
 parser.add_argument('--force_rerun', action='store_true', default=False)
 parser.add_argument('--scratch', default = '../scratch') # the scratch location to store intermediate files
 

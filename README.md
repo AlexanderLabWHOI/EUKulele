@@ -29,7 +29,37 @@ eukulele(config="", string_arguments="")
 
 Where the `config` argument allows you to list the path of the configuration `YAML` file that you wish to use, or the `string_arguments` option allows you to create a string containing all of the arguments that you would use normally using the command-line options specified below. 
 
-`EUKulele` can be run from the command line using: `EUKulele [arguments]`, once installed. 
+`EUKulele` can be run from the command line using: `EUKulele [arguments]`, once installed. The following arguments are supported:
+
+| Flag 	| Configuration File Entry 	| Meaning 	|
+|-	|-	|-	|
+| --config 	| N/A 	| The path to the configuration file which should be used to retrie 	|
+| --mets_or_mags 	| mets_or_mags 	| A required flag to indicate whether metatranscriptomic ("mets") or metagenomic ("mags") samples are being used as input. 	|
+| --reference_dir 	| reference 	| A required flag to indicate where the reference FASTA is stored, or a keyword argument for the dataset to be downloaded and used. 	|
+| --sample_dir 	| samples 	| A required flag to indicate where the samples (metagenomic or metatranscriptomic, depending on "mets_or_mags" flag) are located. 	|
+| --ref_fasta 	| ref_fasta 	| The name of the reference FASTA file in `reference_dir`; defaults to reference.pep.fa if not specified, or is set according to the downloaded file if using a keyword argument. 	|
+| --out_dir 	| output 	| The path to the directory where output will be stored. Defaults to a folder called `output` in the present working directory. 	|
+| --database 	| database 	| An optional additional argument for specifying the database name. 	|
+| --nucleotide_extension/--n_ext 	| nucleotide_extension 	| The file extension for samples in nucleotide format (metatranscriptomes). Defaults to .fasta. 	|
+| --protein_extension/--p_ext 	| protein_extension 	| The file extension for samples in protein format (metatranscriptomes). Defaults to .faa. 	|
+| --scratch 	| scratch 	| The directory where temporary files will be stored. Defaults to `../scratch`. 	|
+| --ref_fasta_ext 	| ref_fasta_ext 	| The file extension for `ref_fasta`, if applicable. Defaults to .fasta. 	|
+| --force_rerun 	| force_rerun 	| If included in a command line argument or set to 1 in a configuration file, this argument forces all steps to be re-run, regardless of whether output is already present. 	|
+| --use_salmon_counts 	| use_salmon_counts 	| If included in a command line argument or set to 1 in a configuration file, this argument causes classifications to be made based both on number of classified transcripts and by counts. 	|
+| --salmon_dir 	| salmon_dir 	| If `--use_salmon_counts` is true, this must be specified, which is the directory location of the `salmon` output/quantification files. 	|
+| --names_to_reads 	| names_to_reads 	| A file that creates a correspondence between each transcript name and the number of `salmon`-quantified reads. Can be generated manually via the `names_to_reads.py` script, or will be generated automatically if it does not exist. 	|
+| --transdecoder_orfsize 	| transdecoder_orfsize 	| The minimum cutoff size for an open reading frame (ORF) detected by `TransDecoder`. 	|
+| -p 	| choose_parallel 	| Can be set to 1 or "parallel" to indicate that taxonomy estimation should be run in parallel. 	|
+| --alignment_choice 	| alignment_choice 	| A choice of aligner to use, currently `BLAST` or `DIAMOND`. 	|
+| --cutoff_file 	| cutoff_file 	| A `YAML` file, provided in `EUKulele/static/`, that contains the percent identity cutoffs for various taxonomic classifications. Any path may be provided here to a user-specified file. 	|
+| --filter_metric 	| filter_metric 	| Either evalue, pid, or bitscore (default evalue) - the metric to be used to filter hits based on their quality prior to taxonomic estimation. 	|
+| --consensus_cutoff 	| consensus_cutoff 	| The value to be used to decide whether enough of the taxonomic matches are identical to overlook a discrepancy in classification based on hits associated with a contig. Defaults to 0.75 (75%). 	|
+| --busco_file 	| busco_file 	| Overrides specific organism and taxonomy parameters (next two entries below) in favor of a tab-separated file containing each organism/group of interest and the taxonomic level of the query. 	|
+| --organisms 	| organisms 	| A list of organisms/groups to test the BUSCO completeness of matching contigs for. 	|
+| --taxonomy_organisms 	| taxonomy_organisms 	| The taxonomic level of the groupings indicated in the list of `--organisms`; also a list. 	|
+| --individual_or_summary 	| individual_or_summary 	| Defaults to summary. Whether BUSCO assessment should just be performed for the top organism matches, or whether the list of organisms + their taxonomies or BUSCO file (above parameters) should be used (individual). 	|
+| --busco_threshold 	| busco_threshold 	| The threshold for BUSCO completeness for a set of contigs to be considered reasonably BUSCO-complete. 	|
+
 
 ## Previous README file notes
 

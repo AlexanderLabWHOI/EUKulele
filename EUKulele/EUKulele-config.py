@@ -92,7 +92,7 @@ def parseConfig(configfile):
         args = args + " --consensus_cutoff " + str(config["consensus_cutoff"])
     if "busco_file" in config:
         args = args + " --busco_file " + str(config["busco_file"])
-    if "organisms" in config:
+    if "individual_or_summary" in config:
         args = args + " --individual_or_summary " + str(config["individual_or_summary"])
     if "organisms" in config:
         args = args + " --organisms " + str(config["organisms"])
