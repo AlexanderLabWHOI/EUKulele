@@ -23,9 +23,9 @@ Three databases are supported by default from within `EUKulele`, and may be down
 ### EUKulele parameters
 Parameters may either be passed as arguments directly to EUKulele, or may be specified in a configuration `YAML` file. If running `EUKulele` as a Python package, you can call the function `eukulele` with two potential arguments, one of which is required:
 
-'''
+```
 eukulele(config="", string_arguments="")
-'''
+```
 
 Where the `config` argument allows you to list the path of the configuration `YAML` file that you wish to use, or the `string_arguments` option allows you to create a string containing all of the arguments that you would use normally using the command-line options specified below. 
 
@@ -59,6 +59,15 @@ Where the `config` argument allows you to list the path of the configuration `YA
 | --taxonomy_organisms 	| taxonomy_organisms 	| The taxonomic level of the groupings indicated in the list of `--organisms`; also a list. 	|
 | --individual_or_summary 	| individual_or_summary 	| Defaults to summary. Whether BUSCO assessment should just be performed for the top organism matches, or whether the list of organisms + their taxonomies or BUSCO file (above parameters) should be used (individual). 	|
 | --busco_threshold 	| busco_threshold 	| The threshold for BUSCO completeness for a set of contigs to be considered reasonably BUSCO-complete. 	|
+| --create_tax_table 	| create_tax_table 	| If included in a command line argument or set to 1 in a configuration file, the taxonomy table and protein dictionary are produced automatically from the provided reference FASTA file. Defaults to False, then a check is performed. 	|
+| --original_tax_table 	| original_tax_table 	| If a new tax table is to be created, the taxonomy table originally included with the database needs to be specified. If the database is downloaded from scratch, this variable is set automatically. Required if `--create-tax-table` is set to True. 	|
+| --reformat_tax 	| reformat_tax 	| If included in a command line argument or set to 1 in a configuration file, this means that the original taxonomy table we provided has semicolon-separated taxonomy entries, rather than separate columns for each taxonomic group. Defaults to False, then a check is performed. 	|
+| --strain_col_id 	| strain_col_id 	| The column of the provided original taxonomy file which indicates strain name. Defaults to "strain_name". 	|
+| --taxonomy_col_id 	| taxonomy_col_id 	| The column of the provided original taxonomy file which indicates strain taxonomy. Defaults to "taxonomy". 	|
+| --delimiter 	| delimiter 	| The separator for the taxonomy file entries. Defaults to "/". 	|
+| --tax_table 	| tax_table 	| The name of the formatted taxonomy table; defaults to "tax-table.txt.". If this file is not found, it will be generated from the reference FASTA and original taxonomy file. 	|
+| --protein_map 	| protein_map 	| The name of the JSON file containing protein correspondences; defaults to "protein-map.json". If this file is not found, it will be generated from the reference FASTA and original taxonomy file. 	|
+|  	|  	|  	|
 
 
 ## Previous README file notes

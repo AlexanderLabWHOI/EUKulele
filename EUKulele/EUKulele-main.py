@@ -31,15 +31,38 @@ __email__ = "akrinos@mit.edu"
 
 ## FUNCTIONS TO USE IN PIPELINE ##
 
+def download_reference(database_name, ref_db_location):
+    if database_name == "mmetsp":
+        rc1 = os.system("wget -O " + os.path.join(ref_db_location,REF_FASTA) + " URL here!")
+        rc2 = os.system("wget -O " + os.path.join(ref_db_location,original_tax_table) + " https://www.dropbox.com/s/kkxamsatcswsq5e/taxonomy-table.txt?dl=1")
+        if rc1 + rc2 != 0:
+            print("Download of MMETSP database failed. Please check download link!")
+            sys.exit(1)
+        fasta_name = os.path.join(ref_db_location,REF_FASTA)
+        orig_tax_name = os.path.join(ref_db_location,original_tax_table)
+    elif database_name == "eukprot":
+        rc1 = os.system("wget -O " + os.path.join(ref_db_location,"euk-prot.tgz") + " https://ndownloader.figshare.com/files/23580944")
+        rc2 = os.system("tar zxvf " + os.path.join(ref_db_location,"euk-prot.tgz") + " -C " + ref_db_location)
+        fasta_name = os.path.join(ref_db_location, "proteins")
+        rc3 = os.system("wget -O " + os.path.join(ref_db_location,original_tax_table) + " https://ndownloader.figshare.com/files/23580767")
+        orig_tax_name = os.path.join(ref_db_location,original_tax_table)
+        if rc1 + rc2 + rc3 != 0:
+            print("Download of EUKProt database failed. Please check download link!")
+            sys.exit(1)
+    elif database_name == "phylodb":
+        
+    else:
+        print("Specified reference database, " + database_name + " is not supported.")
+    return fasta_name, orig_tax_name
 def setup():
-    if args.create_tax_table:
-        if args.original_tax_table == "":
-            print("You must provide a taxonomy table via the argument 'original_tax_table' if you wish to run a taxonomy.")
+    if create_tax_table:
+        if original_tax_table == "":
+            print("You must provide a taxonomy table via the argument 'original_tax_table' if you wish to run a taxonomy, or specify that the reference database should be downloaded.")
             sys.exit(1)
         eukprot = ""
         if args.database == "eukprot":
             eukprot = " --euk-prot "
-        rc1 = os.system("python scripts/create_protein_table --infile_peptide " + REF_FASTA + " --infile_taxonomy " + args.original_tax_table + " --output " + TAX_TAB  + " --outfile_json " + PROT_TAB + " --delim " + args.delimiter + " --strain_col_id " + args.strain_col_id + " --taxonomy_col_id " + args.taxonomy_col_id + " --column " + args.column + " --reformat_tax " + args.reformat + eukprot)
+        rc1 = os.system("python scripts/create_protein_table --infile_peptide " + REF_FASTA + " --infile_taxonomy " + original_tax_table + " --output " + TAX_TAB  + " --outfile_json " + PROT_TAB + " --delim " + args.delimiter + " --strain_col_id " + args.strain_col_id + " --taxonomy_col_id " + args.taxonomy_col_id + " --column " + args.column + " --reformat_tax " + args.reformat + eukprot)
 
     ## Concatenate potential list of input FASTA files ##
     concatenated_file = os.path.join(OUTPUTDIR, "concatfasta.fasta")
@@ -164,6 +187,7 @@ parser.add_argument('--mets_or_mags', required = True)
 parser.add_argument('--n_ext', '--nucleotide_extension', default = ".fasta") 
 parser.add_argument('--p_ext', '--protein_extension', default = ".faa") 
 parser.add_argument('--force_rerun', action='store_true', default=False)
+parser.add_argument('--download_reference', action='store_true', default=False)
 parser.add_argument('--scratch', default = '../scratch') # the scratch location to store intermediate files
 
 ## SALMON OPTIONS ##
@@ -248,7 +272,9 @@ if ALIGNMENT_CHOICE == "diamond":
     DBEXTENSION = ".dmnd"
 NT_EXT = args.nucleotide_extension.strip('.')
 PEP_EXT = args.protein_extension.strip('.')
-mets_or_mags=args.mets_or_mags.lower()
+mets_or_mags = args.mets_or_mags.lower()
+create_tax_table = args.create_tax_table
+original_tax_table = args.original_tax_table
 if (mets_or_mags != "mets") & (mets_or_mags != "mags"):
     print("Only METs or MAGs are supported as input data types. Please update the 'mets_or_mags' flag accordingly.")
     sys.exit(1)
@@ -287,7 +313,6 @@ if (args.subroutine == "all") | (args.subroutine == "busco"):
 
 ## SETUP STEPS ##
 print("Setting things up...")
-#rc1 = os.system("conda activate EUKulele")
 rc1 = subprocess.call(["activate", "./euk-env"])
 print(rc1)
 
@@ -301,6 +326,12 @@ if (rc1 != 0): # & (not os.path.isdir("./euk-env")):
         
 os.system("mkdir -p " + OUTPUTDIR)
 os.system("mkdir -p log")
+
+## Download the reference database if specified.
+if args.download_reference:
+    create_tax_table = 1
+    REF_FASTA,  = download_database(args.database.lower(), REFERENCE_DIR)
+
 if SETUP:
     setup()
 
@@ -318,7 +349,6 @@ if (mets_or_mags == "mets"):
             print("TransDecoder did not complete successfully; check log folder for details.")
             sys.exit(1)
         rcodes = [os.remove(curr) for curr in glob.glob("pipeliner*")]
-        #shutil.rmtree(merged_name + ".transdecoder_dir*")
 else:
     samples = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(SAMPLE_DIR) if curr.split(".")[-1] == PEP_EXT]
     

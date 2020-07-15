@@ -52,6 +52,8 @@ def parseConfig(configfile):
         args = args + " --nucleotide_extension " + str(config["nucleotide_extension"])
     if "protein_extension" in config:
         args = args + " --protein_extension " + str(config["protein_extension"])
+    if "download_reference" in config:
+        args = args + " --download_reference"
     if "scratch" in config:
         args = args + " --scratch " + str(config["scratch"])
     if "ref_fasta_ext" in config:
