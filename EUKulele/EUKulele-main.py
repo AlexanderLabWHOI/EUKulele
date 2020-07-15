@@ -31,11 +31,13 @@ __email__ = "akrinos@mit.edu"
 
 ## FUNCTIONS TO USE IN PIPELINE ##
 
+# Download the three supported eukaryote databases automatically and store the name of the resulting FASTA file
+# and taxonomy table.
 def download_reference(database_name, ref_db_location):
     if database_name == "mmetsp":
         rc1 = os.system("wget -O " + os.path.join(ref_db_location,REF_FASTA) + " URL here!")
         rc2 = os.system("wget -O " + os.path.join(ref_db_location,original_tax_table) + " https://www.dropbox.com/s/kkxamsatcswsq5e/taxonomy-table.txt?dl=1")
-        if rc1 + rc2 != 0:
+        if (rc1 + rc2) != 0:
             print("Download of MMETSP database failed. Please check download link!")
             sys.exit(1)
         fasta_name = os.path.join(ref_db_location,REF_FASTA)
@@ -46,14 +48,23 @@ def download_reference(database_name, ref_db_location):
         fasta_name = os.path.join(ref_db_location, "proteins")
         rc3 = os.system("wget -O " + os.path.join(ref_db_location,original_tax_table) + " https://ndownloader.figshare.com/files/23580767")
         orig_tax_name = os.path.join(ref_db_location,original_tax_table)
-        if rc1 + rc2 + rc3 != 0:
+        if (rc1 + rc2 + rc3) != 0:
             print("Download of EUKProt database failed. Please check download link!")
             sys.exit(1)
     elif database_name == "phylodb":
-        
+        rc1 = os.system("wget --load-cookies /tmp/cookies.txt " + "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=0B609upjBX8xGUWZrakZLNmp1X2M' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=0B609upjBX8xGUWZrakZLNmp1X2M" + " -O " + os.path.join(ref_db_location,"phylodb.pep.fa.gz") + " && rm -rf /tmp/cookies.txt")
+        rc2 = os.system("gunzip -C " + os.path.join(ref_db_location,"phylodb.pep.fa.gz") + " > " + os.path.join(ref_db_location,REF_FASTA))
+        rc3 = os.system("wget --load-cookies /tmp/cookies.txt " + "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=0B609upjBX8xGTGh3aTJnS3NJXzA' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=0B609upjBX8xGTGh3aTJnS3NJXzA" + " -O " + os.path.join(ref_db_location,"phylodb-ref.txt.gz") + " && rm -rf /tmp/cookies.txt")
+        rc4 = os.system("gunzip -C " + os.path.join(ref_db_location,"phylodb-ref.txt.gz") + " > " + os.path.join(ref_db_location,original_tax_table))
+        fasta_name = os.path.join(ref_db_location,REF_FASTA)
+        orig_tax_name = os.path.join(ref_db_location,original_tax_table)
+        if (rc1 + rc2 + rc3 + rc4) != 0:
+            print("Download of EUKProt database failed. Please check download link!")
+            sys.exit(1)
     else:
         print("Specified reference database, " + database_name + " is not supported.")
     return fasta_name, orig_tax_name
+
 def setup():
     if create_tax_table:
         if original_tax_table == "":
