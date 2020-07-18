@@ -5,25 +5,39 @@ import math
 import sys
 import yaml
 import argparse
+import pathlib
+import EUKulele
 
 def eukulele(config="", string_arguments=""):
+    print("In Eukulele")
+    sys.path.append(os.path.realpath('..'))
     if (config == "") | (not os.path.isfile(config)):
         print("Running EUKulele with command line arguments, as no valid configuration file was provided.")
-        os.system("python EUKulele-main.py " + str(string_arguments))
+        
+        EUKulele.EUKulele_main.main(str(string_arguments)) 
+       # os.system("python EUKulele_main.py " + str(string_arguments))
     else:
         print("Running EUKulele with entries from the provided configuration file.")
         args = parseConfig(config)
-        os.system("python EUKulele-main.py " + str(args)) 
+        EUKulele.EUKulele_main.main(str(args)) 
+ 
+def eukulele_cl():
+    sys.path.append(os.path.realpath('..'))
+    sys.path.append(pathlib.Path(__file__).parent.absolute())
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", dest = "configfile", default = "")
+    args = parser.parse_args()
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--config", dest = "configfile", default = "")
-args = parser.parse_args()
-
-if (args.configfile == "") | (not os.path.isfile(args.configfile)):
-    arglist = sys.argv[1:]
-    print("Running EUKulele with command line arguments, as no valid configuration file was provided.")
-    os.system("python EUKulele-main.py " + str(arglist))
-    sys.exit(1)
+    if (args.configfile == "") | (not os.path.isfile(args.configfile)):
+        arglist = sys.argv[1:]
+        print("Running EUKulele with command line arguments, as no valid configuration file was provided.")
+        #os.system("python EUKulele_main.py " + str(arglist))
+        EUKulele.EUKulele_main.main(str(arglist)) 
+        sys.exit(0)
+        
+    euk_args = parseConfig(args.configfile)
+    EUKulele.EUKulele_main.main(str(euk_args)) 
+    #os.system("python EUKulele_main.py " + str(euk_args))   
 
 def parseConfig(configfile):
     with open(configfile, 'r') as configfile:
@@ -39,10 +53,12 @@ def parseConfig(configfile):
             sys.exit(1)
 
     ## BASIC OPTIONS ##
+    if "subroutine" in config:
+        args = args + str(config["subroutine"]) + " "
     args = args + " --mets_or_mags " + str(config["mets_or_mags"])
     args = args + " --reference_dir " + str(config["reference"])
     args = args + " --sample_dir " + str(config["samples"])
-    if "ref_fasta" in config: # otherwise, this will default to reference.pep.fa! This works for auto-downloaded databases.
+    if "ref_fasta" in config: # otherwise, this will default to reference.pep.fa! Set automatically if database is auto-downloaded ("download_reference", below)
         args = args + " --ref_fasta " + str(config["ref_fasta"])
     if "output" in config:
         args = args + " --out_dir " + str(config["output"])
@@ -53,7 +69,8 @@ def parseConfig(configfile):
     if "protein_extension" in config:
         args = args + " --protein_extension " + str(config["protein_extension"])
     if "download_reference" in config:
-        args = args + " --download_reference"
+        if config["download_reference"] == 1:
+            args = args + " --download_reference"
     if "scratch" in config:
         args = args + " --scratch " + str(config["scratch"])
     if "ref_fasta_ext" in config:
@@ -97,9 +114,9 @@ def parseConfig(configfile):
     if "individual_or_summary" in config:
         args = args + " --individual_or_summary " + str(config["individual_or_summary"])
     if "organisms" in config:
-        args = args + " --organisms " + str(config["organisms"])
+        args = args + " --organisms " + str(" ".join(config["organisms"]))
     if "taxonomy_organisms" in config:
-        args = args + " --taxonomy_organisms " + str(config["taxonomy_organisms"])
+        args = args + " --taxonomy_organisms " + str(" ".join(config["taxonomy_organisms"]))
     if "busco_threshold" in config:
         args = args + " --busco_threshold " + str(config["busco_threshold"])
 
@@ -135,6 +152,4 @@ def parseConfig(configfile):
         args = args + " --protein_map " + str(protein_map)
         
     return args
- 
-euk_args = parseConfig(args.configfile)
-os.system("python EUKulele-main.py " + str(euk_args))        
+     

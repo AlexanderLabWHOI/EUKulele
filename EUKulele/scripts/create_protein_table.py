@@ -16,9 +16,9 @@ import pandas as pd
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--infile_peptide', type = list, nargs='+', required=True) # this should be given as a list of the input files
-parser.add_argument('--infile_taxonomy',  default='')
-parser.add_argument('--outfile_json', default = 'protein-species-map.json')
-parser.add_argument('--output', default = 'output_table.txt')
+parser.add_argument('--infile_taxonomy',  default='') # the original taxonomy file
+parser.add_argument('--outfile_json', default = 'protein-species-map.json') # the protein json file to be written
+parser.add_argument('--output', default = 'output_table.txt') # the output taxonomy table (formatted) to be written
 parser.add_argument('--delim',  type=str, default = '/')
 parser.add_argument('--strain_col_id',  type=str, default = 'strain_name') # the column which indicates the name of the strain in the taxonomy file
 parser.add_argument('--taxonomy_col_id',  type=str, default = 'taxonomy') # the column which indicates the taxonomy of the strain in the taxonomy file
@@ -51,7 +51,7 @@ for curr_pepfile in list(args.infile_peptide):
                     sid = h.split('=')[1].strip()    
                     odict[rid] = sid
                     break
-tax_file = pd.read_csv(args.infile_taxonomy, sep = "\t")
+tax_file = pd.read_csv(args.infile_taxonomy, sep = "\t", encoding='latin-1')
 
 if args.reformat:
     colnames_tax = ["Source_ID","Supergroup","Division","Class","Order","Family","Genus","Species"]

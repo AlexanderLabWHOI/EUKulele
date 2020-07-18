@@ -1,16 +1,18 @@
-jobname: wap 
+jobname: test 
 mets_or_mags: METs # answer METs or MAGs
-nucleotide_extension: .fna #.fasta
+subroutine: all
+nucleotide_extension: .fna 
 protein_extension: .faa
-scratch: /vortexfs1/scratch/akrinos/EUKULELE
-use_salmon_counts: 1 # if this is set to 1, names_to_reads is used
-salmon_dir: ../WAP_out/salmon_by_assembly_group #../testoutput/salmon_indiv
-names_to_reads: namestoreads_WAP_2July2020.csv # if this file exists in the reference directory (below), this file is used
+scratch: scratch
+use_salmon_counts: 0 # if this is set to 1, names_to_reads is used
+salmon_dir: 0
+names_to_reads: 0 # if this file exists in the reference directory (below), this file is used
+download_reference: 1
 database: phylodb
-reference: /vortexfs1/omics/alexander/akrinos/EUKulele-Reference #/vortexfs1/omics/alexander/data/euk-prot-db/proteins #/vortexfs1/omics/alexander/akrinos/EUKulele-Reference /vortexfs1/omics/alexander/data/mmetsp/reference_dir
-output: ../sample_test #../EUKulele_output_WAP_PhyloDB_counts_busco #EukProt_counts #PhyloDB_counts
-samples: test-samples/METs #/vortexfs1/omics/alexander/akrinos/WAP_out/cluster_by_assembly_group/METs #samples #/vortexfs1/omics/saito/BATS2019-clio-metaT/eukrhythmic_output/merged 
-ref_fasta: phylodb_1.076.pep.fa #/vortexfs1/omics/alexander/data/euk-prot-db/proteins #reference-pep.fa  #phylodb.pep.fa #reference-pep.fa # amino acid sequences
+reference: test_ref #aux_data/phylo-db
+output: test_out
+samples: aux_data/METs 
+ref_fasta: ref-phylodb-trunc.pep.fa 
 
 # Path for reference taxonomy table and protein JSON file should be relative to reference entry above.
 # You can have the script create these automatically using the input FASTA file(s) for your database and a provided
@@ -19,7 +21,7 @@ tax_table: tax-table-phylodb.txt #../tax-table-formatted.txt #tax-table-phylodb.
 protein_map: protein-map-phylodb.json #../protein-map.json #protein-map-phylodb.json #protein-species-map.json 
 
 # Create taxonomy table automatically
-create_tax_table: 0
+create_tax_table: 1
 original_tax_table: /path/to/tax/table
 
 cutoff: tax-cutoffs.yaml 
