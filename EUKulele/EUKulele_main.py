@@ -130,7 +130,7 @@ def transdecode_to_peptide(sample_name):
     shutil.rmtree(merged_name + ".transdecoder_dir*")
     return rc1 + rc2
 
-def align_to_database(alignment_choice, sample_name, filter_metric):
+def align_to_database(alignment_choice, sample_name, filter_metric, OUTPUTDIR, REF_FASTA, mets_or_mags, DATABASE_DIR, SAMPLE_DIR, RERUN_RULES, NT_EXT, PEP_EXT):
     if alignment_choice == "diamond":
         os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags, "diamond"))
         diamond_out = os.path.join(OUTPUTDIR, mets_or_mags, "diamond", sample_name + ".diamond.out")
@@ -142,7 +142,7 @@ def align_to_database(alignment_choice, sample_name, filter_metric):
         if mets_or_mags == "mets":
             fasta = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
         else:
-            fasta = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
+            fasta = os.path.join(SAMPLE_DIR, sample_name + "." + PEP_EXT)
         other = "--outfmt 6 -k 100 -e 1e-5"
         outfmt = 6
         k = 100
@@ -341,26 +341,34 @@ def main(args_in):
 
     ## SETUP STEPS ##
     print("Setting things up...")
-    rc1 = subprocess.call(["activate", "./euk-env"])
-    print(rc1)
-
-    if (rc1 != 0): # & (not os.path.isdir("./euk-env")):
-        print("No EUKulele conda environment found; generating environment from EUKulele-env.yaml file...")
-        os.system("conda env create -f EUKulele-env.yaml --force --prefix ./euk-env")
-        rc1 = subprocess.call(["activate", "./euk-env"])
-        if (rc1 != 0):
-            print("Could not successfully generate and activate conda environment.")
-            sys.exit(1)
-
     os.system("mkdir -p " + OUTPUTDIR)
     os.system("mkdir -p log")
+    
+    ## Download software dependencies
+    rc1 = os.system("bash scripts/install_dependencies.sh 1> log/dependency_log.txt 2> log/dependency_err.txt")
+    print(rc1)
+    if rc1 != 0:
+        print("Could not successfully install all external dependent software. Check DIAMOND, BLAST, BUSCO, and TransDecoder installation.")
+        sys.exit(1)
+    #rc1 = subprocess.call(["activate", "./euk-env"])
+    #print(str(rc1) + " is return code for conda activation.")
+
+    #if (rc1 != 0): # & (not os.path.isdir("./euk-env")):
+    #    print("No EUKulele conda environment found; generating environment from EUKulele-env.yaml file...")
+    #    os.system("conda env create -f EUKulele-env.yaml --force --prefix ./euk-env")
+    #    rc1 = subprocess.call(["activate", "./euk-env"])
+    #    if (rc1 != 0):
+    #        print("Could not successfully generate and activate conda environment.")
+    #        sys.exit(1)
+
 
     ## Download the reference database if specified.
     if args.download_reference:
         create_tax_table = 1
-        REF_FASTA,  = download_database(args.database.lower(), REFERENCE_DIR)
+        SETUP = 1
+        REF_FASTA = download_database(args.database.lower(), REFERENCE_DIR)
 
-    if SETUP:
+    if SETUP | create_tax_table:
         setup(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, args.column, args.delimiter, original_tax_table, args.taxonomy_col_id, args.reformat, args.database, args.alignment_choice, REFERENCE_FASTAS, DATABASE_DIR, RERUN_RULES, args.strain_col_id, OUTPUTDIR)
 
     if (mets_or_mags == "mets"):
@@ -385,9 +393,17 @@ def main(args_in):
 
     if ALIGNMENT:
         print("Performing alignment steps...", flush=True)
+        ## First, we need to create a diamond database ##
+        os.system("mkdir -p " + os.path.join(DATABASE_DIR, "diamond"))
+        outfile_dmnd = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa') + '.dmnd')
+        if args.alignment_choice == "blast":
+            os.system("makeblastdb -in " + os.path.join(OUTPUTDIR, "concatfasta.fasta") + " -parse_seqids -blastdb_version " + str(5) + " -title " + str(database) + " -dbtype prot -out " + outfile_dmnd + " 1> db_create.err 2> db_create.log")
+        else:
+            os.system("diamond makedb --in " + os.path.join(OUTPUTDIR, "concatfasta.fasta") + " --db " + outfile_dmnd + " 1> db_create.err 2> db_create.log")
+        
         ## Next to align against our database of choice ##
         n_jobs_align = min(multiprocessing.cpu_count(), len(samples))
-        alignment_res = Parallel(n_jobs=n_jobs_align)(delayed(align_to_database)(args.alignment_choice, sample_name, args.filter_metric) for sample_name in samples)
+        alignment_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(align_to_database)(args.alignment_choice, sample_name, args.filter_metric, OUTPUTDIR, REF_FASTA, mets_or_mags, DATABASE_DIR, SAMPLE_DIR, RERUN_RULES, NT_EXT, PEP_EXT) for sample_name in samples)
         if any([(curr == None) for curr in alignment_res]):
             print("Alignment did not complete successfully.")
             sys.exit(1)
@@ -399,7 +415,16 @@ def main(args_in):
         print("Performing taxonomic estimation steps...", flush=True)
         outfiles = [os.path.join(OUTPUTDIR, mets_or_mags, samp + "-estimated-taxonomy.out") for samp in samples]
         n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res))
-        taxonomy_res = Parallel(n_jobs=n_jobs_align)(delayed(place_taxonomy)(TAX_TAB,args.cutoff_file,CONSENSUS_CUTOFF,PROT_TAB,USE_SALMON_COUNTS,NAMES_TO_READS,alignment_res[t],outfiles[t],IFPARALLEL,RERUN_RULES) for t in range(len(alignment_res)))
+        taxonomy_res = 0
+        for t in range(len(alignment_res)): 
+            curr_out = place_taxonomy(TAX_TAB,args.cutoff_file,CONSENSUS_CUTOFF,\
+                                                    PROT_TAB,USE_SALMON_COUNTS,NAMES_TO_READS,alignment_res[t],outfiles[t],\
+                                                    IFPARALLEL,RERUN_RULES)
+            if taxonomy_res == 0:
+                taxonomy_res = curr_out
+            else:
+                taxonomy_res = taxonomy_res.append(curr_out)
+        #taxonomy_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(place_taxonomy)(TAX_TAB,args.cutoff_file,CONSENSUS_CUTOFF,PROT_TAB,USE_SALMON_COUNTS,NAMES_TO_READS,alignment_res[t],outfiles[t],IFPARALLEL,RERUN_RULES) for t in range(len(alignment_res)))
 
         ## Now to visualize the taxonomy ##
         print("Performing taxonomic visualization steps...", flush=True)
@@ -409,7 +434,7 @@ def main(args_in):
         if mets_or_mags == "mags":
             print("Performing taxonomic assignment steps...", flush=True)
             n_jobs_viz = min(multiprocessing.cpu_count(), len(samples))
-            assign_res = Parallel(n_jobs=n_jobs_viz)(delayed(assign_taxonomy)(samp) for samp in samples)
+            assign_res = Parallel(n_jobs=n_jobs_viz, prefer="threads")(delayed(assign_taxonomy)(samp) for samp in samples)
             if sum(assign_res) != 0:
                 print("Taxonomic assignment of MAGs did not complete successfully. Check log files for details.")
                 sys.exit(1)
@@ -419,7 +444,7 @@ def main(args_in):
         print("running busco")
         ## Run BUSCO on the full dataset ##
         busco_db = "eukaryota_odb10"
-        busco_res = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(run_busco)(sample_name, os.path.join(OUTPUTDIR, "busco"), busco_db) for sample_name in samples)
+        busco_res = Parallel(n_jobs=multiprocessing.cpu_count(), prefer="threads")(delayed(run_busco)(sample_name, os.path.join(OUTPUTDIR, "busco"), busco_db) for sample_name in samples)
         all_codes = sum(busco_res)
         if all_codes > 0:
             print("BUSCO did not complete successfully.")

@@ -1,6 +1,7 @@
 numpy
 conda
 pandas
+seaborn
 yaml
 chardet
 argparse

@@ -22,7 +22,7 @@ setup(
     test_suite='tests',#'nose.collector',
     tests_require=['pytest','nose'],
     install_requires=['setuptools','conda','hypothesis',\
-        'pandas','numpy','matplotlib','argparse',\
+        'pandas','numpy','matplotlib','argparse','seaborn',\
         'multiprocess','chardet',\
         'joblib','ujson','pyyaml'],
     #packages=['EUKulele','EUKulele.tests','EUKulele.scripts'],

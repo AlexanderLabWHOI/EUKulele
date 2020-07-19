@@ -103,8 +103,8 @@ def parseConfig(configfile):
     ## ALIGNMENT AND BUSCO OPTIONS ##
     if "alignment_choice" in config: 
         args = args + " --alignment_choice " + str(config["alignment_choice"])
-    if "cutoff_file" in config:    
-        args = args + " --cutoff_file " + config["cutoff_file"]
+    if "cutoff" in config:    
+        args = args + " --cutoff_file " + config["cutoff"]
     if "filter_metric" in config:
         args = args + " --filter_metric " + config["filter_metric"]
     if "consensus_cutoff" in config:
