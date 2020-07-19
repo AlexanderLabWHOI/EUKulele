@@ -10,25 +10,31 @@ import os
 level_dict = {'class':['supergroup','division','class'], 'order':['supergroup','division','class', 'order'], 'family':['supergroup','division','class', 'order', 'family'], 'genus': ['supergroup','division','class', 'order', 'family','genus'], 'species':['supergroup','division','class', 'order', 'family','genus', 'species']}
 levels = ['supergroup','division','class','order','family','genus','species']
 
+# bug with splitting based on the new taxonomy estimation
 def split_taxonomy(protein_estimate):
     outdf = protein_estimate.copy()
     split_tax_nan = pd.DataFrame(protein_estimate.full_classification.str.split('; '))
-    for cl in split_tax_nan.index:
-        lineage = split_tax_nan.loc[cl,'full_classification']
+    new_col_dict = dict()
+    for l in levels:
+        new_col_dict[str(l)] = [""] * len(outdf.index)
+    for cl in range(len(split_tax_nan.index)):
+        lineage = list(split_tax_nan.loc[:,'full_classification'])[cl]
         for i,l in enumerate(levels):
-            if len(lineage)>i:
-                outdf.loc[cl,l]=lineage[i]
+            if isinstance(lineage,list) & (len(lineage)>i):
+                new_col_dict[l][cl] = lineage[i]
             else:
-                outdf.loc[cl,l]=np.nan
+                new_col_dict[l][cl] = np.nan
+    for l in levels:
+        outdf[str(l)] = new_col_dict[l]
     return(outdf)
 
-def create_tax_dictionary(split_taxonmy_df):
+def create_tax_dictionary(split_taxonomy_df):
     tax_dict = {}
-    total_len=len(split_taxonmy_df)
+    total_len=len(split_taxonomy_df)
     for l in levels:
         tax_dict[l]={}
-        column_sum = split_taxonmy_df.groupby(l)[l].sum()
-        column_count = split_taxonmy_df.groupby(l)[l].count()
+        column_sum = split_taxonomy_df.groupby(l)[l].sum()
+        column_count = split_taxonomy_df.groupby(l)[l].count()
         norm_count=column_count/total_len
         tax_dict[l]=norm_count
     return(tax_dict)

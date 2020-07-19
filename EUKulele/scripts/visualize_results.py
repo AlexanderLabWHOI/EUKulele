@@ -39,10 +39,14 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
     set_list = set()
     
     classifications = list(df.loc[df["classification_level"] == level]["classification"])
-    match_loc = int(np.where([curr == level for curr in level_hierarchy])[0])
+    match_loc = int(np.where([curr == level.lower() for curr in level_hierarchy])[0])
     for curr in range(match_loc + 1,len(level_hierarchy)):
         classification_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["full_classification"])
-        classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() for cr in classification_curr if len(str(cr).split(";")) >= abs(-1-(curr-match_loc))]
+        correct_index = list(np.where([len(str(cr).split(";")) >= abs(-1-(curr-match_loc)) for cr in classification_curr])[0])
+        
+        classification_curr = [classification_curr[cr2] for cr2 in correct_index]
+        classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() for cr in classification_curr]
+        #classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() for cr in classification_curr if len(str(cr).split(";")) >= abs(-1-(curr-match_loc))]
         
         # add to running list
         classifications.extend(classifs_curr)
@@ -105,12 +109,15 @@ def createPlotDataFrame(curr_df_start, cutoff_relative = 0.1, transcript_or_coun
     return pivoted
 
 def makeConcatFrame(curr_df, new_df, level, sample_name, use_counts):
+    new_df = pd.DataFrame(new_df)
+    if new_df.empty:
+        return curr_df
     if use_counts == 1:
         new_df = pd.DataFrame(new_df.reset_index())
         new_df.columns = [level,"Counts","NumTranscripts"]
     else:
         new_df = pd.DataFrame(new_df)
-        new_df.columns = ["Species","NumTranscripts"]
+        new_df.columns = [level,"NumTranscripts"]
     
     new_df["Sample"] = sample_name
     return pd.concat([curr_df, new_df], sort=True)
@@ -122,14 +129,14 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
     samples = os.listdir(samples_dir)
     good_samples = 0
     for s in samples:
-        if ((nucle_extension in s) | (prot_extension in s)):
-            file_name = s.split(".")[0] + "-estimated-taxonomy.out"
-            if not os.path.isfile(os.path.join(met_dir,file_name)):
-                print("One of the files, " + s + ", in the sample directory did not complete successfully.")
-                #sys.exit(1)
-            else:
-                results_frame[file_name] = pd.read_csv(os.path.join(met_dir,file_name), sep = "\t", index_col=0)
-            good_samples = good_samples + 1
+        #if ((nucle_extension in s) | (prot_extension in s)):
+        file_name = s.split(".")[0] + "-estimated-taxonomy.out"
+        if not os.path.isfile(os.path.join(met_dir,file_name)):
+            print("One of the files, " + s + ", in the sample directory did not complete successfully.")
+            sys.exit(1)
+        else:
+            results_frame[file_name] = pd.read_csv(os.path.join(met_dir,file_name), sep = "\t", index_col=0)
+        good_samples = good_samples + 1
             
     if good_samples == 0:
         print("No taxonomic estimation files found! Exiting...")
@@ -145,11 +152,11 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
     counts_all = dict()
     level_hierarchy = ['supergroup','division','class','order','family','genus','species']
     for l in level_hierarchy:
-        counts_all[l] = pd.DataFrame(columns = ["Species","NumTranscripts","Sample"])
+        counts_all[l] = pd.DataFrame(columns = [l.capitalize(),"NumTranscripts","Sample"])
 
     for curr in results_frame.keys():
-        sample_name = curr.split("_")[0]
-
+        sample_name = curr.split("-")[0]
+        print(sample_name)
         for l in level_hierarchy:
             curr_df = counts_all[l]
             new_df = frame_results[curr][l]
@@ -166,8 +173,11 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
         cutoff_transcripts = 100
 
         ### GRAB DATAFRAME FROM SAVED DATA ###
-        curr_df_start = counts_all[l] #read.csv(paste0(prefix,"all_",tolower(Curr_Variable),"_counts.csv"))
-        curr_df_start["OfInterest"] = curr_df_start[Curr_Variable]
+        curr_df_start = counts_all[l].reset_index() #read.csv(paste0(prefix,"all_",tolower(Curr_Variable),"_counts.csv"))
+        if Curr_Variable in curr_df_start:
+            curr_df_start["OfInterest"] = curr_df_start[Curr_Variable]
+        else:
+            curr_df_start["OfInterest"] = []
 
         sns.set()
 
@@ -178,6 +188,8 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
         ## CALCULATE RELATIVE COUNTS ## 
         curr_df_summed["Rel_Counts"] = curr_df_summed["NumTranscripts"] / curr_df_summed["AllCts"]
         curr_df_plot = curr_df_summed[["OfInterest","Sample","Rel_Counts"]]
+        print(curr_df_plot)
+        print("curr df!")
         pivoted = curr_df_plot.pivot(index='Sample', columns='OfInterest', values='Rel_Counts')
 
         pivoted_agg = list(pivoted.sum(axis = 0, skipna = True))

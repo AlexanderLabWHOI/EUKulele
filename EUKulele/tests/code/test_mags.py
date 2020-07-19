@@ -47,14 +47,14 @@ def test_alignment():
     config["reference"] = os.path.join(base_dir, test_reference)
     config["samples"] = os.path.join(base_dir, test_reference, "samples_MAGs")
     config["subroutine"] = "alignment"
-    config["create_tax_table"] = 0
+    config["create_tax_table"] = 1
     config["cutoff"] = os.path.join("EUKulele","static","tax-cutoffs.yaml")
     config["output"] = os.path.join(base_dir, "test_out")
     config["database"] = test_reference
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
     config["ref_fasta"] = "reference-pep-trunc.pep.faa"
-    config["original_taxonomy"] = "taxonomy-table.txt"
+    config["original_tax_table"] = "taxonomy-table.txt"
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
@@ -74,8 +74,8 @@ def test_cleanup():
         config = yaml.load(f, Loader=yaml.FullLoader)
         
     config["reference"] = os.path.join(base_dir, test_reference)
-    os.system("rm " + os.path.join(config["reference"], "tax-table.txt"))
-    os.system("rm " + os.path.join(config["reference"], "protein-map.json"))
+    #os.system("rm " + os.path.join(config["reference"], "tax-table.txt"))
+    #os.system("rm " + os.path.join(config["reference"], "protein-map.json"))
               
     successful_test = (not os.path.isfile(os.path.join(config["reference"],"tax-table.txt"))) & \
                       (not os.path.isfile(os.path.join(config["reference"],"protein-map.json")))

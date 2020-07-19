@@ -6,6 +6,8 @@ USAGE:
     python create-protein-table.py --infile_peptide input.fa --infile_taxonomy tax.txt --outfile_json protein-species-map.json --output output_table.txt [--delim delimiter --column column] 
 
 Generates table useable for taxonomic placment with EUKulele. If no delimiter is provided, default is '/'. If no column header is provided, default is SOURCE_ID. 
+
+python EUKulele/scripts/create_protein_table.py --infile_peptide EUKulele/tests/aux_data/mmetsp/reference-pep-trunc.pep.faa --infile_taxonomy  EUKulele/tests/aux_data/mmetsp/taxonomy-table.txt --outfile_json EUKulele/tests/aux_data/mmetsp/protein-map.json --output EUKulele/tests/aux_data/mmetsp/tax-table.txt --delim "/" --strain_col_id strain_name --taxonomy_col_id taxonomy --column SOURCE_ID
 """
 
 from Bio import SeqIO
@@ -37,9 +39,9 @@ for curr_pepfile in list(args.infile_peptide):
     for record in SeqIO.parse(pepfile, "fasta"):
         header = record.description
         rid = record.id.replace(".","N") #record.id.split(".")[0] #record.id.replace(".","N")
-        header = str(header).replace("\t", "hello")
+        header = str(header).replace(args.delim, "hello")
         hlist = header.split("hello")
-        if len(args.infile_peptide) > 0: # if there is a list of files, use the filename as the ID
+        if len(args.infile_peptide) > 1: # if there is a list of files, use the filename as the ID
             sid = pepfile.split("/")[-1].split("_")[0]
             odict[rid] = sid
         elif args.column.isdigit():
@@ -47,7 +49,7 @@ for curr_pepfile in list(args.infile_peptide):
             odict[rid] = sid
         else:
             for h in hlist:
-                if h.startswith(args.column):
+                if args.column in h: #h.startswith(args.column):
                     sid = h.split('=')[1].strip()    
                     odict[rid] = sid
                     break
@@ -59,7 +61,6 @@ if args.reformat:
     for i in range(0,len(tax_file.index)):
         if not args.eukprot:
             curr_row = [tax_file[args.strain_col_id][i]] + tax_file[args.taxonomy_col_id][i].split(";")
-            print(curr_row)
             if len(curr_row) < (len(colnames_tax)):
                 curr_row = curr_row + [""] * ((len(colnames_tax) + 1) - len(curr_row))
             elif len(curr_row) > (len(colnames_tax)):
