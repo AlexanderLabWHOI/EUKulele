@@ -20,8 +20,11 @@ def split_taxonomy(protein_estimate):
     for cl in range(len(split_tax_nan.index)):
         lineage = list(split_tax_nan.loc[:,'full_classification'])[cl]
         for i,l in enumerate(levels):
-            if isinstance(lineage,list) & (len(lineage)>i):
-                new_col_dict[l][cl] = lineage[i]
+            if isinstance(lineage,list):
+                if (len(lineage)>i):
+                    new_col_dict[l][cl] = lineage[i]
+                else:
+                    new_col_dict[l][cl] = np.nan
             else:
                 new_col_dict[l][cl] = np.nan
     for l in levels:

@@ -64,7 +64,7 @@ def test_alignment():
         
     EUKulele.eukulele(config=config_file)
     outprefix = config["output"].split("/")[-1]
-    assert os.path.isfile(os.path.join(config["output"],out_prefix + "_all_species_counts.csv"))
+    assert os.path.isfile(os.path.join(config["output"], outprefix + "_all_species_counts.csv"))
     
 def test_cleanup():
     base_config = os.path.join(os.getcwd(), '..', 'aux_data', 'config.yaml')
@@ -74,8 +74,8 @@ def test_cleanup():
         config = yaml.load(f, Loader=yaml.FullLoader)
         
     config["reference"] = os.path.join(base_dir, test_reference)
-    #os.system("rm " + os.path.join(config["reference"], "tax-table.txt"))
-    #os.system("rm " + os.path.join(config["reference"], "protein-map.json"))
+    os.system("rm " + os.path.join(config["reference"], "tax-table.txt"))
+    os.system("rm " + os.path.join(config["reference"], "protein-map.json"))
               
     successful_test = (not os.path.isfile(os.path.join(config["reference"],"tax-table.txt"))) & \
                       (not os.path.isfile(os.path.join(config["reference"],"protein-map.json")))
