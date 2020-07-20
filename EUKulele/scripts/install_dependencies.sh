@@ -47,6 +47,7 @@ if [ $? -ne 0 ]; then
     alias busco="references_bins/busco/bin/busco"
     export PATH=$PATH:references_bins/busco >> ~/.bashrc
     rm -rf busco
+    rm -rf busco*.log
     busco --version
 fi
 #ALLEXITS=$(($ALLEXITS + $?))

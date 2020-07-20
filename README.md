@@ -21,7 +21,7 @@ Three databases are supported by default from within `EUKulele`, and may be down
 - [MMETSP](https://zenodo.org/record/1212585#.Xw3PoJNKhTZ)
 
 ### EUKulele parameters
-Parameters may either be passed as arguments directly to EUKulele, or may be specified in a configuration `YAML` file. If running `EUKulele` as a Python package, you can call the function `eukulele` with two potential arguments, one of which is required:
+Parameters may either be passed as arguments directly to EUKulele, or may be specified in a configuration `YAML` file. If running `EUKulele` as a Python package, you can call the function `eukulele()` with two potential arguments, one of which is required:
 
 ```
 eukulele(config="", string_arguments="")
