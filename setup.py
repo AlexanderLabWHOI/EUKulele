@@ -5,7 +5,7 @@ import numpy.random#.common
 #import numpy.random.entropy
 
 os.system("export PY_IGNORE_IMPORTMISMATCH=1")
-version = open('scripts/VERSION').read().strip()
+version = open('VERSION').read().strip()
 
 setup(
     name="EUKulele",

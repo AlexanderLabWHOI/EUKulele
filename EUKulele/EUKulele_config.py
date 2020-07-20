@@ -6,16 +6,20 @@ import sys
 import yaml
 import argparse
 import pathlib
-import EUKulele
+try:
+    import EUKulele
+except:
+    pass
 
-def eukulele(config="", string_arguments=""):
-    print("In Eukulele")
+def eukulele(config="", string_arguments="", command_line = False):
     sys.path.append(os.path.realpath('..'))
+    if command_line:
+        rc = os.system("python EUKulele_main.py " + str(string_arguments))
+        return rc
     if (config == "") | (not os.path.isfile(config)):
         print("Running EUKulele with command line arguments, as no valid configuration file was provided.")
         
         EUKulele.EUKulele_main.main(str(string_arguments)) 
-       # os.system("python EUKulele_main.py " + str(string_arguments))
     else:
         print("Running EUKulele with entries from the provided configuration file.")
         args = parseConfig(config)
@@ -153,3 +157,5 @@ def parseConfig(configfile):
         
     return args
      
+if __name__ == "__main__": 
+    eukulele(string_arguments = " ".join(sys.argv), command_line = True)

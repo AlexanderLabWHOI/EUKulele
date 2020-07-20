@@ -67,18 +67,23 @@ def test_alignment():
     assert os.path.isfile(os.path.join(config["output"], outprefix + "_all_species_counts.csv"))
     
 def test_cleanup():
-    base_config = os.path.join(os.getcwd(), '..', 'aux_data', 'config.yaml')
     base_dir = os.path.join('EUKulele', 'tests', 'aux_data')
-    base_config = os.path.join('EUKulele', 'tests', 'aux_data', 'config.yaml')
-    with open(base_config) as f:
-        config = yaml.load(f, Loader=yaml.FullLoader)
-        
-    config["reference"] = os.path.join(base_dir, test_reference)
-    os.system("rm " + os.path.join(config["reference"], "tax-table.txt"))
-    os.system("rm " + os.path.join(config["reference"], "protein-map.json"))
-              
-    successful_test = (not os.path.isfile(os.path.join(config["reference"],"tax-table.txt"))) & \
-                      (not os.path.isfile(os.path.join(config["reference"],"protein-map.json")))
+    config_path = os.path.join(base_dir, 'test_configs')
+    base_configs = [os.path.join(config_path, 'curr_config_alignment.yaml'),\
+                    os.path.join(config_path, 'curr_config_setup.yaml')]
+    
+    successful_test = True
+    for base_config in base_configs:
+        with open(base_config) as f:
+            config = yaml.load(f, Loader=yaml.FullLoader)
+
+        config["reference"] = os.path.join(base_dir, test_reference)
+        os.system("rm " + os.path.join(config["reference"], "tax-table.txt"))
+        os.system("rm " + os.path.join(config["reference"], "protein-map.json"))
+        os.system("rm -rf " + os.path.join(config["output"]))
+
+        successful_test = successful_test & (not os.path.isfile(os.path.join(config["reference"],"tax-table.txt"))) & \
+                          (not os.path.isfile(os.path.join(config["reference"],"protein-map.json")))
               
     assert successful_test
         

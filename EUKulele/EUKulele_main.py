@@ -15,6 +15,7 @@ import shutil
 import glob
 from joblib import Parallel, delayed
 sys.path.insert(1, 'EUKulele/scripts')
+sys.path.insert(1, 'scripts')
 
 import tax_placement
 from tax_placement import *
@@ -80,7 +81,6 @@ def setup(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, column_id, delimiter, 
             eukprot = " --euk-prot "
         if reformat:
             if_reformat = " --reformat_tax "
-        print(os.listdir("scripts"))
 
     ## Concatenate potential list of input FASTA files ##
     concatenated_file = os.path.join(OUTPUTDIR, "concatfasta.fasta")
@@ -155,7 +155,7 @@ def align_to_database(alignment_choice, sample_name, filter_metric, OUTPUTDIR, R
         if filter_metric == "bitscore":
             rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " --min-score " + str(bitscore) + " 2> " + diamond_log + " 1> " + diamond_err)
         else:
-            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " -e " + str(e) + " 2> " + diamond_log + " 1> " + diamond_err)
+            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " -e " + str(e) + " 1> " + diamond_log + " 2> " + diamond_err)
         if rc1 != 0:
             print("Diamond did not complete successfully.")
             os.system("rm -f " + diamond_out)
@@ -347,22 +347,13 @@ def main(args_in):
     os.system("mkdir -p log")
     
     ## Download software dependencies
-    rc1 = os.system("bash " + os.path.join(scripts_dir, "install_dependencies.sh") + " 1> log/dependency_log.txt 2> log/dependency_err.txt")
-    print(rc1)
+    rc1 = os.system("source " + os.path.join(scripts_dir, "install_dependencies.sh references_bins/") + " 1> log/dependency_log.txt 2> log/dependency_err.txt")
+    sys.path.append("references_bins/")
+    #os.system("source ~/.bashrc")
+    os.system("echo $PATH > path_test.txt")
     if rc1 != 0:
         print("Could not successfully install all external dependent software. Check DIAMOND, BLAST, BUSCO, and TransDecoder installation.")
         sys.exit(1)
-    #rc1 = subprocess.call(["activate", "./euk-env"])
-    #print(str(rc1) + " is return code for conda activation.")
-
-    #if (rc1 != 0): # & (not os.path.isdir("./euk-env")):
-    #    print("No EUKulele conda environment found; generating environment from EUKulele-env.yaml file...")
-    #    os.system("conda env create -f EUKulele-env.yaml --force --prefix ./euk-env")
-    #    rc1 = subprocess.call(["activate", "./euk-env"])
-    #    if (rc1 != 0):
-    #        print("Could not successfully generate and activate conda environment.")
-    #        sys.exit(1)
-
 
     ## Download the reference database if specified.
     if args.download_reference:
@@ -401,12 +392,12 @@ def main(args_in):
         if args.alignment_choice == "blast":
             os.system("makeblastdb -in " + os.path.join(OUTPUTDIR, "concatfasta.fasta") + " -parse_seqids -blastdb_version " + str(5) + " -title " + str(database) + " -dbtype prot -out " + outfile_dmnd + " 1> log/db_create.err 2> log/db_create.log")
         else:
-            os.system("diamond makedb --in " + os.path.join(OUTPUTDIR, "concatfasta.fasta") + " --db " + outfile_dmnd + " 1> db_create.err 2> db_create.log")
+            os.system("diamond makedb --in " + os.path.join(OUTPUTDIR, "concatfasta.fasta") + " --db " + outfile_dmnd + " 1> log/db_create.err 2> log/db_create.log")
         
         ## Next to align against our database of choice ##
         n_jobs_align = min(multiprocessing.cpu_count(), len(samples))
         alignment_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(align_to_database)(args.alignment_choice, sample_name, args.filter_metric, OUTPUTDIR, REF_FASTA, mets_or_mags, DATABASE_DIR, SAMPLE_DIR, RERUN_RULES, NT_EXT, PEP_EXT) for sample_name in samples)
-        if any([(curr == None) for curr in alignment_res]):
+        if any([((curr == None) | (curr == 1)) for curr in alignment_res]):
             print("Alignment did not complete successfully.")
             sys.exit(1)
 
@@ -479,3 +470,6 @@ def main(args_in):
                 rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i summary > " + query_busco_log)
                 if rc != 0:
                     print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
+
+if __name__ == "__main__": 
+    main(args_in = " ".join(sys.argv))

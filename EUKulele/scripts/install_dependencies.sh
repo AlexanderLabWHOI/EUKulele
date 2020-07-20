@@ -1,11 +1,16 @@
 #!/bin/bash
 
+# One argument is the directory in which the software will be stored.
+
 ALLEXITS=0
 # still need to check whether software already installed. XX
 # still need to remove installs if they're not needed and figure out how the frick BUSCO will work.
 
-mkdir -p references_bins/
-export PATH=$PATH:references_bins/ >> ~/.bashrc
+DEST_DIR=$1
+echo $DEST_DIR
+mkdir -p $DEST_DIR #references_bins/
+export PATH=$PATH:$DEST_DIR
+echo "export PATH=$PATH:$DEST_DIR" >> ~/.bashrc
 
 # INSTALL DIAMOND
 
@@ -13,9 +18,7 @@ diamond --version
 if [ $? -ne 0 ]; then
     wget http://github.com/bbuchfink/diamond/releases/download/v0.9.36/diamond-linux64.tar.gz
     tar xzf diamond-linux64.tar.gz
-    # instead make last command be diamond --help
-    #export PATH=$PATH:.
-    mv -f diamond references_bins/
+    mv -f diamond $DEST_DIR
     rm -rf diamond-linux64.tar.gz*
     diamond --version
 fi
@@ -28,8 +31,8 @@ if [ $? -ne 0 ]; then
     tar -zxvf ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-*+-x64-linux.tar.gz
     shopt -s extglob
     BLASTDIR=ncbi-blast-*/bin
-    cp ncbi-blast-*/bin/blastp references_bins/
-    mv -f ncbi-blast-* references_bins/
+    cp ncbi-blast-*/bin/blastp $DEST_DIR
+    mv -f ncbi-blast-* $DEST_DIR
     rm -rf ftp.ncbi.nlm.nih.gov
     #export PATH=ncbi-blast-2.10.1+/bin:$PATH
     #export PATH=$BLASTDIR:$PATH # I still have no idea why this won't save the wildcard expansion
@@ -44,26 +47,36 @@ if [ $? -ne 0 ]; then
     git clone https://gitlab.com/ezlab/busco.git
     cp busco/config/config.ini EUKulele/static/config.ini
     mv -vn busco references_bins/
-    alias busco="references_bins/busco/bin/busco"
-    export PATH=$PATH:references_bins/busco >> ~/.bashrc
+    alias busco=""$DEST_DIR"busco/bin/busco"
+    export PATH=$PATH:"$DEST_DIR"busco
+    export PATH=$PATH:"$DEST_DIR"busco >> ~/.bashrc
     rm -rf busco
     rm -rf busco*.log
     busco --version
 fi
-#ALLEXITS=$(($ALLEXITS + $?))
+ALLEXITS=$(($ALLEXITS + $?))
 
 # INSTALL TRANSDECODER
 TransDecoder.Predict --version
 if [ $? -ne 0 ]; then
     wget https://github.com/TransDecoder/TransDecoder/archive/TransDecoder-v5.5.0.tar.gz
     tar -zxvf TransDecoder-v5.5.0.tar.gz
-    mv -vn TransDecoder-TransDecoder-v5.5.0 references_bins/TransDecoder
-    export PATH=$PATH:references_bins/TransDecoder >> ~/.bashrc
+    mv -vn TransDecoder-TransDecoder-v5.5.0 "$DEST_DIR"TransDecoder
+    export PATH=$PATH:"$DEST_DIR"TransDecoder >> ~/.bashrc
     rm -rf *TransDecoder-v5.5.0*
     TransDecoder.Predict --version
 fi
 ALLEXITS=$(($ALLEXITS + $?))
 
+if [[ "$0" != "$BASH_SOURCE" ]] ; then
+  # this script is executed via `source`!
+  # An `exit` will close the user's console!
+  EXIT=return
+else
+  # this script is not `source`-d, it's safe to exit via `exit`
+  EXIT=exit
+fi
+
 echo $ALLEXITS
 
-exit $ALLEXITS
+$EXIT $ALLEXITS

@@ -1,5 +1,8 @@
 # EUKulele
 
+[![MIT License][license-shield]][license-url]
+![Python version][python-version-url]
+
 ![EUKulele-logo](/.infrastructure/eukulele-logo.png)
 
 ## Formalizing environmental eukaryotic taxonomic assignment
@@ -20,20 +23,23 @@ Three databases are supported by default from within `EUKulele`, and may be down
 - [EukProt](https://figshare.com/articles/EukProt_a_database_of_genome-scale_predicted_proteins_across_the_diversity_of_eukaryotic_life/12417881/2)
 - [MMETSP](https://zenodo.org/record/1212585#.Xw3PoJNKhTZ)
 
+### Downloading EUKulele
+
+
 ### EUKulele parameters
-Parameters may either be passed as arguments directly to EUKulele, or may be specified in a configuration `YAML` file. If running `EUKulele` as a Python package, you can call the function `eukulele()` with two potential arguments, one of which is required:
+Parameters may either be passed as arguments directly to EUKulele, or may be specified in a configuration `YAML` file. If running `EUKulele` as a Python package, you can call the function `eukulele()` with two potential arguments, `config` or `string_arguments`, one of which is required, and then a third argument `command_line`, which should never be set manually and is only relevant if the script has been run from the command line. 
 
 ```
-eukulele(config="", string_arguments="")
+eukulele(config="", string_arguments="", )
 ```
 
-Where the `config` argument allows you to list the path of the configuration `YAML` file that you wish to use, or the `string_arguments` option allows you to create a string containing all of the arguments that you would use normally using the command-line options specified below. 
+where the `config` argument allows you to list the path of the configuration `YAML` file that you wish to use, while the `string_arguments` option allows you to create a string containing all of the arguments that you would use normally using the command-line options specified below. 
 
-`EUKulele` can be run from the command line using: `EUKulele [arguments]`, once installed. The following arguments are supported:
+`EUKulele` can be run from the command line using: `EUKulele [arguments]`, once installed. The following arguments are supported, either as command-line arguments, as a string of arguments passed to the `eukulele()` function within the `EUKulele` Python module, or as part of a confirmation `YAML` file, with names specified in the table. A configuration file may also be provided when `EUKulele` is run from the command line, when the `--config` flag is used with a configuration file path.
 
 | Flag 	| Configuration File Entry 	| Meaning 	|
 |-	|-	|-	|
-| --config 	| N/A 	| The path to the configuration file which should be used to retrie 	|
+| --config 	| N/A 	| The path to the configuration file which should be used to retrieve the equivalent of command-line arguments. 	|
 | --mets_or_mags 	| mets_or_mags 	| A required flag to indicate whether metatranscriptomic ("mets") or metagenomic ("mags") samples are being used as input. 	|
 | --reference_dir 	| reference 	| A required flag to indicate where the reference FASTA is stored, or a keyword argument for the dataset to be downloaded and used. 	|
 | --sample_dir 	| samples 	| A required flag to indicate where the samples (metagenomic or metatranscriptomic, depending on "mets_or_mags" flag) are located. 	|
@@ -68,6 +74,12 @@ Where the `config` argument allows you to list the path of the configuration `YA
 | --tax_table 	| tax_table 	| The name of the formatted taxonomy table; defaults to "tax-table.txt.". If this file is not found, it will be generated from the reference FASTA and original taxonomy file. 	|
 | --protein_map 	| protein_map 	| The name of the JSON file containing protein correspondences; defaults to "protein-map.json". If this file is not found, it will be generated from the reference FASTA and original taxonomy file. 	|
 |  	|  	|  	|
+
+### Example usage
+
+### Community guidelines 
+
+#### How to contribute to `EUKulele`
 
 
 ## Previous README file notes
