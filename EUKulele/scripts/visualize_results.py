@@ -13,6 +13,7 @@ def countClassifs(level, level_hierarchy, name_level, df):
     
     classifications = list(df.loc[df["classification_level"] == level]["classification"])
     counts = list(df.loc[df["classification_level"] == level]["counts"])
+    transcript_names = list(df.loc[df["classification_level"] == level]["transcript_name"])
     match_loc = int(np.where([curr == level for curr in level_hierarchy])[0])
     for curr in range(match_loc + 1,len(level_hierarchy)):
         classification_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["full_classification"])
@@ -34,8 +35,8 @@ def countClassifs(level, level_hierarchy, name_level, df):
     full_list = classifications
     set_list.update(set(classifications))
     
-    transcripts_classes = pd.DataFrame({classifications: classifications, transcript_names: transcript_names})
-    transcripts_classes.groupby("classifications").agg({"transcript_names": lambda x: ';'.join(x)})
+    transcripts_classes = pd.DataFrame({"classifications": classifications, "transcript_names": transcript_names})
+    transcripts_classes = transcripts_classes.groupby("classifications").agg({"transcript_names": lambda x: ';'.join(x)})
     transcripts_classes = transcripts_classes.set_index('classifications')
     transcripts_classes = transcripts_classes.loc[list(set_list)]
     
@@ -48,7 +49,7 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
     set_list = set()
     
     classifications = list(df.loc[df["classification_level"] == level]["classification"])
-    transcript_names = df.loc[df["classification_level"] == level]["transcript_name"]
+    transcript_names = list(df.loc[df["classification_level"] == level]["transcript_name"])
     #class_and_tax = dict(zip(classifications, transcript_names))
     match_loc = int(np.where([curr == level.lower() for curr in level_hierarchy])[0])
     for curr in range(match_loc + 1,len(level_hierarchy)):
@@ -76,13 +77,17 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
     full_list = classifications
     set_list.update(set(classifications))
     
-    transcripts_classes = pd.DataFrame({classifications: classifications, transcript_names: transcript_names})
-    transcripts_classes.groupby("classifications").agg({"transcript_names": lambda x: ';'.join(x)})
-    transcripts_classes = transcripts_classes.set_index('classifications')
-    transcripts_classes = transcripts_classes.loc[list(set_list)]
+    transcripts_classes = pd.DataFrame({"classifications": classifications, "transcript_names": transcript_names})
+    transcripts_classes = transcripts_classes.groupby("classifications").agg({"transcript_names": lambda x: ';'.join(x)})
+    transcripts_classes.sort_values(by = "classifications", inplace=True)
+    #transcripts_classes = transcripts_classes.set_index('classifications')
+    #transcripts_classes = transcripts_classes.loc[list(set_list)]
+    print(len(transcripts_classes.index))
+    print(len(set_list))
+    print(transcripts_classes, flush=True)
     
     #final_frame = list(zip(list(set_list), [full_list.count(curr) for curr in list(set_list)]))
-    final_frame = pd.DataFrame({name_level: list(set_list), Counts: [full_list.count(curr) for curr in list(set_list)], GroupedTranscripts: list(transcripts_classes.transcript_names)})
+    final_frame = pd.DataFrame({name_level: sorted(list(set_list)), "Counts": [full_list.count(curr) for curr in sorted(list(set_list))], "GroupedTranscripts": list(transcripts_classes.transcript_names)})
     
     return classifications, final_frame
 
