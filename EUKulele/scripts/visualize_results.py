@@ -16,45 +16,73 @@ def countClassifs(level, level_hierarchy, name_level, df):
     match_loc = int(np.where([curr == level for curr in level_hierarchy])[0])
     for curr in range(match_loc + 1,len(level_hierarchy)):
         classification_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["full_classification"])
+        transcripts_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["transcript_name"])
         correct_index = list(np.where([len(str(cr).split(";")) >= abs(-1-(curr-match_loc)) for cr in classification_curr])[0])
         
         classification_curr = [classification_curr[cr2] for cr2 in correct_index]
         classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() for cr in classification_curr]
+        transcripts_curr = [transcripts_curr[cr2] for cr2 in correct_index]
         counts_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["counts"])
         counts_curr = [counts_curr[cr2] for cr2 in correct_index]
         
         # add to running list
         classifications.extend(classifs_curr)
+        transcript_names.extend(transcripts_curr)
         counts.extend(counts_curr)
         
     classifications = [str(cr).strip().strip(""''"]['") for cr in classifications]
     full_list = classifications
     set_list.update(set(classifications))
     
+    transcripts_classes = pd.DataFrame({classifications: classifications, transcript_names: transcript_names})
+    transcripts_classes.groupby("classifications").agg({"transcript_names": lambda x: ';'.join(x)})
+    transcripts_classes = transcripts_classes.set_index('classifications')
+    transcripts_classes = transcripts_classes.loc[list(set_list)]
+    
     full_frame = pd.DataFrame({name_level: classifications, "Counts": counts})
     final_frame = full_frame.groupby(name_level)['Counts'].agg(Sum='sum', Count='count')
+    final_frame["GroupedTranscripts"] = list(transcripts_classes.transcript_names)
     return classifications, final_frame
     
 def countClassifsNoCounts(level, level_hierarchy, name_level, df):
     set_list = set()
     
     classifications = list(df.loc[df["classification_level"] == level]["classification"])
+    transcript_names = df.loc[df["classification_level"] == level]["transcript_name"]
+    #class_and_tax = dict(zip(classifications, transcript_names))
     match_loc = int(np.where([curr == level.lower() for curr in level_hierarchy])[0])
     for curr in range(match_loc + 1,len(level_hierarchy)):
         classification_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["full_classification"])
+        transcripts_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["transcript_name"])
         correct_index = list(np.where([len(str(cr).split(";")) >= abs(-1-(curr-match_loc)) for cr in classification_curr])[0])
         
         classification_curr = [classification_curr[cr2] for cr2 in correct_index]
+        transcripts_curr = [transcripts_curr[cr2] for cr2 in correct_index]
         classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() for cr in classification_curr]
-        #classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() for cr in classification_curr if len(str(cr).split(";")) >= abs(-1-(curr-match_loc))]
+        
+        #for curr_ind in range(len(classifs_curr)):
+        #    class_curr = classifs_curr[curr_ind]
+        #    transcript_curr = transcripts_curr[curr_ind]
+        #    if class_curr in class_and_tax:
+        #        class_and_tax[class_curr] = class_and_tax[class_curr] + ";" + transcript_curr
+        #    else:
+        #        class_and_tax[class_curr] = transcript_curr
         
         # add to running list
+        transcript_names.extend(transcripts_curr)
         classifications.extend(classifs_curr)
         
     classifications = [str(cr).strip().strip(""''"]['") for cr in classifications]
     full_list = classifications
     set_list.update(set(classifications))
-    final_frame = list(zip(list(set_list), [full_list.count(curr) for curr in list(set_list)]))
+    
+    transcripts_classes = pd.DataFrame({classifications: classifications, transcript_names: transcript_names})
+    transcripts_classes.groupby("classifications").agg({"transcript_names": lambda x: ';'.join(x)})
+    transcripts_classes = transcripts_classes.set_index('classifications')
+    transcripts_classes = transcripts_classes.loc[list(set_list)]
+    
+    #final_frame = list(zip(list(set_list), [full_list.count(curr) for curr in list(set_list)]))
+    final_frame = pd.DataFrame({name_level: list(set_list), Counts: [full_list.count(curr) for curr in list(set_list)], GroupedTranscripts: list(transcripts_classes.transcript_names)})
     
     return classifications, final_frame
 
@@ -114,10 +142,10 @@ def makeConcatFrame(curr_df, new_df, level, sample_name, use_counts):
         return curr_df
     if use_counts == 1:
         new_df = pd.DataFrame(new_df.reset_index())
-        new_df.columns = [level,"Counts","NumTranscripts"]
+        new_df.columns = [level,"Counts","NumTranscripts","GroupedTranscripts"]
     else:
         new_df = pd.DataFrame(new_df)
-        new_df.columns = [level,"NumTranscripts"]
+        new_df.columns = [level,"NumTranscripts","GroupedTranscripts"]
     
     new_df["Sample"] = sample_name
     return pd.concat([curr_df, new_df], sort=True)
@@ -129,7 +157,6 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
     samples = os.listdir(samples_dir)
     good_samples = 0
     for s in samples:
-        #if ((nucle_extension in s) | (prot_extension in s)):
         file_name = s.split(".")[0] + "-estimated-taxonomy.out"
         if not os.path.isfile(os.path.join(met_dir,file_name)):
             print("One of the files, " + s + ", in the sample directory did not complete successfully.")

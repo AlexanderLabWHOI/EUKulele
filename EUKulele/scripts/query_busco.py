@@ -23,8 +23,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--busco_out',default="busco") # the output from the BUSCO run on the full sample file
 parser.add_argument('--individual_or_summary','-i',default="summary",choices=["summary","individual"])
 # Not necessary if we are running in summary mode.
-parser.add_argument('--organism_group', default = [], type = list, nargs = "+") # the focal name(s) of species/genus/order/class etc.
-parser.add_argument('--taxonomic_level', default = [], type = list, nargs = "+") # the taxonomic level(s) of the specified focal name.
+parser.add_argument('--organism_group', nargs = "+", default = []) # the focal name(s) of species/genus/order/class etc.
+parser.add_argument('--taxonomic_level', nargs = "+", default = []) # the taxonomic level(s) of the specified focal name.
 parser.add_argument('--fasta_file') # the fasta file from which we pull sequences for the mock transcriptome.
 parser.add_argument('--taxonomy_file_prefix') # the taxonomy file we use to create the mock transcriptome.
 parser.add_argument('--tax_table') # the taxonomy table to get the full classification of the organism as assessed by the database being used.
@@ -36,6 +36,7 @@ parser.add_argument('--busco_location',default="busco") # location to store the 
 parser.add_argument('--output_dir',default="output")
 parser.add_argument('--available_cpus',default=1)
 parser.add_argument('--busco_threshold',default=50)
+parser.add_argument('--write_transcript_file',default=False,action='store_true') # whether to write an actual file with the subsetted transcriptome
 
 level_hierarchy = ['supergroup','division','class','order','family','genus','species']
 
@@ -143,12 +144,12 @@ def read_in_taxonomy(infile):
     return tax_out
 
 args = parser.parse_args()
-organism_format = " ".join(args.organism_group.split("_"))
+#organism_format = (" ".join(args.organism_group) #" ".join(args.organism_group.split("_"))
 organism = args.organism_group
 taxonomy = args.taxonomic_level
 tax_table = read_in_taxonomy(args.tax_table)
             
-full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in tax_table[taxonomy]],:]
+#full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in tax_table[taxonomy]],:]
             
 if (args.individual_or_summary == "individual") & ((len(args.organism_group) == 0) | (len(args.taxonomic_level) == 0)):
     print("You specified individual mode, but then did not provide a taxonomic group and/or accompanying taxonomic level.")
@@ -158,7 +159,9 @@ if (len(args.organism_group) == 0) != (len(args.taxonomic_level) == 0):
     sys.exit(1)
 
 if (args.individual_or_summary == "individual"):
-    results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(evaluate_organism)(organism[curr], taxonomy[curr], tax_table, create_fasta, write_transcript_file) for curr in range(len(organism)))
+    print("organisms are: ")
+    print(organism)
+    results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(evaluate_organism)(organism[curr], taxonomy[curr], tax_table, args.create_fasta, args.write_transcript_file) for curr in range(len(organism)))
     results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, organism, "summary_" + args.sample_name + ".tsv"), sep = "\t")
 else:
     for curr_level in level_hierarchy:
@@ -169,7 +172,7 @@ else:
         # now do multiprocessing for each of these organisms and get BUSCO results for each
         # need to pull in argument for whether or not to save CSVs 
         results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(
-    evaluate_organism)(organism, taxonomy, tax_table, create_fasta, write_transcript_file) for organism in range(len(organisms)))
+    evaluate_organism)(organism, taxonomy, tax_table, args.create_fasta, args.write_transcript_file) for organism in range(len(organisms)))
         results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, args.sample_name, taxonomy + "_combined", "summary_" + taxonomy + "_" +  args.sample_name + ".tsv"), sep = "\t")
     # here's where we're doing the cascade through the most popular. Requires that we create a helper function to grab then evaluate those.
     # TODO: assessing the copies of each of the BUSCOs found in the cascade. 

@@ -65,9 +65,15 @@ if __name__ == "__main__":
     tax_dict = create_tax_dictionary(split_taxonomy_df)
     max_df = get_max_levels(tax_dict)
     if not os.path.exists(args.outdir):
-        os.mkdir(args.outdir)
+        try:
+            os.mkdir(args.outdir)
+        except:
+            pass
     if not os.path.exists(args.max_out_dir):
-        os.mkdir(args.max_out_dir)
+        try:
+            os.mkdir(args.max_out_dir)
+        except:
+            pass
     for l in levels:
         tax_dict[l].to_csv(os.path.join(args.outdir, args.out_prefix+'.'+l), header=False, sep='\t')
     max_df.to_csv(os.path.join(args.max_out_dir, args.out_prefix + '-max-level.csv'), sep='\t')

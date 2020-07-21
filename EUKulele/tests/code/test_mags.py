@@ -66,6 +66,39 @@ def test_alignment():
     outprefix = config["output"].split("/")[-1]
     assert os.path.isfile(os.path.join(config["output"], outprefix + "_all_species_counts.csv"))
     
+def test_busco():
+    base_config = os.path.join(os.getcwd(), '..', 'aux_data', 'config.yaml')
+    base_dir = os.path.join('EUKulele', 'tests', 'aux_data')
+    base_config = os.path.join('EUKulele', 'tests', 'aux_data', 'config.yaml')
+    with open(base_config) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+       
+    config["mets_or_mags"] = "mags"
+    config["reference"] = os.path.join(base_dir, test_reference)
+    config["samples"] = os.path.join(base_dir, test_reference, "samples_MAGs")
+    config["subroutine"] = "busco"
+    config["create_tax_table"] = 1
+    config["cutoff"] = os.path.join("EUKulele","static","tax-cutoffs.yaml")
+    config["output"] = os.path.join(base_dir, "test_out")
+    config["database"] = test_reference
+    config["organisms"] = ["Chromera"]
+    config["taxonomy_organisms"] = ["genus"]
+    config["download_reference"] = 0
+    config["column"] = "SOURCE_ID"
+    config["ref_fasta"] = "reference-pep-trunc.pep.faa"
+    config["original_tax_table"] = "taxonomy-table.txt"
+    
+    config_path = os.path.join(base_dir, 'test_configs')
+    os.system("mkdir -p " + config_path)
+    config_file = os.path.join(config_path, 'curr_config_busco.yaml')
+    with open(config_file, 'w') as f:
+        yaml.dump(config, f)
+        
+    EUKulele.eukulele(config=config_file)
+    samplenames = os.listdir(config["samples"])
+    busco_out = os.path.join(config["output"], samplenames[0], "genus_combined", "summary_genus_" + samplenames[0] + ".tsv")
+    assert os.path.isfile(busco_out)
+    
 def test_cleanup():
     base_dir = os.path.join('EUKulele', 'tests', 'aux_data')
     config_path = os.path.join(base_dir, 'test_configs')
@@ -80,7 +113,7 @@ def test_cleanup():
         config["reference"] = os.path.join(base_dir, test_reference)
         os.system("rm " + os.path.join(config["reference"], "tax-table.txt"))
         os.system("rm " + os.path.join(config["reference"], "protein-map.json"))
-        os.system("rm -rf " + os.path.join(config["output"]))
+        #os.system("rm -rf " + os.path.join(config["output"]))
 
         successful_test = successful_test & (not os.path.isfile(os.path.join(config["reference"],"tax-table.txt"))) & \
                           (not os.path.isfile(os.path.join(config["reference"],"protein-map.json")))

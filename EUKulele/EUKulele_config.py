@@ -120,6 +120,8 @@ def parseConfig(configfile):
     if "organisms" in config:
         args = args + " --organisms " + str(" ".join(config["organisms"]))
     if "taxonomy_organisms" in config:
+        print("Incoming taxonomy!")
+        print(str(" ".join(config["taxonomy_organisms"])))
         args = args + " --taxonomy_organisms " + str(" ".join(config["taxonomy_organisms"]))
     if "busco_threshold" in config:
         args = args + " --busco_threshold " + str(config["busco_threshold"])

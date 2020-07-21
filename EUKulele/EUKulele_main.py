@@ -188,23 +188,33 @@ def assign_taxonomy(sample_name, OUTPUTDIR, mets_or_mags):
     out_log = os.path.join("log", "tax_assign_" + sample_name + ".out")
     rc = os.system("python " + os.path.join(scripts_dir, "mag-stats.py") + " --estimated-taxonomy-file " + taxfile + " --out-prefix " + sample_name + " --outdir " + levels_directory + " --max-out-dir " + max_dir + " 2> " + error_log + " 1> " + out_log)
     return rc
-
     
-def run_busco(sample_name, outputdir, busco_db):
+def run_busco(sample_name, outputdir, busco_db, mets_or_mags, PEP_EXT, NT_EXT, CPUS, OUTPUTDIR, SAMPLE_DIR):
     if mets_or_mags == "mets":
         fastaname = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
     else:
-        fastaname = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
+        fastaname = os.path.join(SAMPLE_DIR, sample_name + "." + PEP_EXT)
     os.system("chmod 755 " + os.path.join(scripts_dir, "configure_busco.sh"))
     os.system("chmod 755 " + os.path.join(scripts_dir, "run_busco.sh"))
     rc2 = 0
+    busco_run_log = os.path.join("log","busco_run.out")
+    busco_run_err = os.path.join("log","busco_run.err")
+    busco_config_log = os.path.join("log","busco_config.out")
+    busco_config_err = os.path.join("log","busco_config.err")
+    
     if not os.path.isdir(os.path.join("busco_downloads","lineages","eukaryota_odb10")):
-        rc2 = os.system(" ".join([os.path.join(scripts_dir, "configure_busco.sh"), str(sample_name), str(outputdir), "static/busco_config.ini", outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]))
-    rc1 = os.system(" ".join([os.path.join(scripts_dir, "run_busco.sh"), str(sample_name), str(outputdir), "static/busco_config.ini", outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]))
+        rc2 = os.system(" ".join([os.path.join(scripts_dir, "configure_busco.sh"), str(sample_name), str(outputdir), outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]) + " >1 " + busco_config_log + " >2 " + busco_config_err)
+    rc1 = os.system(" ".join([os.path.join(scripts_dir, "run_busco.sh"), str(sample_name), str(outputdir), outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]) + " >1 " + busco_run_log + " >2 " + busco_run_err)
     return rc1 + rc2
 
 def main(args_in):
     parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description='Thanks for using EUKulele! EUKulele is a standalone taxonomic annotation software.\n'
+                    'EUKulele is designed primarily for marine microbial eukaryotes. Check the README '
+                    'for further information.',
+        usage='eukulele [subroutine] --mets_or_mags [dataset_type] --reference_dir [reference_database_location] --sample_dir [sample_directory] [all other options]')
+    
     parser.add_argument('subroutine', metavar="subroutine", nargs='?', type=str, default="all", choices = ["","all","setup","alignment","busco"], help='Choice of subroutine to run.')
     parser.add_argument('--mets_or_mags', required = True) 
     parser.add_argument('--n_ext', '--nucleotide_extension', dest = "nucleotide_extension", default = ".fasta") 
@@ -247,8 +257,8 @@ def main(args_in):
     parser.add_argument('--busco_file', default = "", type = str) # if specified, the following two arguments ("--organisms" and "--taxonomy_organisms" are overwritten by the two columns of this tab-separated file
     parser.add_argument('--individual_or_summary','-i',default="summary",choices=["summary","individual"])
     # These arguments are used if "individual" is specified. 
-    parser.add_argument('--organisms', default = "", type = list, nargs = "+") # list of organisms to check BUSCO completeness on
-    parser.add_argument('--taxonomy_organisms', default = "", type = list, nargs = "+") # taxonomic level of organisms specified in organisms tag
+    parser.add_argument('--organisms', default = "", nargs = "+") # list of organisms to check BUSCO completeness on
+    parser.add_argument('--taxonomy_organisms', default = "", nargs = "+") # taxonomic level of organisms specified in organisms tag
 
     ## OTHER USER CHOICES ## 
     parser.add_argument('--cutoff_file', default = "static/tax-cutoffs.yaml")
@@ -413,8 +423,6 @@ def main(args_in):
                                                     PROT_TAB,USE_SALMON_COUNTS,NAMES_TO_READS,alignment_res[t],outfiles[t],\
                                                     IFPARALLEL,RERUN_RULES)
             
-        print("Tax files are: ")
-        print(outfiles)
         #taxonomy_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(place_taxonomy)(TAX_TAB,args.cutoff_file,CONSENSUS_CUTOFF,PROT_TAB,USE_SALMON_COUNTS,NAMES_TO_READS,alignment_res[t],outfiles[t],IFPARALLEL,RERUN_RULES) for t in range(len(alignment_res)))
 
         ## Now to visualize the taxonomy ##
@@ -432,20 +440,20 @@ def main(args_in):
 
     print("Performing BUSCO steps...", flush=True)
     if BUSCO:
-        print("running busco")
+        print("Running busco...")
         ## Run BUSCO on the full dataset ##
         busco_db = "eukaryota_odb10"
-        busco_res = Parallel(n_jobs=multiprocessing.cpu_count(), prefer="threads")(delayed(run_busco)(sample_name, os.path.join(OUTPUTDIR, "busco"), busco_db) for sample_name in samples)
+        busco_res = Parallel(n_jobs=multiprocessing.cpu_count(), prefer="threads")(delayed(run_busco)(sample_name, os.path.join(OUTPUTDIR, "busco"), busco_db, mets_or_mags, PEP_EXT, NT_EXT, CPUS, OUTPUTDIR, SAMPLE_DIR) for sample_name in samples)
         all_codes = sum(busco_res)
         if all_codes > 0:
-            print("BUSCO did not complete successfully.")
+            print("BUSCO initial run or configuration did not complete successfully. Please check the BUSCO run and configuration log files in the log/ folder.")
             sys.exit(1)
 
         ## Assess BUSCO completeness on the most prevalent members of the metatranscriptome at each taxonomic level ##
         if args.individual_or_summary == "individual":
             for sample_name in samples:
                 busco_table = os.path.join(OUTPUTDIR, "busco", sample_name, "full_table.tsv") # the BUSCO table that we're interested in using that contains the BUSCO matches and their level of completeness
-                taxtfile_stub = os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1]) # the prefix to specify where the taxonomy estimation output files are located
+                taxfile_stub = os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1]) # the prefix to specify where the taxonomy estimation output files are located
 
                 if mets_or_mags == "mets":
                     fasta = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
@@ -453,7 +461,7 @@ def main(args_in):
                     fasta = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
 
                 query_busco_log = os.path.join("log","busco_query_" + sample_name + ".log")
-                rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --organism_group " + str(" ".join(args.organisms)) + " --taxonomic_level " + str(" ".join(args.taxonomy_organisms)) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + "-i individual > " + query_busco_log)
+                rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --organism_group " + str(" ".join(args.organisms)) + " --taxonomic_level " + str(" ".join(args.taxonomy_organisms)) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i individual > " + query_busco_log)
                 if rc != 0:
                     print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
         else:

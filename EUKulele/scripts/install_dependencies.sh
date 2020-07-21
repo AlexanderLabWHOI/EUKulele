@@ -8,7 +8,7 @@ ALLEXITS=0
 
 DEST_DIR=$1
 echo $DEST_DIR
-mkdir -p $DEST_DIR #references_bins/
+mkdir -p "$DEST_DIR" #references_bins/
 export PATH=$PATH:$DEST_DIR
 echo "export PATH=$PATH:$DEST_DIR" >> ~/.bashrc
 
@@ -40,21 +40,28 @@ if [ $? -ne 0 ]; then
 fi
 ALLEXITS=$(($ALLEXITS + $?))
 
-# INSTALL BUSCO=
+# INSTALL BUSCO
 busco --version
 if [ $? -ne 0 ]; then
     rm -rf busco
     git clone https://gitlab.com/ezlab/busco.git
-    cp busco/config/config.ini EUKulele/static/config.ini
     mv -vn busco references_bins/
+    shopt -s expand_aliases
     alias busco=""$DEST_DIR"busco/bin/busco"
-    export PATH=$PATH:"$DEST_DIR"busco
+    origdir=$(pwd)
+    cd "$DEST_DIR"busco
+    python3 setup.py install --user
+    ./scripts/busco_configurator.py config/config.ini config/myconfig.ini
+    
+    cp config/config.ini ../../EUKulele/static/config.ini
+    cd $origdir
+    export PATH=$PATH:"$DEST_DIR"busco/bin/busco
     export PATH=$PATH:"$DEST_DIR"busco >> ~/.bashrc
     rm -rf busco
     rm -rf busco*.log
     busco --version
 fi
-ALLEXITS=$(($ALLEXITS + $?))
+#ALLEXITS=$(($ALLEXITS + $?))
 
 # INSTALL TRANSDECODER
 TransDecoder.Predict --version
