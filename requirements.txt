@@ -1,6 +1,6 @@
 numpy
 biopython
-conda
+#conda
 pandas
 seaborn
 yaml

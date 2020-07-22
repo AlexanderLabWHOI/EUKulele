@@ -14,7 +14,15 @@ except:
 def eukulele(config="", string_arguments="", command_line = False):
     sys.path.append(os.path.realpath('..'))
     if command_line:
-        rc = os.system("python EUKulele_main.py " + str(string_arguments))
+        split_args = string_arguments.split(" ")
+        if len(split_args) > 2:
+            if string_arguments.split(" ")[1] == "--config":
+                stringargs = parseConfig(string_arguments.split(" ")[2])
+                rc = os.system("python src/EUKulele/EUKulele_main.py " + stringargs)
+            else: 
+                rc = os.system("python src/EUKulele/EUKulele_main.py " + str(" ".join(string_arguments.split(" ")[1:])))
+        else:
+            rc = os.system("python src/EUKulele/EUKulele_main.py " + str(" ".join(string_arguments.split(" ")[1:])))
         return rc
     if (config == "") | (not os.path.isfile(config)):
         print("Running EUKulele with command line arguments, as no valid configuration file was provided.")
@@ -120,8 +128,6 @@ def parseConfig(configfile):
     if "organisms" in config:
         args = args + " --organisms " + str(" ".join(config["organisms"]))
     if "taxonomy_organisms" in config:
-        print("Incoming taxonomy!")
-        print(str(" ".join(config["taxonomy_organisms"])))
         args = args + " --taxonomy_organisms " + str(" ".join(config["taxonomy_organisms"]))
     if "busco_threshold" in config:
         args = args + " --busco_threshold " + str(config["busco_threshold"])

@@ -44,11 +44,14 @@ parser.add_argument('--write_transcript_file',default=False,action='store_true')
 level_hierarchy = ['supergroup','division','class','order','family','genus','species']
 
 def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcript_file):
-    organism_format = " ".join(str(organism).split("_"))
-    full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in tax_table[taxonomy]],:]
+    organism_format = organism
+    if taxonomy == "species":
+        organism_format = " ".join(str(organism).split("_"))
+    full_taxonomy = tax_table.loc[[organism_format in curr for curr in list(tax_table[taxonomy])],:]
     if len(full_taxonomy.index) < 1:
         print("No taxonomy found for that organism and taxonomic level.")
-        sys.exit(1)
+        return pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness","NumberCovered","CtTwoCopies","CtThreeCopies","CtFourCopies","CtFivePlusCopies","PercentageDuplicated"])
+        
     curr_level = [ind for ind in range(len(level_hierarchy)) if level_hierarchy[ind] == taxonomy][0]
     max_level = len(level_hierarchy) - 1
 
@@ -74,7 +77,6 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
         #### GET THE CURRENT LEVEL OF TAXONOMY FROM THE TAX TABLE FILE ####
         curr_tax_list = set(list(full_taxonomy[level_hierarchy[curr_level]]))
         if len(curr_tax_list) > 1:
-            print(curr_tax_list)
             print("More than 1 unique match found; using both matches: " + str("".join(curr_tax_list)))
                   #using the first match (" + str(list(curr_tax_list)[0]) + ")")
         curr_taxonomy = ";".join(curr_tax_list) #str(list(curr_tax_list)[0])
@@ -117,14 +119,16 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
             success_level = level_hierarchy[curr_level]
         curr_level = curr_level - 1
 
-    report_dir = os.path.join(args.output_dir, organism, taxonomy)
-    os.system("mkdir -p " + os.path.join(args.output_dir, organism))
+    report_dir = os.path.join(args.output_dir, taxonomy, "_".join(organism.split(" ")))
     os.system("mkdir -p " + report_dir)
 
     report_file = os.path.join(report_dir, args.sample_name + "_report.txt")
     reported = open(report_file,"w")
+    reversed_scores = busco_scores
+    reversed_scores.reverse()
+    
     if success == 1:
-        file_written = os.path.join(args.output_dir, organism, level_hierarchy[curr_level] + "_" + args.sample_name + ".txt")
+        file_written = os.path.join(report_dir, level_hierarchy[curr_level] + "_" + args.sample_name + ".txt")
         if (write_transcript_file):
             with open(file_written, 'w') as filehandle:
                 for transcript_name in transcripts_to_search_sep:
@@ -134,10 +138,10 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
             os.system("grep -w -A 2 -f " + file_written + " " + args.fasta_file + " --no-group-separator > " + mock_file_name)
 
         reported.write("Taxonomy file successfully completed with BUSCO completeness " + str(busco_completeness) + "% at location " + str(file_written) + "This was at taxonomic level " + str(success_level) + ". The file containing the transcript names for the mock transcriptome corresponding to this taxonomic level is located here: " + str(file_written) + ".\n")
-        reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(args.taxonomic_level) + ") were: " + str(busco_scores))
+        reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(taxonomy) + ") were: " + " ".join([str(curr) for curr in reversed_scores]))
     else:
         reported.write("Sufficient BUSCO completeness not found at threshold " + str(args.busco_threshold) + "%. \n")
-        reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(args.taxonomic_level) + ") were: " + str(busco_scores.reverse()) + "\n")
+        reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(taxonomy) + ") were: " + " ".join([str(curr) for curr in reversed_scores]) + "\n")
     reported.close()
     return pd.DataFrame({"Organism":[organism] * len(levels_out),"TaxonomicLevel":levels_out,"BuscoCompleteness":busco_scores,"NumberCovered":number_covered,"CtTwoCopies":number_duplicated,"CtThreeCopies":number_tripled,"CtFourCopies":number_quadrupled,"CtFivePlusCopies":number_higher_mult,"PercentageDuplicated":percent_multiples})
 
@@ -145,6 +149,11 @@ def read_in_taxonomy(infile):
     with open(infile, 'rb') as f:
         result = chardet.detect(f.read())
     tax_out = pd.read_csv(infile, sep='\t',encoding=result['encoding'])
+    classes = ['supergroup','division','class','order','family','genus','species']
+    for c in tax_out.columns:
+        if c.lower() in classes:
+            if (np.issubdtype(tax_out[str(c)].dtypes, np.number)) | (np.issubdtype(tax_out[str(c)].dtypes, np.float_)):
+                tax_out = tax_out.loc[:,~(tax_out.columns == c)]
     tax_out.columns = tax_out.columns.str.lower()
     tax_out = tax_out.set_index('source_id')
     return tax_out
@@ -174,7 +183,7 @@ else:
         # now do multiprocessing for each of these organisms and get BUSCO results for each
         # need to pull in argument for whether or not to save CSVs 
         results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(
-    evaluate_organism)(organism, taxonomy, tax_table, args.create_fasta, args.write_transcript_file) for organism in range(len(organisms)))
+    evaluate_organism)(organism, taxonomy, tax_table, args.create_fasta, args.write_transcript_file) for organism in organisms)
         results_frame = pd.concat(results_frame)
         os.system("mkdir -p " + os.path.join(args.output_dir, "busco_assessment", args.sample_name, taxonomy + "_combined"))
         results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, "busco_assessment", args.sample_name, taxonomy + "_combined", "summary_" + taxonomy + "_" +  args.sample_name + ".tsv"), sep = "\t")

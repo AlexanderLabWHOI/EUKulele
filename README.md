@@ -23,8 +23,15 @@ Three databases are supported by default from within `EUKulele`, and may be down
 - [EukProt](https://figshare.com/articles/EukProt_a_database_of_genome-scale_predicted_proteins_across_the_diversity_of_eukaryotic_life/12417881/2)
 - [MMETSP](https://zenodo.org/record/1212585#.Xw3PoJNKhTZ)
 
-### Downloading EUKulele
+### Downloading and configuring EUKulele
 
+When `EUKulele` is used as a Python package, it will attempt to install dependent software for you. However, this is prone to error based on the idiosyncracies of your system. Hence, it is recommended that you create and activate a `conda` environment for `EUKulele`, by running the command 
+
+```
+conda env create -f src/EUKulele/EUKulele-env.yaml
+```
+
+from the base directory, and then typing `conda activate EUKulele`. 
 
 ### EUKulele parameters
 Parameters may either be passed as arguments directly to EUKulele, or may be specified in a configuration `YAML` file. If running `EUKulele` as a Python package, you can call the function `eukulele()` with two potential arguments, `config` or `string_arguments`, one of which is required, and then a third argument `command_line`, which should never be set manually and is only relevant if the script has been run from the command line. 
@@ -77,6 +84,22 @@ where the `config` argument allows you to list the path of the configuration `YA
 
 ### Example usage
 
+Inside of a Python script, include `import EUKulele` in the header.
+
+Then, you may execute `EUKulele` as a Python package within `Python` using: 
+
+```
+EUKulele.eukulele(config=config_file)
+```
+
+if you have a configuration file to specify (replace the `config_file` variable with this path), or with:
+
+```
+EUKulele.eukulele(string_arguments=string_of_arguments)
+```
+
+where `string_of_arguments` is a string containing the non-default `EUKulele` options you wish to specify.
+
 ### Community guidelines 
 
 #### How to contribute to `EUKulele`
@@ -91,7 +114,6 @@ If you have questions about how to use `EUKulele`, or would like to seek out col
 ### Acknowledgments
 
 Authors: Arianna Krinos, Sarah Hu, and Harriet Alexander.
-
 
 We gratefully acknowledge Natalie Cohen, who contributed significantly to project development and testing. 
 

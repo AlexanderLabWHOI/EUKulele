@@ -15,6 +15,7 @@ import shutil
 import glob
 from joblib import Parallel, delayed
 sys.path.insert(1, 'EUKulele/scripts')
+sys.path.insert(1, 'src/EUKulele')
 sys.path.insert(1, 'scripts')
 
 import tax_placement
@@ -23,7 +24,7 @@ from tax_placement import *
 import visualize_results
 from visualize_results import *
 
-scripts_dir = os.path.join("EUKulele", "scripts")
+scripts_dir = os.path.join("scripts")
 
 __author__ = "Harriet Alexander, Arianna Krinos"
 __copyright__ = "EUKulele"
@@ -269,17 +270,10 @@ def main(args_in):
     parser.add_argument('--CPUs', default=1)
     parser.add_argument('-p', action='store_true') # whether to run in parallel
     parser.add_argument('--busco_threshold', default=50)
-    
-    print("this the right file")
-    print(args_in)
-    
-    print(list(filter(None, args_in.split(" "))))
                
     args = parser.parse_args(list(filter(None, args_in.split(" "))))
-    print(args)
     if args.subroutine == "":
         args.subroutine = "all"
-    print(args)
     
     ## VARIABLES ##
     CONSENSUS_CUTOFF = args.consensus_cutoff
@@ -360,7 +354,6 @@ def main(args_in):
     ## Download software dependencies
     rc1 = os.system("source " + os.path.join(scripts_dir, "install_dependencies.sh references_bins/") + " 1> log/dependency_log.txt 2> log/dependency_err.txt")
     sys.path.append("references_bins/")
-    #os.system("source ~/.bashrc")
     os.system("echo $PATH > path_test.txt")
     if rc1 != 0:
         print("Could not successfully install all external dependent software. Check DIAMOND, BLAST, BUSCO, and TransDecoder installation.")
@@ -461,13 +454,17 @@ def main(args_in):
                 else:
                     fasta = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
 
-                query_busco_log = os.path.join("log","busco_query_" + sample_name + ".log")
-                query_busco_err = os.path.join("log","busco_query_" + sample_name + ".err")
-                rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --organism_group " + str(" ".join(args.organisms)) + " --taxonomic_level " + str(" ".join(args.taxonomy_organisms)) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i individual 1> " + query_busco_log + " >2 " + query_busco_err)
-                if rc != 0:
+                query_busco_log = open(os.path.join("log","busco_query_" + sample_name + ".log"), "w+")
+                query_busco_err = open(os.path.join("log","busco_query_" + sample_name + ".err"), "w+")
+                query_command = "python " + os.path.join(scripts_dir, "query_busco.py") + " --organism_group " + str(" ".join(args.organisms)) + " --taxonomic_level " + str(" ".join(args.taxonomy_organisms)) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i individual"
+                
+                #rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --organism_group " + str(" ".join(args.organisms)) + " --taxonomic_level " + str(" ".join(args.taxonomy_organisms)) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i individual 1> " + query_busco_log + " >2 " + query_busco_err)
+                p = subprocess.Popen([query_command], stdout=query_busco_log, stderr = query_busco_err, shell=True)
+                p.wait()                            
+                if p.returncode != 0:
                     print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
         else:
-            for sample_name in MTS:
+            for sample_name in samples:
                 busco_table = os.path.join(OUTPUTDIR, "busco", sample_name, "full_table.tsv") # the BUSCO table that we're interested in using that contains the BUSCO matches and their level of completeness
                 taxfile_stub = os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1]) # the prefix to specify where the taxonomy estimation output files are located
 
@@ -476,11 +473,15 @@ def main(args_in):
                 else:
                     fasta = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
 
-                query_busco_log = os.path.join("log","busco_query_" + sample_name + ".log")
-                query_busco_err = os.path.join("log","busco_query_" + sample_name + ".err")
-                rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i summary 1> " + query_busco_log + " >2 " + query_busco_err)
-                if rc != 0:
+                query_busco_log = open(os.path.join("log","busco_query_" + sample_name + ".log"), "w+")
+                query_busco_err = open(os.path.join("log","busco_query_" + sample_name + ".err"), "w+")
+                query_command = "python " + os.path.join(scripts_dir, "query_busco.py") + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i summary"
+                print(query_command, flush=True)
+                #rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i summary 1> " + query_busco_log + " >2 " + query_busco_err)
+                p = subprocess.Popen([query_command], stdout=query_busco_log, stderr = query_busco_err, shell=True)
+                p.wait()                            
+                if p.returncode != 0:
                     print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
 
 if __name__ == "__main__": 
-    main(args_in = " ".join(sys.argv))
+    main(args_in = " ".join(sys.argv[1:]))
