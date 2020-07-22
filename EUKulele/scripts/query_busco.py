@@ -4,6 +4,9 @@
 # identified as that taxonomic level or lower, also evaluating the number of copies of the BUSCO
 # matches to differentiate between multiple strains. # !/ usr/bin/env python3
 
+# os.path.join("EUKulele/tests/aux_data/test_out","test_out")
+# python query_busco.py --organism_group Chromera --taxonomic_level genus --output_dir check_dir --fasta_file  --sample_name sample_0 --taxonomy_file_prefix   --tax_table " + TAX_TAB + " --busco_out " + busco_table
+
 import pandas as pd
 import numpy as np
 import os
@@ -100,7 +103,10 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
         number_tripled.append(number_appearences.count(3))
         number_quadrupled.append(number_appearences.count(4))
         number_higher_mult.append(len([curr_appear for curr_appear in number_appearences if curr_appear > 4]))
-        prop_duplicated = len(multiples) / len(BUSCOs_covered) * 100
+        prop_duplicated = 0
+        if len(BUSCOs_covered) > 0:
+            prop_duplicated = len(multiples) / len(BUSCOs_covered) * 100
+            
         percent_multiples.append(prop_duplicated)
         
         busco_completeness = len(BUSCOs_covered) / total_buscos * 100
@@ -111,7 +117,7 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
             success_level = level_hierarchy[curr_level]
         curr_level = curr_level - 1
 
-    report_dir = os.path.join(args.output_dir, organism, args.taxonomic_level)
+    report_dir = os.path.join(args.output_dir, organism, taxonomy)
     os.system("mkdir -p " + os.path.join(args.output_dir, organism))
     os.system("mkdir -p " + report_dir)
 
@@ -131,7 +137,7 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
         reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(args.taxonomic_level) + ") were: " + str(busco_scores))
     else:
         reported.write("Sufficient BUSCO completeness not found at threshold " + str(args.busco_threshold) + "%. \n")
-        reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(args.taxonomic_level) + ") were: " + reversed(str(busco_scores)) + "\n")
+        reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(args.taxonomic_level) + ") were: " + str(busco_scores.reverse()) + "\n")
     reported.close()
     return pd.DataFrame({"Organism":[organism] * len(levels_out),"TaxonomicLevel":levels_out,"BuscoCompleteness":busco_scores,"NumberCovered":number_covered,"CtTwoCopies":number_duplicated,"CtThreeCopies":number_tripled,"CtFourCopies":number_quadrupled,"CtFivePlusCopies":number_higher_mult,"PercentageDuplicated":percent_multiples})
 
@@ -159,10 +165,10 @@ if (len(args.organism_group) == 0) != (len(args.taxonomic_level) == 0):
     sys.exit(1)
 
 if (args.individual_or_summary == "individual"):
-    print("organisms are: ")
-    print(organism)
     results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(evaluate_organism)(organism[curr], taxonomy[curr], tax_table, args.create_fasta, args.write_transcript_file) for curr in range(len(organism)))
-    results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, organism, "summary_" + args.sample_name + ".tsv"), sep = "\t")
+    results_frame = pd.concat(results_frame)
+    os.system("mkdir -p " + os.path.join(args.output_dir, "busco_assessment", args.sample_name, "individual"))
+    results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, "busco_assessment", args.sample_name, "individual", "summary_" + args.sample_name + ".tsv"), sep = "\t")
 else:
     for curr_level in level_hierarchy:
         taxonomy = level_hierarchy[curr_level]
@@ -173,6 +179,8 @@ else:
         # need to pull in argument for whether or not to save CSVs 
         results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(
     evaluate_organism)(organism, taxonomy, tax_table, args.create_fasta, args.write_transcript_file) for organism in range(len(organisms)))
-        results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, args.sample_name, taxonomy + "_combined", "summary_" + taxonomy + "_" +  args.sample_name + ".tsv"), sep = "\t")
+        results_frame = pd.concat(results_frame)
+        os.system("mkdir -p " + os.path.join(args.output_dir, "busco_assessment", args.sample_name, taxonomy + "_combined"))
+        results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, "busco_assessment", args.sample_name, taxonomy + "_combined", "summary_" + taxonomy + "_" +  args.sample_name + ".tsv"), sep = "\t")
     # here's where we're doing the cascade through the most popular. Requires that we create a helper function to grab then evaluate those.
     # TODO: assessing the copies of each of the BUSCOs found in the cascade. 
