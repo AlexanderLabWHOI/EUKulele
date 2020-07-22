@@ -1,0 +1,38 @@
+jobname: test 
+mets_or_mags: METs # answer METs or MAGs
+subroutine: all
+nucleotide_extension: .fna 
+protein_extension: .faa
+scratch: scratch
+use_salmon_counts: 0 # if this is set to 1, names_to_reads is used
+salmon_dir: 0
+names_to_reads: 0 # if this file exists in the reference directory (below), this file is used
+download_reference: 1
+database: phylodb
+reference: ../aux_data/mmetsp #aux_data/phylo-db
+output: test_out
+samples: ../aux_data/METs 
+ref_fasta: ref-phylodb-trunc.pep.fa 
+
+# Path for reference taxonomy table and protein JSON file should be relative to reference entry above.
+# You can have the script create these automatically using the input FASTA file(s) for your database and a provided
+# original taxonomy table. 
+tax_table: tax-table.txt #../tax-table-formatted.txt #tax-table-phylodb.txt #taxonomy-table.txt
+protein_map: protein-map.json #../protein-map.json #protein-map-phylodb.json #protein-species-map.json 
+
+# Create taxonomy table automatically
+create_tax_table: 1
+original_tax_table: taxonomy-table.txt
+
+cutoff: tax-cutoffs.yaml 
+consensus_cutoff: 0.75
+alignment_choice: diamond # diamond or blast
+choose_parallel: parallel # parallel or series; whether to run estimate taxonomy in parallel mode (Requires joblib & multiprocessing)
+transdecoder_orfsize: 100
+
+# Options for BUSCO assessment
+individual_or_summary: individual
+organisms:
+    - Phaeocystis;antarctica
+taxonomy_organisms:
+    - species

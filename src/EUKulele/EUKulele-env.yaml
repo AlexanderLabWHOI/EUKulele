@@ -1,0 +1,19 @@
+name: EUKulele
+channels:
+    - bioconda
+    - conda-forge
+    - defaults
+    - anaconda 
+dependencies:
+    - blast 
+    - busco=4.0.6
+    - diamond
+    - transdecoder
+    - ujson
+    - pandas
+    - yaml=0.1.7
+    - chardet
+    - pyyaml=5.1.2
+    - numpy
+    - joblib
+    - pandas
