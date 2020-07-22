@@ -17,7 +17,7 @@ setup(
     author_email="akrinos@mit.edu",
     #packages=find_packages(exclude=("euk-env",)),
     packages=['EUKulele'],
-    package_dir={'EUKulele': 'EUKulele'},
+    package_dir={'EUKulele': 'src/EUKulele'},
     license="MIT",
     include=['code'],
     setup_requires=['pytest-runner'],

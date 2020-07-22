@@ -1,3 +1,0 @@
-#!/bin/bash
-
-python EUKulele_config.py "$@"
