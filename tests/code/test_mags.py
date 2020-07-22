@@ -99,6 +99,41 @@ def test_busco():
     busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "individual", "summary_" + samplenames[0] + ".tsv")
     assert os.path.isfile(busco_out)
     
+def test_all():
+    base_config = os.path.join(os.getcwd(), '..', 'aux_data', 'config.yaml')
+    base_dir = os.path.join('tests', 'aux_data')
+    base_config = os.path.join('tests', 'aux_data', 'config.yaml')
+    with open(base_config) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+       
+    config["mets_or_mags"] = "mags"
+    config["reference"] = os.path.join(base_dir, test_reference)
+    config["samples"] = os.path.join(base_dir, "real-world-samples", "MAGs")
+    config["subroutine"] = "all"
+    config["create_tax_table"] = 1
+    config["individual_or_summary"] = "summary"
+    config["cutoff"] = os.path.join("src","EUKulele","static","tax-cutoffs.yaml")
+    config["output"] = os.path.join(base_dir, "test_out_all")
+    config["database"] = test_reference
+    config["organisms"] = ["Chromera"]
+    config["taxonomy_organisms"] = ["genus"]
+    config["download_reference"] = 0
+    config["column"] = "SOURCE_ID"
+    config["ref_fasta"] = "reference-pep-trunc.pep.faa"
+    config["original_tax_table"] = "taxonomy-table.txt"
+    
+    config_path = os.path.join(base_dir, 'test_configs')
+    os.system("mkdir -p " + config_path)
+    config_file = os.path.join(config_path, 'curr_config_busco.yaml')
+    with open(config_file, 'w') as f:
+        yaml.dump(config, f)
+        
+    EUKulele.eukulele(config=config_file)
+    samplenames = [curr.split(".")[0] for curr in os.listdir(config["samples"])]
+    #busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "individual", "summary_" + samplenames[0] + ".tsv")
+    busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "species_combined", "summary_species_" + samplenames[0] + ".tsv")
+    assert os.path.isfile(busco_out)
+    
 def test_cleanup():
     base_dir = os.path.join('EUKulele', 'tests', 'aux_data')
     config_path = os.path.join(base_dir, 'test_configs')

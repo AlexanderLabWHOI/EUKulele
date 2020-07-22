@@ -15,13 +15,13 @@ organisms:
 - Phaeocystis;antarctica
 original_tax_table: taxonomy-table.txt
 original_taxonomy: taxonomy-table.txt
-output: EUKulele/tests/aux_data/test_out
+output: tests/aux_data/test_out
 protein_extension: .faa
 protein_map: protein-map.json
 ref_fasta: reference-pep-trunc.pep.faa
-reference: EUKulele/tests/aux_data/mmetsp
+reference: tests/aux_data/mmetsp
 salmon_dir: 0
-samples: EUKulele/tests/aux_data/mmetsp/samples_MAGs
+samples: tests/aux_data/mmetsp/samples_MAGs
 scratch: scratch
 subroutine: setup
 tax_table: tax-table.txt

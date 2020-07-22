@@ -3,7 +3,7 @@ choose_parallel: parallel
 column: SOURCE_ID
 consensus_cutoff: 0.75
 create_tax_table: 1
-cutoff: EUKulele/static/tax-cutoffs.yaml
+cutoff: src/EUKulele/static/tax-cutoffs.yaml
 database: mmetsp
 download_reference: 0
 individual_or_summary: individual
@@ -14,13 +14,13 @@ nucleotide_extension: .fna
 organisms:
 - Phaeocystis;antarctica
 original_tax_table: taxonomy-table.txt
-output: EUKulele/tests/aux_data/test_out
+output: tests/aux_data/test_out
 protein_extension: .faa
 protein_map: protein-map.json
 ref_fasta: reference-pep-trunc.pep.faa
-reference: EUKulele/tests/aux_data/mmetsp
+reference: tests/aux_data/mmetsp
 salmon_dir: 0
-samples: EUKulele/tests/aux_data/mmetsp/samples_MAGs
+samples: tests/aux_data/mmetsp/samples_MAGs
 scratch: scratch
 subroutine: alignment
 tax_table: tax-table.txt

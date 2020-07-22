@@ -270,6 +270,7 @@ def main(args_in):
     parser.add_argument('-p', action='store_true') # whether to run in parallel
     parser.add_argument('--busco_threshold', default=50)
     
+    print("this the right file")
     print(args_in)
     
     print(list(filter(None, args_in.split(" "))))
@@ -461,7 +462,8 @@ def main(args_in):
                     fasta = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
 
                 query_busco_log = os.path.join("log","busco_query_" + sample_name + ".log")
-                rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --organism_group " + str(" ".join(args.organisms)) + " --taxonomic_level " + str(" ".join(args.taxonomy_organisms)) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i individual > " + query_busco_log)
+                query_busco_err = os.path.join("log","busco_query_" + sample_name + ".err")
+                rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --organism_group " + str(" ".join(args.organisms)) + " --taxonomic_level " + str(" ".join(args.taxonomy_organisms)) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i individual 1> " + query_busco_log + " >2 " + query_busco_err)
                 if rc != 0:
                     print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
         else:
@@ -475,7 +477,8 @@ def main(args_in):
                     fasta = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
 
                 query_busco_log = os.path.join("log","busco_query_" + sample_name + ".log")
-                rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i summary > " + query_busco_log)
+                query_busco_err = os.path.join("log","busco_query_" + sample_name + ".err")
+                rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i summary 1> " + query_busco_log + " >2 " + query_busco_err)
                 if rc != 0:
                     print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
 

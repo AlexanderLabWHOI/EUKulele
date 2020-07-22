@@ -23,6 +23,7 @@ setup(
     setup_requires=['pytest-runner'],
     test_suite='tests',
     tests_require=['pytest'],
+    scripts=['bin/EUKulele'],
     install_requires=['setuptools','conda','hypothesis',\
         'pandas','numpy','matplotlib','argparse','seaborn',\
         'multiprocess','chardet','biopython',\

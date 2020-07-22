@@ -80,17 +80,20 @@ where the `config` argument allows you to list the path of the configuration `YA
 ### Community guidelines 
 
 #### How to contribute to `EUKulele`
+If you are interested in modifying `EUKulele`, you may fork the project for your own use, as detailed in the [MIT License](https://github.com/AlexanderLabWHOI/EUKulele/blob/master/LICENSE) we have adopted for the project. In order to contribute, please contact the developers via Arianna Krinos (akrinos (at) mit (dot) edu) after making the desired changes, after which a pull request may be submitted. 
 
 #### Submitting an issue
-
+If you have any suggestions for feature additions or any problems with the software that you would like addressed with the development community, please submit an issue on the [Issues tab](https://github.com/AlexanderLabWHOI/EUKulele/issues) of the project `GitHub` repository. You may want to search the existing issues before submitting, to avoid asking a question or requesting a feature that has already been discussed.
 
 #### Asking for help
-If you have questions about how to use `EUKulele`, or would like to seek out collaborations related to this project, you may contact Arianna Krinos at akrinos (at) mit.edu. 
+If you have questions about how to use `EUKulele`, or would like to seek out collaborations related to this project, you may contact Arianna Krinos at akrinos (at) mit (dot) edu. 
 
 ### Acknowledgments
 
-Authors: Arianna Krinos, Sarah Hu, and Harriet Alexander
-Natalie Cohen contributed significantly to project development and testing. 
+Authors: Arianna Krinos, Sarah Hu, and Harriet Alexander.
+
+
+We gratefully acknowledge Natalie Cohen, who contributed significantly to project development and testing. 
 
 ## TO DO
 
