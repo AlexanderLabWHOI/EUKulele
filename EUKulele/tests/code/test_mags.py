@@ -95,9 +95,9 @@ def test_busco():
         yaml.dump(config, f)
         
     EUKulele.eukulele(config=config_file)
-    samplenames = os.listdir(config["samples"])
+    samplenames = [curr.split(".")[0] for curr in os.listdir(config["samples"])]
     #busco_out = os.path.join(config["output"], samplenames[0], "genus_combined", "summary_genus_" + samplenames[0] + ".tsv")
-    busco_out = os.path.join(config["output"], "busco", sample[0], "individual", "summary_" + sample[0] + ".tsv")
+    busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "individual", "summary_" + samplenames[0] + ".tsv")
     assert os.path.isfile(busco_out)
     
 def test_cleanup():
