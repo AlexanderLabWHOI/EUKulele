@@ -95,7 +95,7 @@ def setup(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, column_id, delimiter, 
     else:
         print("Concatenated file already found in output directory; will not re-run step.", flush = True)
 
-    rc1 = os.system("python " + os.path.join(scripts_dir, "create_protein_table.py") + " --infile_peptide " + concatenated_file + " --infile_taxonomy " + original_tax_table + " --output " + str(TAX_TAB)  + " --outfile_json " + str(PROT_TAB) + " --delim " + str(delimiter) + " --strain_col_id " + strain_col_id + " --taxonomy_col_id " + taxonomy_col_id + " --column " + str(column_id) + if_reformat + eukprot)
+    rc1 = os.system("create_protein_table.py" + " --infile_peptide " + concatenated_file + " --infile_taxonomy " + original_tax_table + " --output " + str(TAX_TAB)  + " --outfile_json " + str(PROT_TAB) + " --delim " + str(delimiter) + " --strain_col_id " + strain_col_id + " --taxonomy_col_id " + taxonomy_col_id + " --column " + str(column_id) + if_reformat + eukprot)
     if rc1 != 0:
         print("Taxonomy table and protein JSON file creation step did not complete successfully.")
         sys.exit(1)
@@ -191,7 +191,8 @@ def assign_taxonomy(sample_name, OUTPUTDIR, mets_or_mags):
     max_dir = os.path.join(OUTPUTDIR, mets_or_mags)
     error_log = os.path.join("log", "tax_assign_" + sample_name + ".err")
     out_log = os.path.join("log", "tax_assign_" + sample_name + ".out")
-    rc = os.system("python " + os.path.join(scripts_dir, "mag-stats.py") + " --estimated-taxonomy-file " + taxfile + " --out-prefix " + sample_name + " --outdir " + levels_directory + " --max-out-dir " + max_dir + " 2> " + error_log + " 1> " + out_log)
+    #rc = os.system("python " + os.path.join(scripts_dir, "mag-stats.py") + " --estimated-taxonomy-file " + taxfile + " --out-prefix " + sample_name + " --outdir " + levels_directory + " --max-out-dir " + max_dir + " 2> " + error_log + " 1> " + out_log)
+    rc = os.system("mag-stats.py" + " --estimated-taxonomy-file " + taxfile + " --out-prefix " + sample_name + " --outdir " + levels_directory + " --max-out-dir " + max_dir + " 2> " + error_log + " 1> " + out_log)
     return rc
     
 def run_busco(sample_name, outputdir, busco_db, mets_or_mags, PEP_EXT, NT_EXT, CPUS, OUTPUTDIR, SAMPLE_DIR):
@@ -199,8 +200,8 @@ def run_busco(sample_name, outputdir, busco_db, mets_or_mags, PEP_EXT, NT_EXT, C
         fastaname = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
     else:
         fastaname = os.path.join(SAMPLE_DIR, sample_name + "." + PEP_EXT)
-    os.system("chmod 755 " + os.path.join(scripts_dir, "configure_busco.sh"))
-    os.system("chmod 755 " + os.path.join(scripts_dir, "run_busco.sh"))
+    #os.system("chmod 755 " + os.path.join(scripts_dir, "configure_busco.sh"))
+    #os.system("chmod 755 " + os.path.join(scripts_dir, "run_busco.sh"))
     rc2 = 0
     busco_run_log = os.path.join("log","busco_run.out")
     busco_run_err = os.path.join("log","busco_run.err")
@@ -208,12 +209,11 @@ def run_busco(sample_name, outputdir, busco_db, mets_or_mags, PEP_EXT, NT_EXT, C
     busco_config_err = os.path.join("log","busco_config.err")
     
     if not os.path.isdir(os.path.join("busco_downloads","lineages","eukaryota_odb10")):
-        rc2 = os.system(" ".join([os.path.join(scripts_dir, "configure_busco.sh"), str(sample_name), str(outputdir), outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]) + " >1 " + busco_config_log + " >2 " + busco_config_err)
-    rc1 = os.system(" ".join([os.path.join(scripts_dir, "run_busco.sh"), str(sample_name), str(outputdir), outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]) + " >1 " + busco_run_log + " >2 " + busco_run_err)
+        rc2 = os.system(" ".join(["configure_busco.sh", str(sample_name), str(outputdir), outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]) + " >1 " + busco_config_log + " >2 " + busco_config_err)
+    rc1 = os.system(" ".join(["run_busco.sh", str(sample_name), str(outputdir), outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]) + " >1 " + busco_run_log + " >2 " + busco_run_err)
     return rc1 + rc2
 
 def main(args_in):
-    parser = argparse.ArgumentParser()
     parser = argparse.ArgumentParser(
         description='Thanks for using EUKulele! EUKulele is a standalone taxonomic annotation software.\n'
                     'EUKulele is designed primarily for marine microbial eukaryotes. Check the README '
@@ -356,7 +356,7 @@ def main(args_in):
     os.system("mkdir -p log")
     
     ## Download software dependencies
-    rc1 = os.system("source " + os.path.join(scripts_dir, "install_dependencies.sh references_bins/") + " 1> log/dependency_log.txt 2> log/dependency_err.txt")
+    rc1 = os.system("source " + "install_dependencies.sh references_bins/ 1> log/dependency_log.txt 2> log/dependency_err.txt")
     sys.path.append("references_bins/")
     os.system("echo $PATH > path_test.txt")
     if rc1 != 0:
@@ -411,7 +411,8 @@ def main(args_in):
 
         ## Next to do taxonomy estimation ##
         if (USE_SALMON_COUNTS == 1):
-            rc1 = os.system("python " + os.path.join(scripts_dir, "names_to_reads.py"))
+            #rc1 = os.system("python " + os.path.join(scripts_dir, "names_to_reads.py"))
+            rc1 = "names_to_reads.py"
 
         print("Performing taxonomic estimation steps...", flush=True)
         outfiles = [os.path.join(OUTPUTDIR, mets_or_mags, samp + "-estimated-taxonomy.out") for samp in samples]
@@ -460,7 +461,7 @@ def main(args_in):
 
                 query_busco_log = open(os.path.join("log","busco_query_" + sample_name + ".log"), "w+")
                 query_busco_err = open(os.path.join("log","busco_query_" + sample_name + ".err"), "w+")
-                query_command = "python " + os.path.join(scripts_dir, "query_busco.py") + " --organism_group " + str(" ".join(args.organisms)) + " --taxonomic_level " + str(" ".join(args.taxonomy_organisms)) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i individual"
+                query_command = "query_busco.py" + " --organism_group " + str(" ".join(args.organisms)) + " --taxonomic_level " + str(" ".join(args.taxonomy_organisms)) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i individual"
                 
                 #rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --organism_group " + str(" ".join(args.organisms)) + " --taxonomic_level " + str(" ".join(args.taxonomy_organisms)) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i individual 1> " + query_busco_log + " >2 " + query_busco_err)
                 p = subprocess.Popen([query_command], stdout=query_busco_log, stderr = query_busco_err, shell=True)
@@ -479,7 +480,7 @@ def main(args_in):
 
                 query_busco_log = open(os.path.join("log","busco_query_" + sample_name + ".log"), "w+")
                 query_busco_err = open(os.path.join("log","busco_query_" + sample_name + ".err"), "w+")
-                query_command = "python " + os.path.join(scripts_dir, "query_busco.py") + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i summary"
+                query_command = "query_busco.py" + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i summary"
                 print(query_command, flush=True)
                 #rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i summary 1> " + query_busco_log + " >2 " + query_busco_err)
                 p = subprocess.Popen([query_command], stdout=query_busco_log, stderr = query_busco_err, shell=True)

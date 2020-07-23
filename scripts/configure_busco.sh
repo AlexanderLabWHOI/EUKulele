@@ -17,8 +17,12 @@ BUSCO_DB=$6
 
 URL="https://busco-data.ezlab.org/v4/data"
 
-mkdir -p busco_downloads
-wget -nd -r --no-parent -A $BUSCO_DB.*.tar.gz $URL/lineages/
-tar -xvzf $BUSCO_DB.*.tar.gz
-rm $BUSCO_DB.*.tar.gz
-mv $BUSCO_DB busco_downloads/lineages/$BUSCO_DB
+mkdir -p busco_downloads/lineages
+wget -nd -r --no-parent -A $BUSCO_DB.*.tar.gz $URL/lineages/ > /dev/null
+if [ -f $BUSCO_DB.*.tar.gz ]; then
+    tar -xvzf $BUSCO_DB.*.tar.gz
+    rm -f $BUSCO_DB.*.tar.gz # possible race condition
+fi
+if [[ ! -f busco_downloads/lineages/$BUSCO_DB ]]; then
+    mv -f $BUSCO_DB busco_downloads/lineages/$BUSCO_DB
+fi

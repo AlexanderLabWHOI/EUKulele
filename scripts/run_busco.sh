@@ -33,5 +33,6 @@ echo "python3 busco_configurator.py $BUSCO_CONFIG_FILE $CONFIG_LOC"
 sed -i '/out = /c\out = '$SAMPLENAME $CONFIG_LOC # the name of the output files
 sed -i '/out_path = /c\out_path = '$OUTPUTDIR $CONFIG_LOC # what directory the output will be stored in
 sed -i '/download_path = /c\download_path = ./busco_downloads/' $CONFIG_LOC
-./references_bins/busco/bin/busco -i $INPUT_FASTA -l $BUSCO_DB -m proteins --cpu $CPUS --config $CONFIG_LOC -o $SAMPLENAME -f --offline
+# ./references_bins/busco/bin/busco
+busco -i $INPUT_FASTA -l $BUSCO_DB -m proteins --cpu $CPUS --config $CONFIG_LOC -o $SAMPLENAME -f --offline
 mv $OUTPUTDIR/$SAMPLENAME/*/* $OUTPUTDIR/$SAMPLENAME
