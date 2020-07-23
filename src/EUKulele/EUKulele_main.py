@@ -14,9 +14,13 @@ import subprocess
 import shutil
 import glob
 from joblib import Parallel, delayed
-sys.path.insert(1, 'EUKulele/scripts')
-sys.path.insert(1, 'src/EUKulele')
-sys.path.insert(1, 'scripts')
+
+abs_path = os.path.abspath(os.path.dirname(__file__))
+
+sys.path.insert(1, os.path.join(abs_path))
+sys.path.insert(1, os.path.join(abs_path, "..", "..", "scripts"))
+#sys.path.insert(1, 'src/EUKulele')
+#sys.path.insert(1, 'scripts')
 
 import tax_placement
 from tax_placement import *

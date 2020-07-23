@@ -14,18 +14,14 @@ setup(
     url="https://github.com/AlexanderLabWHOI/EUKulele",
     author="Arianna Krinos",
     author_email="akrinos@mit.edu",
-    #packages=find_packages(exclude=("euk-env",)),
-    packages=find_packages('EUKulele'),
-    package_dir={'': 'src'},
-    #py_modules=[os.path.splitext(os.path.basename(path))[0] for path in glob('src/EUKulele/*.py')],
-    #packages=['EUKulele'],
-    #package_dir={'EUKulele': 'src'}, #src/EUKulele
+    packages=['EUKulele'],
+    package_dir={'EUKulele': 'src/EUKulele'},
+    scripts=['bin/EUKulele'],
     license="MIT",
     include=['code'],
     setup_requires=['pytest-runner'],
     test_suite='tests',
     tests_require=['pytest'],
-    scripts=['bin/EUKulele'],
     install_requires=['setuptools','hypothesis',\
         'pandas','numpy','matplotlib','argparse','seaborn',\
         'multiprocess','chardet','biopython',\
