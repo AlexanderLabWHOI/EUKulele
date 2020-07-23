@@ -13,3 +13,4 @@ glob
 joblib
 json
 pyyaml
+matplotlib

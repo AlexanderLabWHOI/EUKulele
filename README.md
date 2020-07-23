@@ -100,6 +100,44 @@ EUKulele.eukulele(string_arguments=string_of_arguments)
 
 where `string_of_arguments` is a string containing the non-default `EUKulele` options you wish to specify.
 
+### Running a sample
+
+To test drive EUKulele, you can run the following:
+
+```
+wget https://www.dropbox.com/s/l4kvbpqftdad5ib/sample_eukulele.tar.gz?dl=1
+tar xzf sample_eukulele.tar.gz?dl=1
+```
+
+Then `cd` into `sample_EUKulele`. A problem with tarring across systems and through Dropbox requires you to run: 
+
+```
+rm samples_MAGs/._sample_*
+```
+
+Create a conda environment and activate it, using:
+
+```
+conda env create -f EUKulele-env.yaml
+conda activate EUKulele
+```
+
+Then download `EUKulele` via `pip` using:
+
+```
+python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps EUKulele==0.1.6
+```
+
+If any dependency is not satisfied, you can install it manually using `pip install <requirement> --user`. 
+
+Once everything is setup and all dependencies satisfied, from within `sample_EUKulele`, run:
+
+```
+EUKulele --config curr_config.yaml
+```
+
+Then check the folder `test_out_23July` in the current directory.
+
 ### Community guidelines 
 
 #### How to contribute to `EUKulele`

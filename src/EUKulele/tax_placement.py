@@ -211,7 +211,7 @@ def classify_taxonomy(df, tax_dict, consensus_cutoff, tax_cutoffs):
     return outdf
 
 def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,use_counts,names_to_reads,diamond_file,outfile,method,rerun):
-    if (os.path.isfile(outfile)) | rerun:
+    if (os.path.isfile(outfile)) & (not rerun):
         print("Taxonomic placement already complete; will not re-run step.")
         return pd.read_csv(outfile, sep = "\t")
     

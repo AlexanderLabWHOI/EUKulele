@@ -22,7 +22,8 @@ wget -nd -r --no-parent -A $BUSCO_DB.*.tar.gz $URL/lineages/ > /dev/null
 if [ -f $BUSCO_DB.*.tar.gz ]; then
     tar -xvzf $BUSCO_DB.*.tar.gz
     rm -f $BUSCO_DB.*.tar.gz # possible race condition
-fi
-if [[ ! -f busco_downloads/lineages/$BUSCO_DB ]]; then
     mv -f $BUSCO_DB busco_downloads/lineages/$BUSCO_DB
 fi
+#if [[ ! -f busco_downloads/lineages/$BUSCO_DB ]]; then
+#    mv -f $BUSCO_DB busco_downloads/lineages/$BUSCO_DB
+#fi

@@ -30,6 +30,12 @@ from visualize_results import *
 
 scripts_dir = os.path.join("scripts")
 
+import scripts as HelperScripts
+from scripts.create_protein_table import createProteinTable
+from scripts.mag_stats import magStats
+from scripts.names_to_reads import namesToReads
+from scripts.query_busco import queryBusco
+
 __author__ = "Harriet Alexander, Arianna Krinos"
 __copyright__ = "EUKulele"
 __license__ = "MIT"
@@ -76,6 +82,9 @@ def download_database(database_name, ref_db_location):
     return fasta_name, orig_tax_name, column_id
 
 def setup(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, column_id, delimiter, original_tax_table, taxonomy_col_id, reformat, database, alignment_choice, REFERENCE_FASTAS, DATABASE_DIR, RERUN_RULES, strain_col_id, OUTPUTDIR):
+    concatenated_file = os.path.join(OUTPUTDIR, "concatfasta.fasta")
+    create_protein_table_args = ["--infile_peptide",concatenated_file,"--infile_taxonomy",original_tax_table,"--output",str(TAX_TAB),"--outfile_json",str(PROT_TAB),"--delim",str(delimiter),"--strain_col_id",strain_col_id,"--taxonomy_col_id", taxonomy_col_id,"--column",str(column_id)]
+    
     if create_tax_table:
         if original_tax_table == "":
             print("You must provide a taxonomy table via the argument 'original_tax_table' if you wish to run a taxonomy, or specify that the reference database should be downloaded.")
@@ -83,19 +92,19 @@ def setup(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, column_id, delimiter, 
         eukprot = ""
         if_reformat = ""
         if database == "eukprot":
-            eukprot = " --euk-prot "
+            eukprot = create_protein_table_args.append("--euk-prot")
         if reformat:
-            if_reformat = " --reformat_tax "
+            if_reformat = create_protein_table_args.append("--reformat_tax")
 
     ## Concatenate potential list of input FASTA files ##
-    concatenated_file = os.path.join(OUTPUTDIR, "concatfasta.fasta")
-    if (not os.path.isfile(concatenated_file)) | RERUN_RULES:
+    if (not os.path.isfile(concatenated_file)) & (not RERUN_RULES):
         space_delim = " ".join(REFERENCE_FASTAS)
         p1 = os.system("for currfile in " + space_delim + "; do ((cat $currfile | sed 's/\./N/g'); echo; echo) >> " + concatenated_file + "; done")
     else:
         print("Concatenated file already found in output directory; will not re-run step.", flush = True)
 
-    rc1 = os.system("create_protein_table.py" + " --infile_peptide " + concatenated_file + " --infile_taxonomy " + original_tax_table + " --output " + str(TAX_TAB)  + " --outfile_json " + str(PROT_TAB) + " --delim " + str(delimiter) + " --strain_col_id " + strain_col_id + " --taxonomy_col_id " + taxonomy_col_id + " --column " + str(column_id) + if_reformat + eukprot)
+    ## Run function to create protein table file from scripts/create_protein_table.py
+    rc1 = createProteinTable(create_protein_table_args)
     if rc1 != 0:
         print("Taxonomy table and protein JSON file creation step did not complete successfully.")
         sys.exit(1)
@@ -103,7 +112,7 @@ def setup(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, column_id, delimiter, 
     error_log = "alignment_err.log"
     if alignment_choice == "diamond":
         align_db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa') + '.dmnd')
-        if (not os.path.isfile(align_db)) | RERUN_RULES:
+        if (not os.path.isfile(align_db)) & (not RERUN_RULES):
             ## DIAMOND database creation ##
             db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa'))
             os.system("diamond makedb --in " + concatenated_file + " --db " + db + " 1> " + output_log + " 2> " + error_log)
@@ -117,7 +126,7 @@ def setup(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, column_id, delimiter, 
 
 def transdecode_to_peptide(sample_name):
     os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder"))
-    if (os.path.isfile(os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT))) | RERUN_RULES:
+    if (os.path.isfile(os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT))) & (not RERUN_RULES):
         print("TransDecoder file already detected for sample " + str(sample_name) + "; will not re-run step.")
         return 0
     returncode1 = os.system("TransDecoder.LongOrfs -t " + os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT) + " -m " + str(TRANSDECODERORFSIZE) + " 2> " + os.path.join("log", "transdecoder_error_" + sample_name + ".err") + " 1> " + os.path.join("log", "transdecoder_out_" + sample_name + ".out"))
@@ -141,7 +150,7 @@ def align_to_database(alignment_choice, sample_name, filter_metric, OUTPUTDIR, R
     if alignment_choice == "diamond":
         os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags, "diamond"))
         diamond_out = os.path.join(OUTPUTDIR, mets_or_mags, "diamond", sample_name + ".diamond.out")
-        if (os.path.isfile(diamond_out)) | RERUN_RULES:
+        if (os.path.isfile(diamond_out)) & (not RERUN_RULES):
             print("Diamond alignment file already detected; will not re-run step.")
             return diamond_out
         
@@ -158,7 +167,7 @@ def align_to_database(alignment_choice, sample_name, filter_metric, OUTPUTDIR, R
         diamond_log = os.path.join("log","diamond_align_" + sample_name + ".log")
         diamond_err = os.path.join("log","diamond_align_" + sample_name + ".err")
         if filter_metric == "bitscore":
-            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " --min-score " + str(bitscore) + " 2> " + diamond_log + " 1> " + diamond_err)
+            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " --min-score " + str(bitscore) + " 1> " + diamond_log + " 2> " + diamond_err)
         else:
             rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " -e " + str(e) + " 1> " + diamond_log + " 2> " + diamond_err)
         if rc1 != 0:
@@ -168,7 +177,7 @@ def align_to_database(alignment_choice, sample_name, filter_metric, OUTPUTDIR, R
         return diamond_out
     else:
         blast_out = os.path.join(OUTPUTDIR, mets_or_mags, "blast", sample_name + ".blast.txt")
-        if (os.path.isfile(blast_out)) | RERUN_RULES:
+        if (os.path.isfile(blast_out)) & (not RERUN_RULES):
             print("BLAST alignment file already detected; will not re-run step.")
             return blast_out
         align_db = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa'), "database")
@@ -192,7 +201,13 @@ def assign_taxonomy(sample_name, OUTPUTDIR, mets_or_mags):
     error_log = os.path.join("log", "tax_assign_" + sample_name + ".err")
     out_log = os.path.join("log", "tax_assign_" + sample_name + ".out")
     #rc = os.system("python " + os.path.join(scripts_dir, "mag-stats.py") + " --estimated-taxonomy-file " + taxfile + " --out-prefix " + sample_name + " --outdir " + levels_directory + " --max-out-dir " + max_dir + " 2> " + error_log + " 1> " + out_log)
-    rc = os.system("mag-stats.py" + " --estimated-taxonomy-file " + taxfile + " --out-prefix " + sample_name + " --outdir " + levels_directory + " --max-out-dir " + max_dir + " 2> " + error_log + " 1> " + out_log)
+    #rc = os.system("mag-stats.py" + " --estimated-taxonomy-file " + taxfile + " --out-prefix " + sample_name + " --outdir " + levels_directory + " --max-out-dir " + max_dir + " 2> " + error_log + " 1> " + out_log)
+    
+    sys.stdout = open(out_log, "w")
+    sys.stderr = open(error_log, "w")
+    rc = magStats(["--estimated-taxonomy-file",taxfile,"--out-prefix",sample_name,"--outdir",levels_directory,"--max-out-dir",max_dir])
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
     return rc
     
 def run_busco(sample_name, outputdir, busco_db, mets_or_mags, PEP_EXT, NT_EXT, CPUS, OUTPUTDIR, SAMPLE_DIR):
@@ -227,6 +242,7 @@ def main(args_in):
     parser.add_argument('--force_rerun', action='store_true', default=False)
     parser.add_argument('--download_reference', action='store_true', default=False)
     parser.add_argument('--scratch', default = '../scratch') # the scratch location to store intermediate files
+    parser.add_argument('--config_file', default = '')
 
     ## SALMON OPTIONS ##
     parser.add_argument('--use_salmon_counts', type = int, default = 0)
@@ -409,10 +425,10 @@ def main(args_in):
             print("Alignment did not complete successfully.")
             sys.exit(1)
 
-        ## Next to do taxonomy estimation ##
+        ## Next to do taxonomy estimation (NOTE: currently only supported with a config file. ##
         if (USE_SALMON_COUNTS == 1):
-            #rc1 = os.system("python " + os.path.join(scripts_dir, "names_to_reads.py"))
-            rc1 = "names_to_reads.py"
+            if args.config_file != "":
+                rc1 = namesToReads(args.config_file)
 
         print("Performing taxonomic estimation steps...", flush=True)
         outfiles = [os.path.join(OUTPUTDIR, mets_or_mags, samp + "-estimated-taxonomy.out") for samp in samples]
@@ -461,12 +477,17 @@ def main(args_in):
 
                 query_busco_log = open(os.path.join("log","busco_query_" + sample_name + ".log"), "w+")
                 query_busco_err = open(os.path.join("log","busco_query_" + sample_name + ".err"), "w+")
-                query_command = "query_busco.py" + " --organism_group " + str(" ".join(args.organisms)) + " --taxonomic_level " + str(" ".join(args.taxonomy_organisms)) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i individual"
+                sys.stdout = query_busco_log
+                sys.stderr = query_busco_err
+                query_args = ["--organism_group",str(" ".join(args.organisms)),"--taxonomic_level",str(" ".join(args.taxonomy_organisms)),"--output_dir",OUTPUTDIR,"--fasta_file",fasta,"--sample_name",sample_name,"--taxonomy_file_prefix",taxfile_stub,"--tax_table",TAX_TAB,"--busco_out",busco_table,"-i","individual"]
+                rc = queryBusco(query_args)
                 
+                sys.stdout = sys.__stdout__
+                sys.stderr = sys.__stderr__
                 #rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --organism_group " + str(" ".join(args.organisms)) + " --taxonomic_level " + str(" ".join(args.taxonomy_organisms)) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i individual 1> " + query_busco_log + " >2 " + query_busco_err)
-                p = subprocess.Popen([query_command], stdout=query_busco_log, stderr = query_busco_err, shell=True)
-                p.wait()                            
-                if p.returncode != 0:
+                #p = subprocess.Popen([query_command], stdout=query_busco_log, stderr = query_busco_err, shell=True)
+                #p.wait()                            
+                if rc != 0:
                     print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
         else:
             for sample_name in samples:

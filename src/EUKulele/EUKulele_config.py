@@ -64,8 +64,8 @@ def eukulele_cl():
     EUKulele.EUKulele_main.main(str(euk_args)) 
     #os.system("python EUKulele_main.py " + str(euk_args))   
 
-def parseConfig(configfile):
-    with open(configfile, 'r') as configfile:
+def parseConfig(config_file):
+    with open(config_file, 'r') as configfile:
         config = yaml.safe_load(configfile)
 
     args = ""
@@ -80,6 +80,7 @@ def parseConfig(configfile):
     ## BASIC OPTIONS ##
     if "subroutine" in config:
         args = args + str(config["subroutine"]) + " "
+    args = args + " --config_file " + str(config_file)
     args = args + " --mets_or_mags " + str(config["mets_or_mags"])
     args = args + " --reference_dir " + str(config["reference"])
     args = args + " --sample_dir " + str(config["samples"])

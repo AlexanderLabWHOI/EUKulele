@@ -53,13 +53,16 @@ def get_max_levels(tax_dict):
             max_df.loc[key]=np.nan, max_val
     return(max_df)
 
-if __name__ == "__main__":
+def magStats(args=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--estimated-taxonomy-file')
     parser.add_argument('--out-prefix')
     parser.add_argument('--outdir')
     parser.add_argument('--max-out-dir')
-    args = parser.parse_args()
+    if args != None:
+        args = parser.parse_args(args)
+    else:
+        args = parser.parse_args()
     estimated_tax = pd.read_csv(args.estimated_taxonomy_file, sep='\t', index_col=0)
     split_taxonomy_df = split_taxonomy(estimated_tax)
     tax_dict = create_tax_dictionary(split_taxonomy_df)
@@ -77,3 +80,7 @@ if __name__ == "__main__":
     for l in levels:
         tax_dict[l].to_csv(os.path.join(args.outdir, args.out_prefix+'.'+l), header=False, sep='\t')
     max_df.to_csv(os.path.join(args.max_out_dir, args.out_prefix + '-max-level.csv'), sep='\t')
+    return 0
+    
+if __name__ == "__main__":
+    magStats()

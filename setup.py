@@ -14,10 +14,10 @@ setup(
     url="https://github.com/AlexanderLabWHOI/EUKulele",
     author="Arianna Krinos",
     author_email="akrinos@mit.edu",
-    packages=['EUKulele'],
+    packages=['EUKulele','scripts'],
     package_dir={'EUKulele': 'src/EUKulele'},
     scripts=['bin/EUKulele','scripts/create_protein_table.py',\
-             'scripts/mag-stats.py','scripts/names_to_reads.py','scripts/query_busco.py',\
+             'scripts/mag_stats.py','scripts/names_to_reads.py','scripts/query_busco.py',\
              'scripts/configure_busco.sh','scripts/run_busco.sh','scripts/install_dependencies.sh'],
     license="MIT",
     include=['code'],
