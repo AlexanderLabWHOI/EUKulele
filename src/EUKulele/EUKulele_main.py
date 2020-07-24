@@ -14,6 +14,7 @@ import subprocess
 import shutil
 import glob
 from joblib import Parallel, delayed
+import pkgutil
 
 abs_path = os.path.abspath(os.path.dirname(__file__))
 
@@ -29,6 +30,8 @@ from visualize_results import *
 import EUKulele
 from EUKulele.setup_EUKulele import setupEukulele
 from EUKulele.setup_EUKulele import setupDatabases
+from EUKulele.transdecode_to_peptide import transdecodeToPeptide
+from EUKulele.download_database import downloadDatabase
 
 import scripts as HelperScripts
 from scripts.create_protein_table import createProteinTable
@@ -40,75 +43,6 @@ __author__ = "Harriet Alexander, Arianna Krinos"
 __copyright__ = "EUKulele"
 __license__ = "MIT"
 __email__ = "akrinos@mit.edu"
-
-
-def setup(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, column_id, delimiter, original_tax_table, taxonomy_col_id, reformat, database, alignment_choice, REFERENCE_FASTAS, DATABASE_DIR, RERUN_RULES, strain_col_id, OUTPUTDIR):
-    concatenated_file = os.path.join(OUTPUTDIR, "concatfasta.fasta")
-    create_protein_table_args = ["--infile_peptide",concatenated_file,"--infile_taxonomy",original_tax_table,"--output",str(TAX_TAB),"--outfile_json",str(PROT_TAB),"--delim",str(delimiter),"--strain_col_id",strain_col_id,"--taxonomy_col_id", taxonomy_col_id,"--column",str(column_id)]
-    
-    if create_tax_table:
-        if original_tax_table == "":
-            print("You must provide a taxonomy table via the argument 'original_tax_table' if you wish to run a taxonomy, or specify that the reference database should be downloaded.")
-            sys.exit(1)
-        eukprot = ""
-        if_reformat = ""
-        if database == "eukprot":
-            eukprot = create_protein_table_args.append("--euk-prot")
-        if reformat:
-            if_reformat = create_protein_table_args.append("--reformat_tax")
-
-    ## Concatenate potential list of input FASTA files ##
-    if (not os.path.isfile(concatenated_file)) | (RERUN_RULES):
-        space_delim = " ".join(REFERENCE_FASTAS)
-        p1 = os.system("for currfile in " + space_delim + "; do ((cat $currfile | sed 's/\./N/g'); echo; echo) >> " + concatenated_file + "; done")
-    else:
-        print("Concatenated file already found in output directory; will not re-run step.", flush = True)
-
-    ## Run function to create protein table file from scripts/create_protein_table.py
-    rc1 = createProteinTable(create_protein_table_args)
-    if rc1 != 0:
-        print("Taxonomy table and protein JSON file creation step did not complete successfully.")
-        sys.exit(1)
-    output_log = "alignment_out.log"
-    error_log = "alignment_err.log"
-    if alignment_choice == "diamond":
-        align_db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa') + '.dmnd')
-        if (not os.path.isfile(align_db)) | (RERUN_RULES):
-            ## DIAMOND database creation ##
-            db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa'))
-            os.system("diamond makedb --in " + concatenated_file + " --db " + db + " 1> " + output_log + " 2> " + error_log)
-        else:
-            print("Diamond database file already created; will not re-create database.", flush = True)
-    else:
-        db = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa'), "database")
-        db_type = "prot"
-        blast_version = 5
-        os.system("makeblastdb -in " + concatenated_file + " -parse_seqids -blastdb_version " + str(blast_version) + " -title " + database + " -dbtype " + db_type + " -out " + db)
-
-def transdecode_to_peptide(sample_name):
-    ## THIS ALL NEEDS TO BE A CALLED BASH SCRIPT - look into subprocess.Popen with bash arguments
-    os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder"))
-    if (os.path.isfile(os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT))) & (not RERUN_RULES):
-        print("TransDecoder file already detected for sample " + str(sample_name) + "; will not re-run step.")
-        return 0
-    rc1 = os.system("TransDecoder.LongOrfs -t " + os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT) + " -m " + str(TRANSDECODERORFSIZE) + " 2> " + os.path.join("log", "transdecoder_error_" + sample_name + ".err") + " 1> " + os.path.join("log", "transdecoder_out_" + sample_name + ".out"))
-    rc2 = os.system("TransDecoder.Predict -t " + os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT) + " --no_refine_starts 2>> " + os.path.join("log", "transdecoder_error_" + sample_name + ".err") + " 1>> " + os.path.join("log", "transdecoder_out_" + sample_name + ".out"))
-    
-    if (rc1 + rc2) != 0:
-        print("TransDecoder did not complete successfully for sample " + str(sample_name) + ". Check log/ folder for details.")
-        sys.exit(1)
-        
-    merged_name = sample_name + "." + NT_EXT
-    
-    os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags))
-    os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder"))
-    
-    os.replace(merged_name + ".transdecoder.pep", os.path.join(OUTPUTDIR, mets_or_mags,  sample_name + "." + PEP_EXT))
-    os.replace(merged_name + ".transdecoder.cds", os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder", sample_name + ".fasta.transdecoder.cds"))
-    os.replace(merged_name + ".transdecoder.gff3", os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder", sample_name + ".fasta.transdecoder.gff3"))
-    os.replace(merged_name + ".transdecoder.bed", os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder", sample_name + ".fasta.transdecoder.bed"))
-    shutil.rmtree(merged_name + ".transdecoder_dir*")
-    return rc1 + rc2
 
 def align_to_database(alignment_choice, sample_name, filter_metric, OUTPUTDIR, REF_FASTA, mets_or_mags, DATABASE_DIR, SAMPLE_DIR, RERUN_RULES, NT_EXT, PEP_EXT):
     if alignment_choice == "diamond":
@@ -200,8 +134,7 @@ def main(args_in):
     parser.add_argument('--mets_or_mags', required = True) 
     parser.add_argument('--n_ext', '--nucleotide_extension', dest = "nucleotide_extension", default = ".fasta") 
     parser.add_argument('--p_ext', '--protein_extension', dest = "protein_extension", default = ".faa") 
-    parser.add_argument('--force_rerun', action='store_true', default=False)
-    parser.add_argument('--download_reference', action='store_true', default=False)
+    parser.add_argument('f', '--force_rerun', action='store_true', default=False)
     parser.add_argument('--scratch', default = '../scratch') # the scratch location to store intermediate files
     parser.add_argument('--config_file', default = '')
 
@@ -212,26 +145,15 @@ def main(args_in):
 
     ## WHERE FILES ARE LOCATED ##
     parser.add_argument('--database', default="mmetsp") # the name of the database to be used to assess the reads
-    parser.add_argument('--reference_dir', required = True) # folder containing the reference files for the chosen database
     parser.add_argument('-o','--out_dir', dest = "out_dir", default = "output") # folder where the output will be written
     parser.add_argument('--sample_dir', required = True) # folder where the input data is located (the protein or peptide files to be assessed)
-    # NOTE: make sure that the default reference.fasta name is used when later I provide a mechanism for downloading and formatting select databases.
+    
+    ## ONLY SPECIFY THESE ARGUMENTS IF YOU HAVE ALREADY PROVIDED AND FORMATTED YOUR OWN DATABASE ##
+    parser.add_argument('--reference_dir', default="") # folder containing the reference files for the chosen database
     parser.add_argument('--ref_fasta', default = "reference.pep.fa") # either a file in the reference directory where the fasta file for the database is located, or a directory containing multiple fasta files that constitute the database.
-    #parser.add_argument('--ref_fasta_ext', default = ".fasta") # if a directory is given for ref_fasta and the extension of the files differs from .fasta, specify it via this argument.
-
-    ## TAXONOMY TABLE AND PROTEIN JSON FILE ## 
-    parser.add_argument('--create_tax_table', action='store_true') # include this file if you wish for the protein dictionary file and the taxonomy table to be created from the reference fasta(s) that you have provided. Otherwise, these files should be called "tax-table.txt" and "protein-map.json" and should be located in your reference_dir, unless specified via the below flags.
-    parser.add_argument('--original_tax_table', default = "", type = str) # this is required if you have specified "create_tax_table"
-    parser.add_argument('--strain_col_id',  type=str, default = 'strain_name') # the column which indicates the name of the strain in the taxonomy file
-    parser.add_argument('--taxonomy_col_id',  type=str, default = 'taxonomy') # the column which indicates the taxonomy of the strain in the taxonomy file
-    parser.add_argument('--column', type=str, default = 'SOURCE_ID') # can be numeric, zero-indexed, if it's a delimited part of header
-    # set to true if there is a column called "taxonomy" that we wish to split
-    parser.add_argument('--reformat_tax', dest='reformat', default=False, action='store_true') 
-
-    parser.add_argument('--delimiter', default = "/", type = str)
     parser.add_argument('--tax_table', default = "tax-table.txt")
     parser.add_argument('--protein_map', default = "protein-map.json")
-
+    
     ## ALIGNMENT OPTIONS ##
     parser.add_argument('--alignment_choice', default = "diamond", choices = ["diamond", "blast"])
 
@@ -243,13 +165,13 @@ def main(args_in):
     parser.add_argument('--taxonomy_organisms', default = "", nargs = "+") # taxonomic level of organisms specified in organisms tag
 
     ## OTHER USER CHOICES ## 
-    parser.add_argument('--cutoff_file', default = "static/tax-cutoffs.yaml")
+    cutoff_file = pkgutil.get_data(__name__, "src/EUKulele/static/tax-cutoffs.yaml")
+    parser.add_argument('--cutoff_file', default = cutoff_file)
     parser.add_argument('--filter_metric', default = "evalue", choices = ["pid", "evalue", "bitscore"])
     parser.add_argument('--consensus_cutoff', default = 0.75, type = float)
     parser.add_argument('--transdecoder_orfsize', default = 100, type = int)
 
-    parser.add_argument('--CPUs', default=1)
-    parser.add_argument('-p', action='store_true') # whether to run in parallel
+    parser.add_argument('--CPUs', default=multiprocessing.cpu_count())
     parser.add_argument('--busco_threshold', default=50)
                
     args = parser.parse_args(list(filter(None, args_in.split(" "))))
@@ -260,7 +182,7 @@ def main(args_in):
     CONSENSUS_CUTOFF = args.consensus_cutoff
     REFERENCE_DIR = args.reference_dir
     OUTPUTDIR = args.out_dir
-    DATABASE_DIR = os.path.join(REFERENCE_DIR, "database")
+    DATABASE_DIR = os.path.join(args.database)
     SAMPLE_DIR = args.sample_dir
     REF_FASTA = args.ref_fasta
     ## Convert reference FASTA file or directory to the proper path.
@@ -289,8 +211,7 @@ def main(args_in):
     NT_EXT = args.nucleotide_extension.strip('.')
     PEP_EXT = args.protein_extension.strip('.')
     mets_or_mags = args.mets_or_mags.lower()
-    create_tax_table = args.create_tax_table
-    original_tax_table = os.path.join(REFERENCE_DIR, args.original_tax_table)
+    
     if (mets_or_mags != "mets") & (mets_or_mags != "mags"):
         print("Only METs or MAGs are supported as input data types. Please update the 'mets_or_mags' flag accordingly.")
         sys.exit(1)
@@ -331,12 +252,14 @@ def main(args_in):
     setupEukulele()
 
     ## Download the reference database if specified.
-    if args.download_reference:
-        create_tax_table = 1
-        SETUP = 1
-        REF_FASTA = download_database(args.database.lower(), REFERENCE_DIR)
+    if (args.reference_dir == "") | (not os.path.isdir(args.referencedir)) | \
+        (not os.path.isdir(os.path.join(args.referencedir), REF_FASTA)):
+        print("Automatically downloading database " + args.database.lower() + ". If you intended to " + \
+              "use an existing database folder, be sure a reference FASTA, protein map, and taxonomy table " + \
+              "are provided. Check the documentation for details.")
+        REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), args.alignment_choice)
 
-    if SETUP | create_tax_table:
+    if SETUP:
         setupDatabases(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, args.column, args.delimiter, original_tax_table, args.taxonomy_col_id, args.reformat, args.database, args.alignment_choice, REFERENCE_FASTAS, DATABASE_DIR, RERUN_RULES, args.strain_col_id, OUTPUTDIR)
 
     if (mets_or_mags == "mets"):
@@ -347,7 +270,7 @@ def main(args_in):
             print("No samples found in sample directory with specified nucleotide extension.")
         if ALIGNMENT:
             n_jobs_align = min(multiprocessing.cpu_count(), len(samples))
-            transdecoder_res = Parallel(n_jobs=n_jobs_align)(delayed(transdecode_to_peptide)(sample_name) for sample_name in samples)
+            transdecoder_res = Parallel(n_jobs=n_jobs_align)(delayed(transdecodeToPeptide)(sample_name) for sample_name in samples)
             all_codes = sum(transdecoder_res)
             if all_codes > 0:
                 print("TransDecoder did not complete successfully; check log folder for details.")
@@ -402,8 +325,8 @@ def main(args_in):
                 print("Taxonomic assignment of MAGs did not complete successfully. Check log files for details.")
                 sys.exit(1)
 
-    print("Performing BUSCO steps...", flush=True)
     if BUSCO:
+        print("Performing BUSCO steps...", flush=True)
         print("Running busco...")
         ## Run BUSCO on the full dataset ##
         busco_db = "eukaryota_odb10"

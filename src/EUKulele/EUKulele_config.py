@@ -57,7 +57,7 @@ def parseConfig(config_file):
     args = ""
 
     ## CHECK THAT ALL OPTIONS WITHOUT DEFAULTS EXIST IN CONFIGURATION FILE ##
-    required_entries = ["mets_or_mags","reference","samples","cutoff"]
+    required_entries = ["mets_or_mags","samples"]
     for r in required_entries:
         if r not in config:
             print("You did not include required entry: " + str(r) + " in the configuration file.")
@@ -68,8 +68,12 @@ def parseConfig(config_file):
         args = args + str(config["subroutine"]) + " "
     args = args + " --config_file " + str(config_file)
     args = args + " --mets_or_mags " + str(config["mets_or_mags"])
-    args = args + " --reference_dir " + str(config["reference"])
-    args = args + " --sample_dir " + str(config["samples"])
+    
+    ## If reference_dir is provided, databases are not downloaded.
+    if "reference_dir" in config:
+        args = args + " --reference_dir " + str(config["reference"])
+    if "sample_dir" in config:
+        args = args + " --sample_dir " + str(config["samples"])
     if "ref_fasta" in config: # otherwise, this will default to reference.pep.fa! Set automatically if database is auto-downloaded ("download_reference", below)
         args = args + " --ref_fasta " + str(config["ref_fasta"])
     if "output" in config:
@@ -80,13 +84,8 @@ def parseConfig(config_file):
         args = args + " --nucleotide_extension " + str(config["nucleotide_extension"])
     if "protein_extension" in config:
         args = args + " --protein_extension " + str(config["protein_extension"])
-    if "download_reference" in config:
-        if config["download_reference"] == 1:
-            args = args + " --download_reference"
     if "scratch" in config:
         args = args + " --scratch " + str(config["scratch"])
-    if "ref_fasta_ext" in config:
-        args = args + " --ref_fasta_ext " + str(config["ref_fasta_ext"])
     if "force_rerun" in config:
         if config["force_rerun"] == 1:
             args = args + " --force_rerun"
@@ -131,15 +130,6 @@ def parseConfig(config_file):
         args = args + " --taxonomy_organisms " + str(" ".join(config["taxonomy_organisms"]))
     if "busco_threshold" in config:
         args = args + " --busco_threshold " + str(config["busco_threshold"])
-
-    ## AUTOMATIC TAXONOMY TABLE CREATION ##
-    if ("create_tax_table" in config) & (config["create_tax_table"] == 1):
-        args = args + " --create_tax_table"
-        if ("original_tax_table" not in config):
-            print("You have specified that the program should create a formatted tax table, but did not provide an original taxonomy file.")
-            sys.exit(1)
-        original_tax_table = config["original_tax_table"]
-        args = args + " --original_tax_table " + str(original_tax_table)
 
     if ("strain_col_id" in config):
         strain_col_id = config["strain_col_id"]
