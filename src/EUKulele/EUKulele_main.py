@@ -19,8 +19,6 @@ abs_path = os.path.abspath(os.path.dirname(__file__))
 
 sys.path.insert(1, os.path.join(abs_path))
 sys.path.insert(1, os.path.join(abs_path, "..", "..", "scripts"))
-#sys.path.insert(1, 'src/EUKulele')
-#sys.path.insert(1, 'scripts')
 
 import tax_placement
 from tax_placement import *
@@ -28,7 +26,9 @@ from tax_placement import *
 import visualize_results
 from visualize_results import *
 
-scripts_dir = os.path.join("scripts")
+import EUKulele
+from EUKulele.setup_EUKulele import setupEukulele
+from EUKulele.setup_EUKulele import setupDatabases
 
 import scripts as HelperScripts
 from scripts.create_protein_table import createProteinTable
@@ -41,45 +41,6 @@ __copyright__ = "EUKulele"
 __license__ = "MIT"
 __email__ = "akrinos@mit.edu"
 
-## FUNCTIONS TO USE IN PIPELINE ##
-
-# Download the three supported eukaryote databases automatically and store the name of the resulting FASTA file
-# and taxonomy table.
-def download_database(database_name, ref_db_location):
-    if database_name == "mmetsp":
-        rc1 = os.system("wget -O " + os.path.join(ref_db_location,REF_FASTA) + " URL here!")
-        rc2 = os.system("wget -O " + os.path.join(ref_db_location,original_tax_table) + " https://www.dropbox.com/s/kkxamsatcswsq5e/taxonomy-table.txt?dl=1")
-        if (rc1 + rc2) != 0:
-            print("Download of MMETSP database failed. Please check download link!")
-            sys.exit(1)
-        fasta_name = os.path.join(ref_db_location,REF_FASTA)
-        orig_tax_name = os.path.join(ref_db_location,original_tax_table)
-        column_id = "SOURCE_ID"
-    elif database_name == "eukprot":
-        rc1 = os.system("wget -O " + os.path.join(ref_db_location,"euk-prot.tgz") + " https://ndownloader.figshare.com/files/23580944")
-        rc2 = os.system("tar zxvf " + os.path.join(ref_db_location,"euk-prot.tgz") + " -C " + ref_db_location)
-        fasta_name = os.path.join(ref_db_location, "proteins")
-        rc3 = os.system("wget -O " + os.path.join(ref_db_location,original_tax_table) + " https://ndownloader.figshare.com/files/23580767")
-        orig_tax_name = os.path.join(ref_db_location,original_tax_table)
-        column_id = 0
-        if (rc1 + rc2 + rc3) != 0:
-            print("Download of EUKProt database failed. Please check download link!")
-            sys.exit(1)
-    elif database_name == "phylodb":
-        rc1 = os.system("wget --load-cookies /tmp/cookies.txt " + "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=0B609upjBX8xGUWZrakZLNmp1X2M' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=0B609upjBX8xGUWZrakZLNmp1X2M" + " -O " + os.path.join(ref_db_location,"phylodb.pep.fa.gz") + " && rm -rf /tmp/cookies.txt")
-        rc2 = os.system("gunzip -C " + os.path.join(ref_db_location,"phylodb.pep.fa.gz") + " > " + os.path.join(ref_db_location,REF_FASTA))
-        rc3 = os.system("wget --load-cookies /tmp/cookies.txt " + "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=0B609upjBX8xGTGh3aTJnS3NJXzA' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=0B609upjBX8xGTGh3aTJnS3NJXzA" + " -O " + os.path.join(ref_db_location,"phylodb-ref.txt.gz") + " && rm -rf /tmp/cookies.txt")
-        rc4 = os.system("gunzip -C " + os.path.join(ref_db_location,"phylodb-ref.txt.gz") + " > " + os.path.join(ref_db_location,original_tax_table))
-        fasta_name = os.path.join(ref_db_location,REF_FASTA)
-        orig_tax_name = os.path.join(ref_db_location,original_tax_table)
-        column_id = 0
-        if (rc1 + rc2 + rc3 + rc4) != 0:
-            print("Download of PhyloDB database failed. Please check download link!")
-            sys.exit(1)
-    else:
-        print("Specified reference database, " + database_name + " is not supported.")
-        sys.exit(1)
-    return fasta_name, orig_tax_name, column_id
 
 def setup(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, column_id, delimiter, original_tax_table, taxonomy_col_id, reformat, database, alignment_choice, REFERENCE_FASTAS, DATABASE_DIR, RERUN_RULES, strain_col_id, OUTPUTDIR):
     concatenated_file = os.path.join(OUTPUTDIR, "concatfasta.fasta")
@@ -97,7 +58,7 @@ def setup(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, column_id, delimiter, 
             if_reformat = create_protein_table_args.append("--reformat_tax")
 
     ## Concatenate potential list of input FASTA files ##
-    if (not os.path.isfile(concatenated_file)) & (not RERUN_RULES):
+    if (not os.path.isfile(concatenated_file)) | (RERUN_RULES):
         space_delim = " ".join(REFERENCE_FASTAS)
         p1 = os.system("for currfile in " + space_delim + "; do ((cat $currfile | sed 's/\./N/g'); echo; echo) >> " + concatenated_file + "; done")
     else:
@@ -112,7 +73,7 @@ def setup(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, column_id, delimiter, 
     error_log = "alignment_err.log"
     if alignment_choice == "diamond":
         align_db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa') + '.dmnd')
-        if (not os.path.isfile(align_db)) & (not RERUN_RULES):
+        if (not os.path.isfile(align_db)) | (RERUN_RULES):
             ## DIAMOND database creation ##
             db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa'))
             os.system("diamond makedb --in " + concatenated_file + " --db " + db + " 1> " + output_log + " 2> " + error_log)
@@ -125,20 +86,23 @@ def setup(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, column_id, delimiter, 
         os.system("makeblastdb -in " + concatenated_file + " -parse_seqids -blastdb_version " + str(blast_version) + " -title " + database + " -dbtype " + db_type + " -out " + db)
 
 def transdecode_to_peptide(sample_name):
+    ## THIS ALL NEEDS TO BE A CALLED BASH SCRIPT - look into subprocess.Popen with bash arguments
     os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder"))
     if (os.path.isfile(os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT))) & (not RERUN_RULES):
         print("TransDecoder file already detected for sample " + str(sample_name) + "; will not re-run step.")
         return 0
-    returncode1 = os.system("TransDecoder.LongOrfs -t " + os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT) + " -m " + str(TRANSDECODERORFSIZE) + " 2> " + os.path.join("log", "transdecoder_error_" + sample_name + ".err") + " 1> " + os.path.join("log", "transdecoder_out_" + sample_name + ".out"))
-    rc1 = returncode1
-    returncode2 = os.system("TransDecoder.Predict -t " + os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT) + " --no_refine_starts 2>> " + os.path.join("log", "transdecoder_error_" + sample_name + ".err") + " 1>> " + os.path.join("log", "transdecoder_out_" + sample_name + ".out"))
-    rc2 = returncode2
+    rc1 = os.system("TransDecoder.LongOrfs -t " + os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT) + " -m " + str(TRANSDECODERORFSIZE) + " 2> " + os.path.join("log", "transdecoder_error_" + sample_name + ".err") + " 1> " + os.path.join("log", "transdecoder_out_" + sample_name + ".out"))
+    rc2 = os.system("TransDecoder.Predict -t " + os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT) + " --no_refine_starts 2>> " + os.path.join("log", "transdecoder_error_" + sample_name + ".err") + " 1>> " + os.path.join("log", "transdecoder_out_" + sample_name + ".out"))
+    
     if (rc1 + rc2) != 0:
         print("TransDecoder did not complete successfully for sample " + str(sample_name) + ". Check log/ folder for details.")
         sys.exit(1)
+        
     merged_name = sample_name + "." + NT_EXT
+    
     os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags))
     os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder"))
+    
     os.replace(merged_name + ".transdecoder.pep", os.path.join(OUTPUTDIR, mets_or_mags,  sample_name + "." + PEP_EXT))
     os.replace(merged_name + ".transdecoder.cds", os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder", sample_name + ".fasta.transdecoder.cds"))
     os.replace(merged_name + ".transdecoder.gff3", os.path.join(OUTPUTDIR, mets_or_mags, "transdecoder", sample_name + ".fasta.transdecoder.gff3"))
@@ -200,8 +164,6 @@ def assign_taxonomy(sample_name, OUTPUTDIR, mets_or_mags):
     max_dir = os.path.join(OUTPUTDIR, mets_or_mags)
     error_log = os.path.join("log", "tax_assign_" + sample_name + ".err")
     out_log = os.path.join("log", "tax_assign_" + sample_name + ".out")
-    #rc = os.system("python " + os.path.join(scripts_dir, "mag-stats.py") + " --estimated-taxonomy-file " + taxfile + " --out-prefix " + sample_name + " --outdir " + levels_directory + " --max-out-dir " + max_dir + " 2> " + error_log + " 1> " + out_log)
-    #rc = os.system("mag-stats.py" + " --estimated-taxonomy-file " + taxfile + " --out-prefix " + sample_name + " --outdir " + levels_directory + " --max-out-dir " + max_dir + " 2> " + error_log + " 1> " + out_log)
     
     sys.stdout = open(out_log, "w")
     sys.stderr = open(error_log, "w")
@@ -215,8 +177,7 @@ def run_busco(sample_name, outputdir, busco_db, mets_or_mags, PEP_EXT, NT_EXT, C
         fastaname = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
     else:
         fastaname = os.path.join(SAMPLE_DIR, sample_name + "." + PEP_EXT)
-    #os.system("chmod 755 " + os.path.join(scripts_dir, "configure_busco.sh"))
-    #os.system("chmod 755 " + os.path.join(scripts_dir, "run_busco.sh"))
+        
     rc2 = 0
     busco_run_log = os.path.join("log","busco_run.out")
     busco_run_err = os.path.join("log","busco_run.err")
@@ -224,8 +185,8 @@ def run_busco(sample_name, outputdir, busco_db, mets_or_mags, PEP_EXT, NT_EXT, C
     busco_config_err = os.path.join("log","busco_config.err")
     
     if not os.path.isdir(os.path.join("busco_downloads","lineages","eukaryota_odb10")):
-        rc2 = os.system(" ".join(["configure_busco.sh", str(sample_name), str(outputdir), outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]) + " >1 " + busco_config_log + " >2 " + busco_config_err)
-    rc1 = os.system(" ".join(["run_busco.sh", str(sample_name), str(outputdir), outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]) + " >1 " + busco_run_log + " >2 " + busco_run_err)
+        rc2 = os.system(" ".join(["configure_busco.sh", str(sample_name), str(outputdir), outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]) + " 1> " + busco_config_log + " 2> " + busco_config_err)
+    rc1 = os.system(" ".join(["run_busco.sh", str(sample_name), str(outputdir), outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]) + " 1> " + busco_run_log + " 2> " + busco_run_err)
     return rc1 + rc2
 
 def main(args_in):
@@ -339,7 +300,7 @@ def main(args_in):
     NAMES_TO_READS = os.path.join(REFERENCE_DIR, str(args.names_to_reads))
     CPUS = args.CPUs                         
 
-    ORGANISMS = args.organisms
+    ORGANISMS = args.organisms 
     ORGANISMS_TAXONOMY = args.taxonomy_organisms
     BUSCO_FILE = args.busco_file
     RERUN_RULES = args.force_rerun
@@ -366,18 +327,8 @@ def main(args_in):
     if (args.subroutine == "all") | (args.subroutine == "busco"):
         BUSCO = True
 
-    ## SETUP STEPS ##
-    print("Setting things up...")
-    os.system("mkdir -p " + OUTPUTDIR)
-    os.system("mkdir -p log")
-    
-    ## Download software dependencies
-    rc1 = os.system("source " + "install_dependencies.sh references_bins/ 1> log/dependency_log.txt 2> log/dependency_err.txt")
-    sys.path.append("references_bins/")
-    os.system("echo $PATH > path_test.txt")
-    if rc1 != 0:
-        print("Could not successfully install all external dependent software. Check DIAMOND, BLAST, BUSCO, and TransDecoder installation.")
-        sys.exit(1)
+    ## SETUP STEPS / DOWNLOAD DEPENDENCIES ##
+    setupEukulele()
 
     ## Download the reference database if specified.
     if args.download_reference:
@@ -386,7 +337,7 @@ def main(args_in):
         REF_FASTA = download_database(args.database.lower(), REFERENCE_DIR)
 
     if SETUP | create_tax_table:
-        setup(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, args.column, args.delimiter, original_tax_table, args.taxonomy_col_id, args.reformat, args.database, args.alignment_choice, REFERENCE_FASTAS, DATABASE_DIR, RERUN_RULES, args.strain_col_id, OUTPUTDIR)
+        setupDatabases(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, args.column, args.delimiter, original_tax_table, args.taxonomy_col_id, args.reformat, args.database, args.alignment_choice, REFERENCE_FASTAS, DATABASE_DIR, RERUN_RULES, args.strain_col_id, OUTPUTDIR)
 
     if (mets_or_mags == "mets"):
         ## Now for some TransDecoding ##
@@ -425,7 +376,7 @@ def main(args_in):
             print("Alignment did not complete successfully.")
             sys.exit(1)
 
-        ## Next to do taxonomy estimation (NOTE: currently only supported with a config file. ##
+        ## Next to do taxonomy estimation (NOTE: currently only supported with a config file). ##
         if (USE_SALMON_COUNTS == 1):
             if args.config_file != "":
                 rc1 = namesToReads(args.config_file)
@@ -437,8 +388,6 @@ def main(args_in):
             curr_out = place_taxonomy(TAX_TAB,args.cutoff_file,CONSENSUS_CUTOFF,\
                                                     PROT_TAB,USE_SALMON_COUNTS,NAMES_TO_READS,alignment_res[t],outfiles[t],\
                                                     IFPARALLEL,RERUN_RULES)
-            
-        #taxonomy_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(place_taxonomy)(TAX_TAB,args.cutoff_file,CONSENSUS_CUTOFF,PROT_TAB,USE_SALMON_COUNTS,NAMES_TO_READS,alignment_res[t],outfiles[t],IFPARALLEL,RERUN_RULES) for t in range(len(alignment_res)))
 
         ## Now to visualize the taxonomy ##
         print("Performing taxonomic visualization steps...", flush=True)
@@ -479,14 +428,11 @@ def main(args_in):
                 query_busco_err = open(os.path.join("log","busco_query_" + sample_name + ".err"), "w+")
                 sys.stdout = query_busco_log
                 sys.stderr = query_busco_err
-                query_args = ["--organism_group",str(" ".join(args.organisms)),"--taxonomic_level",str(" ".join(args.taxonomy_organisms)),"--output_dir",OUTPUTDIR,"--fasta_file",fasta,"--sample_name",sample_name,"--taxonomy_file_prefix",taxfile_stub,"--tax_table",TAX_TAB,"--busco_out",busco_table,"-i","individual"]
+                query_args = ["--organism_group",str(" ".join(ORGANISMS)),"--taxonomic_level",str(" ".join(ORGANISMS_TAXONOMY)),"--output_dir",OUTPUTDIR,"--fasta_file",fasta,"--sample_name",sample_name,"--taxonomy_file_prefix",taxfile_stub,"--tax_table",TAX_TAB,"--busco_out",busco_table,"-i","individual"]
                 rc = queryBusco(query_args)
                 
                 sys.stdout = sys.__stdout__
-                sys.stderr = sys.__stderr__
-                #rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --organism_group " + str(" ".join(args.organisms)) + " --taxonomic_level " + str(" ".join(args.taxonomy_organisms)) + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i individual 1> " + query_busco_log + " >2 " + query_busco_err)
-                #p = subprocess.Popen([query_command], stdout=query_busco_log, stderr = query_busco_err, shell=True)
-                #p.wait()                            
+                sys.stderr = sys.__stderr__ 
                 if rc != 0:
                     print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
         else:
@@ -501,12 +447,15 @@ def main(args_in):
 
                 query_busco_log = open(os.path.join("log","busco_query_" + sample_name + ".log"), "w+")
                 query_busco_err = open(os.path.join("log","busco_query_" + sample_name + ".err"), "w+")
-                query_command = "query_busco.py" + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i summary"
-                print(query_command, flush=True)
-                #rc = os.system("python " + os.path.join(scripts_dir, "query_busco.py") + " --output_dir " + OUTPUTDIR + " --fasta_file " + fasta + " --sample_name " + sample_name + " --taxonomy_file_prefix " + taxfile_stub + " --tax_table " + TAX_TAB + " --busco_out " + busco_table + " -i summary 1> " + query_busco_log + " >2 " + query_busco_err)
-                p = subprocess.Popen([query_command], stdout=query_busco_log, stderr = query_busco_err, shell=True)
-                p.wait()                            
-                if p.returncode != 0:
+                sys.stdout = query_busco_log
+                sys.stderr = query_busco_err
+                query_args = ["--output_dir",OUTPUTDIR,"--fasta_file",fasta,"--sample_name",sample_name,"--taxonomy_file_prefix",taxfile_stub,"--tax_table",TAX_TAB,"--busco_out",busco_table,"-i","summary"]
+                
+                rc = queryBusco(query_args)
+                sys.stdout = sys.__stdout__
+                sys.stderr = sys.__stderr__ 
+                
+                if rc != 0:
                     print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
 
 if __name__ == "__main__": 

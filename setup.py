@@ -6,6 +6,9 @@ from glob import glob
 os.system("export PY_IGNORE_IMPORTMISMATCH=1")
 version = open('VERSION').read().strip()
 
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
 setup(
     name="EUKulele",
     version=version,
@@ -24,9 +27,10 @@ setup(
     setup_requires=['pytest-runner'],
     test_suite='tests',
     tests_require=['pytest'],
-    install_requires=['setuptools','hypothesis',\
-        'pandas','numpy','matplotlib','argparse','seaborn',\
-        'multiprocess','chardet','biopython',\
-        'joblib','ujson','pyyaml'],
+    install_requires=required,
+        #['setuptools','hypothesis',\
+        #'pandas','numpy','matplotlib','argparse','seaborn',\
+        #'multiprocess','chardet','biopython',\
+        #'joblib','ujson','pyyaml'],
     #packages=['EUKulele','EUKulele.tests','EUKulele.scripts'],
 )

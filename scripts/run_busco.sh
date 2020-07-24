@@ -19,13 +19,6 @@ mkdir -p $OUTPUTDIR
        
 configini="EUKulele/static/config.ini"
 
-#rm -rf busco
-#git clone https://gitlab.com/ezlab/busco.git
-#cp busco/config/config.ini $configini
-
-# euk-env/config/config.ini
-#cp euk-env/config/config.ini $CONFIG_LOC
-#cp $configini $CONFIG_LOC
 BUSCO_DIR="$(dirname $(which busco))"
 BUSCO_CONFIG_FILE="$BUSCO_DIR"/../config/config.ini
 busco_configurator.py $BUSCO_CONFIG_FILE $CONFIG_LOC

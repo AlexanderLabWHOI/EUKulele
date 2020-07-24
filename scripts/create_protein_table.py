@@ -31,7 +31,6 @@ def createProteinTable(args=None):
     parser.add_argument('--euk-prot', dest='eukprot', default=False, action='store_true') # eukprot's taxonomy is too unique
 
     if args != None:
-        print(args)
         args = parser.parse_args(args)
     else:
         args = parser.parse_args()

@@ -27,8 +27,8 @@ level_hierarchy = ['supergroup','division','class','order','family','genus','spe
 def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcript_file, busco_out, taxonomy_file_prefix, busco_threshold, output_dir, sample_name, fasta_file):
     organism_format = organism
     if taxonomy == "species":
-        organism_format = " ".join(str(organism).split("_"))
-    full_taxonomy = tax_table.loc[[organism_format in curr for curr in list(tax_table[taxonomy])],:]
+        organism_format = " ".join(str(organism).split(";"))
+    full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in list(tax_table[taxonomy])],:]
     if len(full_taxonomy.index) < 1:
         print("No taxonomy found for that organism and taxonomic level.")
         return pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness","NumberCovered","CtTwoCopies","CtThreeCopies","CtFourCopies","CtFivePlusCopies","PercentageDuplicated"])
@@ -100,7 +100,7 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
             success_level = level_hierarchy[curr_level]
         curr_level = curr_level - 1
 
-    report_dir = os.path.join(output_dir, taxonomy, "_".join(organism.split(" ")))
+    report_dir = os.path.join(output_dir, taxonomy, "_".join(organism_format.split(" ")))
     os.system("mkdir -p " + report_dir)
 
     report_file = os.path.join(report_dir, sample_name + "_report.txt")
@@ -164,7 +164,7 @@ def queryBusco(args=None):
     else:
         args = parser.parse_args()
         
-    organism = args.organism_group
+    organism = args.organism_group #[" ".join(curr.split(";")) for curr in args.organism_group] #args.organism_group
     taxonomy = args.taxonomic_level
     tax_table = read_in_taxonomy(args.tax_table)
 
@@ -185,15 +185,13 @@ def queryBusco(args=None):
             taxonomy_file = pd.read_csv(args.taxonomy_file_prefix + "_all_" + str(taxonomy) + "_counts.csv", sep=",",header=0)
             curr_frame = taxonomy_file.nlargest(multiprocessing.cpu_count(), 'NumTranscripts') # change this to number of CPUs 
             organisms = list(curr_frame[taxonomy.capitalize()])
-            # now do multiprocessing for each of these organisms and get BUSCO results for each
-            # need to pull in argument for whether or not to save CSVs 
             results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(
         evaluate_organism)(organism, taxonomy, tax_table, args.create_fasta, args.write_transcript_file, args.busco_out, args.taxonomy_file_prefix, args.busco_threshold, args.output_dir, args.sample_name, args.fasta_file) for organism in organisms)
             results_frame = pd.concat(results_frame)
             os.system("mkdir -p " + os.path.join(args.output_dir, "busco_assessment", args.sample_name, taxonomy + "_combined"))
             results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, "busco_assessment", args.sample_name, taxonomy + "_combined", "summary_" + taxonomy + "_" +  args.sample_name + ".tsv"), sep = "\t")
-        # here's where we're doing the cascade through the most popular. Requires that we create a helper function to grab then evaluate those.
-        # TODO: assessing the copies of each of the BUSCOs found in the cascade. XX
+        
+    return 0
         
 if __name__ == "__main__":
     queryBusco()
