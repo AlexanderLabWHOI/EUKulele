@@ -32,6 +32,7 @@ from EUKulele.setup_EUKulele import setupEukulele
 from EUKulele.setup_EUKulele import setupDatabases
 from EUKulele.transdecode_to_peptide import transdecodeToPeptide
 from EUKulele.download_database import downloadDatabase
+from EUKulele.manage_steps import *
 
 import scripts as HelperScripts
 from scripts.create_protein_table import createProteinTable
@@ -193,7 +194,8 @@ def main(args_in):
     elif os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA)):
         REFERENCE_FASTAS = [os.path.join(REFERENCE_DIR, REF_FASTA)]
     else:
-        print("You need to either provide a single fasta reference file, or the name of a directory containing multiple reference FASTA files.")
+        print("You need to either provide a single fasta reference file, or the name of a directory containing" + \
+              "multiple reference FASTA files.")
         sys.exit(1)
 
     TAX_TAB = os.path.join(REFERENCE_DIR, args.tax_table)
@@ -235,7 +237,9 @@ def main(args_in):
             print("No BUSCO file specified/found; using argument-specified organisms and taxonomy for BUSCO analysis.")
 
         if (len(ORGANISMS) != len(ORGANISMS_TAXONOMY)):
-            print("Organisms and taxonomic specifications for BUSCO analysis do not contain the same number of entries. Please revise such that each organism flagged for BUSCO analysis also includes its original taxonomic level.")
+            print("Organisms and taxonomic specifications for BUSCO analysis do not contain the same number of entries." + \
+                  "Please revise such that each organism flagged for BUSCO analysis also includes its original taxonomic" + \
+                  "level.")
             sys.exit(1)
 
     SETUP = False
