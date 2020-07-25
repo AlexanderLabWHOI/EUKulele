@@ -16,11 +16,6 @@ import glob
 from joblib import Parallel, delayed
 import pkgutil
 
-abs_path = os.path.abspath(os.path.dirname(__file__))
-
-sys.path.insert(1, os.path.join(abs_path))
-sys.path.insert(1, os.path.join(abs_path, "..", "..", "scripts"))
-
 import tax_placement
 from tax_placement import *
 
@@ -30,9 +25,9 @@ from visualize_results import *
 import EUKulele
 from EUKulele.download_database import downloadDatabase
 from EUKulele.manage_steps import manageEukulele
+from EUKulele.busco_runner import readBuscoFile
 
 import scripts as HelperScripts
-from scripts.create_protein_table import createProteinTable
 from scripts.mag_stats import magStats
 from scripts.names_to_reads import namesToReads
 from scripts.query_busco import queryBusco
@@ -88,23 +83,33 @@ def main(args_in):
     parser.add_argument('--n_ext', '--nucleotide_extension', dest = "nucleotide_extension", default = ".fasta") 
     parser.add_argument('--p_ext', '--protein_extension', dest = "protein_extension", default = ".faa") 
     parser.add_argument('f', '--force_rerun', action='store_true', default=False)
-    parser.add_argument('--scratch', default = '../scratch') # the scratch location to store intermediate files
+    parser.add_argument('--scratch', default = '../scratch', 
+                        help = "The scratch location to store intermediate files.")
     parser.add_argument('--config_file', default = '')
 
     ## SALMON OPTIONS ##
     parser.add_argument('--use_salmon_counts', type = int, default = 0)
-    parser.add_argument('--salmon_dir') # salmon directory is required if use_salmon_counts is true.
+    parser.add_argument('--salmon_dir', 
+                        help = "Salmon directory is required if use_salmon_counts is true.")
     parser.add_argument('--names_to_reads',default=0, help = "A file to be created or used if it exists " +
                         "that relates transcript names to salmon counts from the salmon directory.")
 
     ## WHERE FILES ARE LOCATED ##
-    parser.add_argument('--database', default="mmetsp") # the name of the database to be used to assess the reads
-    parser.add_argument('-o','--out_dir', dest = "out_dir", default = "output") # folder where the output will be written
-    parser.add_argument('--sample_dir', required = True) # folder where the input data is located (the protein or peptide files to be assessed)
+    parser.add_argument('--database', default="mmetsp", 
+                        help = "The name of the database to be used to assess the reads.")
+    parser.add_argument('-o','--out_dir', dest = "out_dir", default = "output", 
+                        help = "Folder where the output will be written.")
+    parser.add_argument('--sample_dir', required = True, 
+                        help = "Folder where the input data is located (the protein or peptide files to be assessed).")
     
     ## ONLY SPECIFY THESE ARGUMENTS IF YOU HAVE ALREADY PROVIDED AND FORMATTED YOUR OWN DATABASE ##
-    parser.add_argument('--reference_dir', default="") # folder containing the reference files for the chosen database
-    parser.add_argument('--ref_fasta', default = "reference.pep.fa") # either a file in the reference directory where the fasta file for the database is located, or a directory containing multiple fasta files that constitute the database.
+    parser.add_argument('--reference_dir', default="", 
+                        help = "Folder containing the reference files for the chosen database.")
+    parser.add_argument('--ref_fasta', default = "reference.pep.fa", 
+                        help = "Either a file in the reference directory where the fasta file for the database " + 
+                               "is located, or a directory containing multiple fasta files that " + 
+                               "constitute the database.")
+  
     parser.add_argument('--tax_table', default = "tax-table.txt")
     parser.add_argument('--protein_map', default = "protein-map.json")
     
@@ -112,11 +117,15 @@ def main(args_in):
     parser.add_argument('--alignment_choice', default = "diamond", choices = ["diamond", "blast"])
 
     ## OPTIONS FOR CHECKING BUSCO COMPLETENESS FOR TAXONOMY ##
-    parser.add_argument('--busco_file', default = "", type = str) # if specified, the following two arguments ("--organisms" and "--taxonomy_organisms" are overwritten by the two columns of this tab-separated file
-    parser.add_argument('--individual_or_summary','-i',default="summary",choices=["summary","individual"])
-    # These arguments are used if "individual" is specified. 
-    parser.add_argument('--organisms', default = "", nargs = "+") # list of organisms to check BUSCO completeness on
-    parser.add_argument('--taxonomy_organisms', default = "", nargs = "+") # taxonomic level of organisms specified in organisms tag
+    parser.add_argument('--busco_file', default = "", type = str, 
+                        help = "If specified, the following two arguments ('--organisms' and " + 
+                        "'--taxonomy_organisms' are overwritten by the two columns of this tab-separated file.")
+    parser.add_argument('--individual_or_summary', '-i', default="summary", choices=["summary","individual"], 
+                        help = "These arguments are used if 'individual' is specified.") 
+    parser.add_argument('--organisms', default = "", nargs = "+", 
+                        help = "List of organisms to check BUSCO completeness on.")
+    parser.add_argument('--taxonomy_organisms', default = "", nargs = "+", 
+                        help = "Taxonomic level of organisms specified in organisms tag.")
 
     ## OTHER USER CHOICES ## 
     cutoff_file = pkgutil.get_data(__name__, "src/EUKulele/static/tax-cutoffs.yaml")
@@ -165,20 +174,9 @@ def main(args_in):
     ORGANISMS_TAXONOMY = args.taxonomy_organisms
     BUSCO_FILE = args.busco_file
     RERUN_RULES = args.force_rerun
-    if args.individual_or_summary == "individual":
-        if (BUSCO_FILE != "") & (os.path.isfile(BUSCO_FILE)):
-            busco_file_read = read.csv(BUSCO_FILE, sep = "\t")
-            ORGANISMS = list(busco_file_read.iloc[:,0])
-            ORGANISMS_TAXONOMY = list(busco_file_read.iloc[:,1])
-            print("Organisms and their taxonomy levels for BUSCO analysis were read from file.")
-        else:
-            print("No BUSCO file specified/found; using argument-specified organisms and taxonomy for BUSCO analysis.")
-
-        if (len(ORGANISMS) != len(ORGANISMS_TAXONOMY)):
-            print("Organisms and taxonomic specifications for BUSCO analysis do not contain the same number of entries. " + \
-                  "Please revise such that each organism flagged for BUSCO analysis also includes its original taxonomic " + \
-                  "level.")
-            sys.exit(1)
+    
+    ORGANISMS, ORGANISMS_TAXONOMY = readBuscoFile(individual_or_summary, busco_file, 
+                                                  organisms, organisms_taxonomy)
 
     SETUP = False
     ALIGNMENT = False
@@ -198,6 +196,7 @@ def main(args_in):
     if (args.reference_dir == "") | (not os.path.isdir(args.referencedir)) | \
         (not os.path.isdir(os.path.join(args.referencedir), REF_FASTA)):
         REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), args.alignment_choice)
+        REFERENCE_DIR = args.database.lower()
 
     if SETUP:
         manageEukulele(piece = "setup_databases", ref_fasta = REF_FASTA, rerun_rules = RERUN_RULES, 
@@ -208,24 +207,22 @@ def main(args_in):
         manageEukulele(piece = "transdecode", mets_or_mags = mets_or_mags)
         
         ## Next to align against our database of choice ##
-        manageAlignment(alignment_choice = ALIGNMENT_CHOICE, sample_names = samples, filter_metric = args.filter_metric, 
-                        output_dir = OUTPUTDIR, ref_fasta = REF_FASTA, mets_or_mags = mets_or_mags, 
-                        database_dir = DATABASE_DIR, sample_dir = SAMPLE_DIR, rerun_rules = RERUN_RULES, 
-                        nt_ext = NT_EXT, pep_ext = PEP_EXT)
+        alignment_res = manageAlignment(alignment_choice = ALIGNMENT_CHOICE, sample_names = samples, 
+                                        filter_metric = args.filter_metric, output_dir = OUTPUTDIR, 
+                                        ref_fasta = REF_FASTA, mets_or_mags = mets_or_mags, database_dir = DATABASE_DIR,
+                                        sample_dir = SAMPLE_DIR, rerun_rules = RERUN_RULES, 
+                                        nt_ext = NT_EXT, pep_ext = PEP_EXT)
 
         ## Next to do salmon counts estimation (NOTE: currently only supported with a config file). ##
         if (USE_SALMON_COUNTS == 1):
             if args.config_file != "":
                 rc1 = namesToReads(args.config_file)
 
-        ## Next to do salmon counts estimation (NOTE: currently only supported with a config file). ##
-        print("Performing taxonomic estimation steps...", flush=True)
-        outfiles = [os.path.join(OUTPUTDIR, mets_or_mags, samp + "-estimated-taxonomy.out") for samp in samples]
-        n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res))
-        for t in range(len(alignment_res)): 
-            curr_out = place_taxonomy(TAX_TAB,args.cutoff_file,CONSENSUS_CUTOFF,\
-                                                    PROT_TAB,USE_SALMON_COUNTS,NAMES_TO_READS,alignment_res[t],outfiles[t],\
-                                                    IFPARALLEL,RERUN_RULES)
+        manageEukulele(piece = "estimate_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
+                       tax_tab = TAX_TAB, args.cutoff_file, consensus_cutoff = CONSENSUS_CUTOFF, 
+                       prot_tab = PROT_TAB, use_salmon_counts = USE_SALMON_COUNTS, 
+                       names_to_reads = NAMES_TO_READS, alignment_res = alignment_res, 
+                       rerun_rules = RERUN_RULES)
 
         ## Now to visualize the taxonomy ##
         print("Performing taxonomic visualization steps...", flush=True)

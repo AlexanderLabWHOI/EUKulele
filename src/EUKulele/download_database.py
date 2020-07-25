@@ -7,6 +7,8 @@ import pkgutil
 import EUKulele
 from EUKulele.manage_steps import createAlignmentDatabase
 
+from scripts.create_protein_table import createProteinTable
+
 def downloadDatabase(database_name, alignment_choice):
     """
     Automatically downloads a peptide database for use with EUKulele and stores the name of

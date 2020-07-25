@@ -2,9 +2,21 @@ import os
 import sys
 import subprocess
 
+import tax_placement
+from tax_placement import *
+
+import visualize_results
+from visualize_results import *
+
 def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "", 
                    output_dir = "", ref_fasta = "", alignment_choice = "diamond", 
-                   database_dir = "", rerun_rules = False):
+                   database_dir = "", rerun_rules = False, cutoff_file = "",
+                   consensus_cutoff = 0.75, prot_tab = "", use_salmon_counts = False,
+                   names_to_reads = "", alignment_res = ""):
+    
+    output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
+                        prot_tab, use_salmon_counts, names_to_reads, alignment_res,
+                        rerun_rules 
     """
     This function diverts management tasks to the below helper functions.
     """
@@ -19,8 +31,14 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
         if mets_or_mags == "mets":
             manageTrandecode(samples)
     elif piece == "align_to_db":
-        manageAlignment(alignment_choice, sample_names, filter_metric, output_dir, ref_fasta, 
+        return manageAlignment(alignment_choice, sample_names, filter_metric, output_dir, ref_fasta, 
                         mets_or_mags, database_dir, sample_dir, rerun_rules, nt_ext, pep_ext)
+    elif piece == "estimate_taxonomy":
+        manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
+                            prot_tab, use_salmon_counts, names_to_reads, alignment_res,
+                            rerun_rules)
+    elif piece == "visualize_taxonomy":
+        
         
              
 def getSamples():
@@ -63,7 +81,7 @@ def transdecodeToPeptide(sample_name):
     
     TD_log = open(os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT), "w+")
     TD_err = open(os.path.join("log","busco_query_" + sample_name + ".err"), "w+")
-    p2 = Popen(["TransDecoder.Predict -t", "-t", os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT),
+    p2 = Popen(["TransDecoder.Predict", "-t", os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT),
                "--no_refine_starts"], stdout = TD_log, stderr = TD_err)
     p2.wait()
     rc2 = p2.returncode
@@ -139,6 +157,8 @@ def manageAlignment(alignment_choice, sample_name, filter_metric, output_dir, re
     if any([((curr == None) | (curr == 1)) for curr in alignment_res]):
         print("Alignment did not complete successfully.")
         sys.exit(1)
+        
+    return alignment_res
 
 def createAlignmentDatabase(REF_FASTA, RERUN_RULES, alignment_choice="diamond", DATABASE_DIR=""):
     """
@@ -170,7 +190,7 @@ def createAlignmentDatabase(REF_FASTA, RERUN_RULES, alignment_choice="diamond", 
 def alignToDatabase(alignment_choice, sample_name, filter_metric, OUTPUTDIR, REF_FASTA, 
                       mets_or_mags, DATABASE_DIR, SAMPLE_DIR, RERUN_RULES, NT_EXT, PEP_EXT):
     """
-    Align the 
+    Align the samples against the created database.
     """
     
     if alignment_choice == "diamond":
@@ -190,12 +210,20 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, OUTPUTDIR, REF
         k = 100
         e = 1e-5
         bitscore = 50
-        diamond_log = os.path.join("log","diamond_align_" + sample_name + ".log")
-        diamond_err = os.path.join("log","diamond_align_" + sample_name + ".err")
+        diamond_log = open(os.path.join("log","diamond_align_" + sample_name + ".log"), "w+")
+        diamond_err = open(os.path.join("log","diamond_align_" + sample_name + ".err"), "w+")
         if filter_metric == "bitscore":
-            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " --min-score " + str(bitscore) + " 1> " + diamond_log + " 2> " + diamond_err)
+            p1 = subprocess.Popen(["diamond", "blastp", "--db", align_db, "-q", fasta, "-o", 
+                                   diamond_out, "--outfmt", str(outfmt), "-k", str(k), "--min-score", 
+                                   str(bitscore)], stdout = diamond_log, stderr = diamond_err)
+            p1.wait()
+            rc1 = p1.returncode
         else:
-            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " -e " + str(e) + " 1> " + diamond_log + " 2> " + diamond_err)
+            p1 = subprocess.Popen(["diamond", "blastp", "--db", align_db, "-q", fasta, "-o", 
+                                   diamond_out, "--outfmt", str(outfmt), "-k", str(k), "-e", 
+                                   str(e)], stdout = diamond_log, stderr = diamond_err)
+            p1.wait()
+            rc1 = p1.returncode
         if rc1 != 0:
             print("Diamond did not complete successfully.")
             os.system("rm -f " + diamond_out)
@@ -206,6 +234,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, OUTPUTDIR, REF
         if (os.path.isfile(blast_out)) & (not RERUN_RULES):
             print("BLAST alignment file already detected; will not re-run step.")
             return blast_out
+        
         align_db = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa'), "database")
         if mets_or_mags == "mets":
             fasta = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
@@ -214,8 +243,25 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, OUTPUTDIR, REF
         outfmt = 6 # tabular output format
         e = 1e-5
         os.system("export BLASTDB=" + align_db)
-        rc1 = os.system("blastp -query " + align_db + " -db " + align_db + " -out " + blast_out + " -outfmt " + str(outfmt) + " -evalue " + str(e))
+        blast_log = open(os.path.join("log","blast_align_" + sample_name + ".log"), "w+")
+        blast_err = open(os.path.join("log","black_align_" + sample_name + ".err"), "w+")
+        p1 = subprocess.Popen(["blastp", "-query", align_db, "-db", align_db, "-out", 
+                              blast_out, "-outfmt", str(outfmt), "-evalue" + str(e)],
+                             stdout = blast_log, stderr = blast_err)
         if rc1 != 0:
             print("BLAST did not complete successfully.")
             return 1
         return blast_out
+    
+    
+def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
+                        prot_tab, use_salmon_counts, names_to_reads, alignment_res,
+                        rerun_rules):
+    print("Performing taxonomic estimation steps...", flush=True)
+    outfiles = [os.path.join(output_dir, mets_or_mags, samp + "-estimated-taxonomy.out") for samp in samples]
+    n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res))
+    for t in range(len(alignment_res)): 
+        curr_out = place_taxonomy(tax_tab,cutoff_file,consensus_cutoff,\
+                                                prot_tab,use_salmon_counts,names_to_reads,\
+                                                alignment_res[t],outfiles[t],\
+                                                True,rerun_rules)
