@@ -8,6 +8,8 @@ from tax_placement import *
 import visualize_results
 from visualize_results import *
 
+from scripts.mag_stats import magStats
+
 def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "", 
                    output_dir = "", ref_fasta = "", alignment_choice = "diamond", 
                    database_dir = "", rerun_rules = False, cutoff_file = "",
@@ -26,7 +28,7 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
     elif piece == "setup_databases":
         createAlignmentDatabase(ref_fasta, rerun_rules, alignment_choice, database_dir)
     elif piece == "get_samples":
-        return getSamples(mets_or_mags)
+        return getSamples(mets_or_mags, sample_dir, nt_ext, pep_ext)
     elif piece == "transdecode":
         if mets_or_mags == "mets":
             manageTrandecode(samples)
@@ -38,21 +40,28 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
                             prot_tab, use_salmon_counts, names_to_reads, alignment_res,
                             rerun_rules)
     elif piece == "visualize_taxonomy":
+        manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, 
+                               use_salmon_counts, rerun_rules)
+    elif piece == "assign_taxonomy":
+        manageTaxAssignment(samples, mets_or_mags, output_dir)
         
+    else:
+        print("Not a supported management function.")
+        sys.exit(1)
         
              
-def getSamples():
+def getSamples(mets_or_mags, sample_dir, nt_ext, pep_ext):
     """
     Get the names of the metagenomic or metatranscriptomic samples from the provided folder.
     """
     
     if (mets_or_mags == "mets"):
-        samples = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(SAMPLE_DIR) if curr.split(".")[-1] == NT_EXT]
+        samples = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(sample_dir) if curr.split(".")[-1] == nt_ext]
         if len(samples) == 0:
             print("No samples found in sample directory with specified nucleotide extension.")
             sys.exit(1)
     else:
-        samples = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(SAMPLE_DIR) if curr.split(".")[-1] == PEP_EXT]
+        samples = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(sample_dir) if curr.split(".")[-1] == pep_ext]
         if len(samples) == 0:
             print("No samples found in sample directory with specified peptide extension.")
             sys.exit(1)
@@ -265,3 +274,35 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
                                                 prot_tab,use_salmon_counts,names_to_reads,\
                                                 alignment_res[t],outfiles[t],\
                                                 True,rerun_rules)
+        
+def manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules):
+    print("Performing taxonomic visualization steps...", flush=True)
+    out_prefix = output_dir.split("/")[-1]
+    visualize_all_results(out_prefix, output_dir, os.path.join(output_dir, mets_or_mags), 
+                          sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules)
+
+def manageTaxAssignment(samples, mets_or_mags, output_dir):
+    if mets_or_mags == "mags":
+        print("Performing taxonomic assignment steps...", flush=True)
+        n_jobs_viz = min(multiprocessing.cpu_count(), len(samples))
+        assign_res = Parallel(n_jobs=n_jobs_viz, prefer="threads")(delayed(assignTaxonomy)(samp, output_dir,
+                                                                                            mets_or_mags) for samp in samples)
+        if sum(assign_res) != 0:
+            print("Taxonomic assignment of MAGs did not complete successfully. Check log files for details.")
+            sys.exit(1)
+            
+def assignTaxonomy(sample_name, output_dir, mets_or_mags):
+    taxfile = os.path.join(output_dir, mets_or_mags, sample_name + "-estimated-taxonomy.out")
+    levels_directory = os.path.join(output_dir, mets_or_mags, "levels")
+    max_dir = os.path.join(OUTPUTDIR, mets_or_mags)
+    error_log = os.path.join("log", "tax_assign_" + sample_name + ".err")
+    out_log = os.path.join("log", "tax_assign_" + sample_name + ".out")
+    
+    sys.stdout = open(out_log, "w")
+    sys.stderr = open(error_log, "w")
+    rc = magStats(["--estimated-taxonomy-file",taxfile,
+                   "--out-prefix",sample_name,"--outdir",
+                   levels_directory,"--max-out-dir",max_dir])
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
+    return rc

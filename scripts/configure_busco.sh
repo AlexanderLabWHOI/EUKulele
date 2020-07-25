@@ -1,19 +1,9 @@
 #!/bin/bash
 
-# A script that takes 7 positional arguments to run BUSCO on a dataset:
-# 1 - the descriptive name for the sample (1 word)
-# 2 - the output directory that the results should be written to
-# 3 - the location of the new configuration file to be written
-# 4 - the input fasta file on which the analysis should be done
-# 5 - the number of CPUs available to the user
-# 6 - the BUSCO database to be used
+# A script that takes 1 positional argument to configure BUSCO for a dataset:
+# 1 - the BUSCO database to be used
 
-SAMPLENAME=$1
-OUTPUTDIR=$2
-CONFIG_LOC=$3
-INPUT_FASTA=$4
-CPUS=$5
-BUSCO_DB=$6
+BUSCO_DB=$1
 
 URL="https://busco-data.ezlab.org/v4/data"
 

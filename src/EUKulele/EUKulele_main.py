@@ -26,48 +26,16 @@ import EUKulele
 from EUKulele.download_database import downloadDatabase
 from EUKulele.manage_steps import manageEukulele
 from EUKulele.busco_runner import readBuscoFile
+from EUKulele.busco_runner import configRunBusco
+from EUKulele.busco_runner import manageBuscoQuery
 
 import scripts as HelperScripts
-from scripts.mag_stats import magStats
 from scripts.names_to_reads import namesToReads
-from scripts.query_busco import queryBusco
 
 __author__ = "Harriet Alexander, Arianna Krinos"
 __copyright__ = "EUKulele"
 __license__ = "MIT"
 __email__ = "akrinos@mit.edu"
-
-
-def assign_taxonomy(sample_name, OUTPUTDIR, mets_or_mags):
-    taxfile = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "-estimated-taxonomy.out")
-    levels_directory = os.path.join(OUTPUTDIR, mets_or_mags, "levels")
-    max_dir = os.path.join(OUTPUTDIR, mets_or_mags)
-    error_log = os.path.join("log", "tax_assign_" + sample_name + ".err")
-    out_log = os.path.join("log", "tax_assign_" + sample_name + ".out")
-    
-    sys.stdout = open(out_log, "w")
-    sys.stderr = open(error_log, "w")
-    rc = magStats(["--estimated-taxonomy-file",taxfile,"--out-prefix",sample_name,"--outdir",levels_directory,"--max-out-dir",max_dir])
-    sys.stdout = sys.__stdout__
-    sys.stderr = sys.__stderr__
-    return rc
-    
-def run_busco(sample_name, outputdir, busco_db, mets_or_mags, PEP_EXT, NT_EXT, CPUS, OUTPUTDIR, SAMPLE_DIR):
-    if mets_or_mags == "mets":
-        fastaname = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
-    else:
-        fastaname = os.path.join(SAMPLE_DIR, sample_name + "." + PEP_EXT)
-        
-    rc2 = 0
-    busco_run_log = os.path.join("log","busco_run.out")
-    busco_run_err = os.path.join("log","busco_run.err")
-    busco_config_log = os.path.join("log","busco_config.out")
-    busco_config_err = os.path.join("log","busco_config.err")
-    
-    if not os.path.isdir(os.path.join("busco_downloads","lineages","eukaryota_odb10")):
-        rc2 = os.system(" ".join(["configure_busco.sh", str(sample_name), str(outputdir), outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]) + " 1> " + busco_config_log + " 2> " + busco_config_err)
-    rc1 = os.system(" ".join(["run_busco.sh", str(sample_name), str(outputdir), outputdir + "/config_" + sample_name + ".ini", fastaname, str(CPUS), busco_db]) + " 1> " + busco_run_log + " 2> " + busco_run_err)
-    return rc1 + rc2
 
 def main(args_in):
     parser = argparse.ArgumentParser(
@@ -190,7 +158,8 @@ def main(args_in):
 
     ## SETUP STEPS / DOWNLOAD DEPENDENCIES ##
     manageEukulele(piece = "setup_eukulele)
-    samples = manageEukulele(piece = "get_samples", mets_or_mags = mets_or_mags)
+    samples = manageEukulele(piece = "get_samples", mets_or_mags = mets_or_mags,
+                             sample_dir = SAMPLE_DIR, nt_ext = NT_EXT, pep_ext = PEP_EXT)
 
     ## Download the reference database if specified.
     if (args.reference_dir == "") | (not os.path.isdir(args.referencedir)) | \
@@ -225,73 +194,21 @@ def main(args_in):
                        rerun_rules = RERUN_RULES)
 
         ## Now to visualize the taxonomy ##
-        print("Performing taxonomic visualization steps...", flush=True)
-        out_prefix = OUTPUTDIR.split("/")[-1]
-        visualize_all_results(out_prefix, OUTPUTDIR, os.path.join(OUTPUTDIR, mets_or_mags), SAMPLE_DIR, PEP_EXT, NT_EXT, USE_SALMON_COUNTS, RERUN_RULES)
+        manageEukulele(piece = "visualize_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
+                       sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT, nt_ext = NT_EXT, 
+                       use_salmon_counts = USE_SALMON_COUNTS, rerun_rules = RERUN_RULES)
 
-        if mets_or_mags == "mags":
-            print("Performing taxonomic assignment steps...", flush=True)
-            n_jobs_viz = min(multiprocessing.cpu_count(), len(samples))
-            assign_res = Parallel(n_jobs=n_jobs_viz, prefer="threads")(delayed(assign_taxonomy)(samp, OUTPUTDIR, mets_or_mags) for samp in samples)
-            if sum(assign_res) != 0:
-                print("Taxonomic assignment of MAGs did not complete successfully. Check log files for details.")
-                sys.exit(1)
+        ## Next to assign taxonomy ##
+        manageEukulele(piece = "assign_taxonomy", samples = samples, mets_or_mags = mets_or_mags, 
+                       output_dir = OUTPUTDIR)
 
     if BUSCO:
-        print("Performing BUSCO steps...", flush=True)
-        print("Running busco...")
-        ## Run BUSCO on the full dataset ##
-        busco_db = "eukaryota_odb10"
-        busco_res = Parallel(n_jobs=multiprocessing.cpu_count(), prefer="threads")(delayed(run_busco)(sample_name, os.path.join(OUTPUTDIR, "busco"), busco_db, mets_or_mags, PEP_EXT, NT_EXT, CPUS, OUTPUTDIR, SAMPLE_DIR) for sample_name in samples)
-        all_codes = sum(busco_res)
-        if all_codes > 0:
-            print("BUSCO initial run or configuration did not complete successfully. Please check the BUSCO run and configuration log files in the log/ folder.")
-            sys.exit(1)
+        configRunBusco(output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, pep_ext = PEP_EXT, 
+                       nt_ext = NT_EXT, sample_dir = SAMPLE_DIR)
 
-        ## Assess BUSCO completeness on the most prevalent members of the metatranscriptome at each taxonomic level ##
-        if args.individual_or_summary == "individual":
-            for sample_name in samples:
-                busco_table = os.path.join(OUTPUTDIR, "busco", sample_name, "full_table.tsv") # the BUSCO table that we're interested in using that contains the BUSCO matches and their level of completeness
-                taxfile_stub = os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1]) # the prefix to specify where the taxonomy estimation output files are located
-
-                if mets_or_mags == "mets":
-                    fasta = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
-                else:
-                    fasta = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
-
-                query_busco_log = open(os.path.join("log","busco_query_" + sample_name + ".log"), "w+")
-                query_busco_err = open(os.path.join("log","busco_query_" + sample_name + ".err"), "w+")
-                sys.stdout = query_busco_log
-                sys.stderr = query_busco_err
-                query_args = ["--organism_group",str(" ".join(ORGANISMS)),"--taxonomic_level",str(" ".join(ORGANISMS_TAXONOMY)),"--output_dir",OUTPUTDIR,"--fasta_file",fasta,"--sample_name",sample_name,"--taxonomy_file_prefix",taxfile_stub,"--tax_table",TAX_TAB,"--busco_out",busco_table,"-i","individual"]
-                rc = queryBusco(query_args)
-                
-                sys.stdout = sys.__stdout__
-                sys.stderr = sys.__stderr__ 
-                if rc != 0:
-                    print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
-        else:
-            for sample_name in samples:
-                busco_table = os.path.join(OUTPUTDIR, "busco", sample_name, "full_table.tsv") # the BUSCO table that we're interested in using that contains the BUSCO matches and their level of completeness
-                taxfile_stub = os.path.join(OUTPUTDIR,OUTPUTDIR.split("/")[-1]) # the prefix to specify where the taxonomy estimation output files are located
-
-                if mets_or_mags == "mets":
-                    fasta = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
-                else:
-                    fasta = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
-
-                query_busco_log = open(os.path.join("log","busco_query_" + sample_name + ".log"), "w+")
-                query_busco_err = open(os.path.join("log","busco_query_" + sample_name + ".err"), "w+")
-                sys.stdout = query_busco_log
-                sys.stderr = query_busco_err
-                query_args = ["--output_dir",OUTPUTDIR,"--fasta_file",fasta,"--sample_name",sample_name,"--taxonomy_file_prefix",taxfile_stub,"--tax_table",TAX_TAB,"--busco_out",busco_table,"-i","summary"]
-                
-                rc = queryBusco(query_args)
-                sys.stdout = sys.__stdout__
-                sys.stderr = sys.__stderr__ 
-                
-                if rc != 0:
-                    print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
-
+        manageBuscoQuery(output_dir = OUTPUTDIR, individual_or_summary = individual_or_summary, 
+                         samples = samples, mets_or_mags = mets_or_mags, pep_ext = PEP_EXT, 
+                         nt_ext = NT_EXT, sample_dir = SAMPLE_DIR)
+                   
 if __name__ == "__main__": 
     main(args_in = " ".join(sys.argv[1:]))
