@@ -28,11 +28,8 @@ import visualize_results
 from visualize_results import *
 
 import EUKulele
-from EUKulele.setup_EUKulele import setupEukulele
-from EUKulele.setup_EUKulele import setupDatabases
-from EUKulele.transdecode_to_peptide import transdecodeToPeptide
 from EUKulele.download_database import downloadDatabase
-from EUKulele.manage_steps import *
+from EUKulele.manage_steps import manageEukulele
 
 import scripts as HelperScripts
 from scripts.create_protein_table import createProteinTable
@@ -45,53 +42,6 @@ __copyright__ = "EUKulele"
 __license__ = "MIT"
 __email__ = "akrinos@mit.edu"
 
-def align_to_database(alignment_choice, sample_name, filter_metric, OUTPUTDIR, REF_FASTA, mets_or_mags, DATABASE_DIR, SAMPLE_DIR, RERUN_RULES, NT_EXT, PEP_EXT):
-    if alignment_choice == "diamond":
-        os.system("mkdir -p " + os.path.join(OUTPUTDIR, mets_or_mags, "diamond"))
-        diamond_out = os.path.join(OUTPUTDIR, mets_or_mags, "diamond", sample_name + ".diamond.out")
-        if (os.path.isfile(diamond_out)) & (not RERUN_RULES):
-            print("Diamond alignment file already detected; will not re-run step.")
-            return diamond_out
-        
-        align_db = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa') + '.dmnd')
-        if mets_or_mags == "mets":
-            fasta = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
-        else:
-            fasta = os.path.join(SAMPLE_DIR, sample_name + "." + PEP_EXT)
-        other = "--outfmt 6 -k 100 -e 1e-5"
-        outfmt = 6
-        k = 100
-        e = 1e-5
-        bitscore = 50
-        diamond_log = os.path.join("log","diamond_align_" + sample_name + ".log")
-        diamond_err = os.path.join("log","diamond_align_" + sample_name + ".err")
-        if filter_metric == "bitscore":
-            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " --min-score " + str(bitscore) + " 1> " + diamond_log + " 2> " + diamond_err)
-        else:
-            rc1 = os.system("diamond blastp --db " + align_db + " -q " + fasta + " -o " + diamond_out + " --outfmt " + str(outfmt) + " -k " + str(k) + " -e " + str(e) + " 1> " + diamond_log + " 2> " + diamond_err)
-        if rc1 != 0:
-            print("Diamond did not complete successfully.")
-            os.system("rm -f " + diamond_out)
-            return 1
-        return diamond_out
-    else:
-        blast_out = os.path.join(OUTPUTDIR, mets_or_mags, "blast", sample_name + ".blast.txt")
-        if (os.path.isfile(blast_out)) & (not RERUN_RULES):
-            print("BLAST alignment file already detected; will not re-run step.")
-            return blast_out
-        align_db = os.path.join(DATABASE_DIR, "blast", REF_FASTA.strip('.fa'), "database")
-        if mets_or_mags == "mets":
-            fasta = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "." + PEP_EXT) 
-        else:
-            fasta = os.path.join(SAMPLE_DIR, sample_name + "." + NT_EXT)
-        outfmt = 6 # tabular output format
-        e = 1e-5
-        os.system("export BLASTDB=" + align_db)
-        rc1 = os.system("blastp -query " + align_db + " -db " + align_db + " -out " + blast_out + " -outfmt " + str(outfmt) + " -evalue " + str(e))
-        if rc1 != 0:
-            print("BLAST did not complete successfully.")
-            return 1
-        return blast_out
 
 def assign_taxonomy(sample_name, OUTPUTDIR, mets_or_mags):
     taxfile = os.path.join(OUTPUTDIR, mets_or_mags, sample_name + "-estimated-taxonomy.out")
@@ -129,9 +79,11 @@ def main(args_in):
         description='Thanks for using EUKulele! EUKulele is a standalone taxonomic annotation software.\n'
                     'EUKulele is designed primarily for marine microbial eukaryotes. Check the README '
                     'for further information.',
-        usage='eukulele [subroutine] --mets_or_mags [dataset_type] --reference_dir [reference_database_location] --sample_dir [sample_directory] [all other options]')
+        usage='eukulele [subroutine] --mets_or_mags [dataset_type] --reference_dir [reference_database_location] ' + 
+              '--sample_dir [sample_directory] [all other options]')
     
-    parser.add_argument('subroutine', metavar="subroutine", nargs='?', type=str, default="all", choices = ["","all","setup","alignment","busco"], help='Choice of subroutine to run.')
+    parser.add_argument('subroutine', metavar="subroutine", nargs='?', type=str, default="all", 
+                        choices = ["","all","setup","alignment","busco"], help='Choice of subroutine to run.')
     parser.add_argument('--mets_or_mags', required = True) 
     parser.add_argument('--n_ext', '--nucleotide_extension', dest = "nucleotide_extension", default = ".fasta") 
     parser.add_argument('--p_ext', '--protein_extension', dest = "protein_extension", default = ".faa") 
@@ -142,7 +94,8 @@ def main(args_in):
     ## SALMON OPTIONS ##
     parser.add_argument('--use_salmon_counts', type = int, default = 0)
     parser.add_argument('--salmon_dir') # salmon directory is required if use_salmon_counts is true.
-    parser.add_argument('--names_to_reads',default=0) # a file to be created or used if it exists that relates transcript names to salmon counts from the salmon directory 
+    parser.add_argument('--names_to_reads',default=0, help = "A file to be created or used if it exists " +
+                        "that relates transcript names to salmon counts from the salmon directory.")
 
     ## WHERE FILES ARE LOCATED ##
     parser.add_argument('--database', default="mmetsp") # the name of the database to be used to assess the reads
@@ -183,27 +136,12 @@ def main(args_in):
     CONSENSUS_CUTOFF = args.consensus_cutoff
     REFERENCE_DIR = args.reference_dir
     OUTPUTDIR = args.out_dir
-    DATABASE_DIR = os.path.join(args.database)
     SAMPLE_DIR = args.sample_dir
     REF_FASTA = args.ref_fasta
-    ## Convert reference FASTA file or directory to the proper path.
-    if os.path.isdir(str(os.path.join(REF_FASTA))): # if reference fasta variable is a directory
-        fasta_list = os.listdir(REF_FASTA)
-        REFERENCE_FASTAS = [os.path.join(REFERENCE_DIR, curr) for curr in fasta_list]
-        REF_FASTA = "combined_fastas"
-    elif os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA)):
-        REFERENCE_FASTAS = [os.path.join(REFERENCE_DIR, REF_FASTA)]
-    else:
-        print("You need to either provide a single fasta reference file, or the name of a directory containing" + \
-              "multiple reference FASTA files.")
-        sys.exit(1)
 
     TAX_TAB = os.path.join(REFERENCE_DIR, args.tax_table)
     PROT_TAB = os.path.join(REFERENCE_DIR, args.protein_map)
     ALIGNMENT_CHOICE = args.alignment_choice
-    IFPARALLEL = "series"
-    if args.p:
-        IFPARALLEL = "parallel"
     OUTPUT_EXTENSION = "txt"
     DBEXTENSION = ""
     TRANSDECODERORFSIZE=args.transdecoder_orfsize
@@ -237,8 +175,8 @@ def main(args_in):
             print("No BUSCO file specified/found; using argument-specified organisms and taxonomy for BUSCO analysis.")
 
         if (len(ORGANISMS) != len(ORGANISMS_TAXONOMY)):
-            print("Organisms and taxonomic specifications for BUSCO analysis do not contain the same number of entries." + \
-                  "Please revise such that each organism flagged for BUSCO analysis also includes its original taxonomic" + \
+            print("Organisms and taxonomic specifications for BUSCO analysis do not contain the same number of entries. " + \
+                  "Please revise such that each organism flagged for BUSCO analysis also includes its original taxonomic " + \
                   "level.")
             sys.exit(1)
 
@@ -253,61 +191,34 @@ def main(args_in):
         BUSCO = True
 
     ## SETUP STEPS / DOWNLOAD DEPENDENCIES ##
-    setupEukulele()
+    manageEukulele(piece = "setup_eukulele)
+    samples = manageEukulele(piece = "get_samples", mets_or_mags = mets_or_mags)
 
     ## Download the reference database if specified.
     if (args.reference_dir == "") | (not os.path.isdir(args.referencedir)) | \
         (not os.path.isdir(os.path.join(args.referencedir), REF_FASTA)):
-        print("Automatically downloading database " + args.database.lower() + ". If you intended to " + \
-              "use an existing database folder, be sure a reference FASTA, protein map, and taxonomy table " + \
-              "are provided. Check the documentation for details.")
         REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), args.alignment_choice)
 
     if SETUP:
-        setupDatabases(create_tax_table, TAX_TAB, PROT_TAB, REF_FASTA, args.column, args.delimiter, original_tax_table, args.taxonomy_col_id, args.reformat, args.database, args.alignment_choice, REFERENCE_FASTAS, DATABASE_DIR, RERUN_RULES, args.strain_col_id, OUTPUTDIR)
-
-    if (mets_or_mags == "mets"):
-        ## Now for some TransDecoding ##
-        samples = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(SAMPLE_DIR) if curr.split(".")[-1] == NT_EXT]
-        print("Performing TransDecoder steps...", flush=True)
-        if len(samples) == 0:
-            print("No samples found in sample directory with specified nucleotide extension.")
-        if ALIGNMENT:
-            n_jobs_align = min(multiprocessing.cpu_count(), len(samples))
-            transdecoder_res = Parallel(n_jobs=n_jobs_align)(delayed(transdecodeToPeptide)(sample_name) for sample_name in samples)
-            all_codes = sum(transdecoder_res)
-            if all_codes > 0:
-                print("TransDecoder did not complete successfully; check log folder for details.")
-                sys.exit(1)
-            rcodes = [os.remove(curr) for curr in glob.glob("pipeliner*")]
-    else:
-        samples = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(SAMPLE_DIR) if curr.split(".")[-1] == PEP_EXT]
-
-        if len(samples) == 0:
-            print("No samples found in sample directory with specified peptide extension.")
+        manageEukulele(piece = "setup_databases", ref_fasta = REF_FASTA, rerun_rules = RERUN_RULES, 
+                       alignment_choice = ALIGNMENT_CHOICE, database_dir = DATABASE_DIR)
 
     if ALIGNMENT:
-        print("Performing alignment steps...", flush=True)
-        ## First, we need to create a diamond database ##
-        os.system("mkdir -p " + os.path.join(DATABASE_DIR, "diamond"))
-        outfile_dmnd = os.path.join(DATABASE_DIR, "diamond", REF_FASTA.strip('.fa') + '.dmnd')
-        if args.alignment_choice == "blast":
-            os.system("makeblastdb -in " + os.path.join(OUTPUTDIR, "concatfasta.fasta") + " -parse_seqids -blastdb_version " + str(5) + " -title " + str(database) + " -dbtype prot -out " + outfile_dmnd + " 1> log/db_create.err 2> log/db_create.log")
-        else:
-            os.system("diamond makedb --in " + os.path.join(OUTPUTDIR, "concatfasta.fasta") + " --db " + outfile_dmnd + " 1> log/db_create.err 2> log/db_create.log")
+        ## First, we need to perform TransDecoder if needed
+        manageEukulele(piece = "transdecode", mets_or_mags = mets_or_mags)
         
         ## Next to align against our database of choice ##
-        n_jobs_align = min(multiprocessing.cpu_count(), len(samples))
-        alignment_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(align_to_database)(args.alignment_choice, sample_name, args.filter_metric, OUTPUTDIR, REF_FASTA, mets_or_mags, DATABASE_DIR, SAMPLE_DIR, RERUN_RULES, NT_EXT, PEP_EXT) for sample_name in samples)
-        if any([((curr == None) | (curr == 1)) for curr in alignment_res]):
-            print("Alignment did not complete successfully.")
-            sys.exit(1)
+        manageAlignment(alignment_choice = ALIGNMENT_CHOICE, sample_names = samples, filter_metric = args.filter_metric, 
+                        output_dir = OUTPUTDIR, ref_fasta = REF_FASTA, mets_or_mags = mets_or_mags, 
+                        database_dir = DATABASE_DIR, sample_dir = SAMPLE_DIR, rerun_rules = RERUN_RULES, 
+                        nt_ext = NT_EXT, pep_ext = PEP_EXT)
 
-        ## Next to do taxonomy estimation (NOTE: currently only supported with a config file). ##
+        ## Next to do salmon counts estimation (NOTE: currently only supported with a config file). ##
         if (USE_SALMON_COUNTS == 1):
             if args.config_file != "":
                 rc1 = namesToReads(args.config_file)
 
+        ## Next to do salmon counts estimation (NOTE: currently only supported with a config file). ##
         print("Performing taxonomic estimation steps...", flush=True)
         outfiles = [os.path.join(OUTPUTDIR, mets_or_mags, samp + "-estimated-taxonomy.out") for samp in samples]
         n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res))

@@ -7,6 +7,7 @@ REF_FASTA="reference.pep.fa"
 REF_TABLE="taxonomy-table.txt"
 REF_FASTA_URL=$2
 REF_TABLE_URL=$3
+ALIGNMENT_CHOICE=$4
 
 mkdir -p ${PWD}/$DATABASE
 
@@ -58,4 +59,10 @@ elif [[ $DATABASE == "phylodb" ]]; then
     echo "All reference files for PhyloDB downloaded to ${PWD}/$DATABASE"
 else
     exit 1
+fi
+
+if [ $ALIGNMENT_CHOICE == "blast" ]; then
+
+else
+
 fi

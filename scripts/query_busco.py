@@ -31,7 +31,9 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
     full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in list(tax_table[taxonomy])],:]
     if len(full_taxonomy.index) < 1:
         print("No taxonomy found for that organism and taxonomic level.")
-        return pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness","NumberCovered","CtTwoCopies","CtThreeCopies","CtFourCopies","CtFivePlusCopies","PercentageDuplicated"])
+        return pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness","NumberCovered",
+                                       "CtTwoCopies","CtThreeCopies","CtFourCopies","CtFivePlusCopies",
+                                       "PercentageDuplicated"])
         
     curr_level = [ind for ind in range(len(level_hierarchy)) if level_hierarchy[ind] == taxonomy][0]
     max_level = len(level_hierarchy) - 1
@@ -47,7 +49,9 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
     number_higher_mult = []
     number_covered = []
     busco_out_file = pd.read_csv(busco_out, sep = "\t", comment = "#", names = ["BuscoID","Status","Sequence","Score","Length"])
-    select_inds = [ (busco_out_file.Status[curr] == "Complete") | (busco_out_file.Status[curr] == "Fragmented") | (busco_out_file.Status[curr] == "Duplicated") for curr in range(len(busco_out_file.index))]
+    select_inds = [ (busco_out_file.Status[curr] == "Complete") | 
+                   (busco_out_file.Status[curr] == "Fragmented") | 
+                   (busco_out_file.Status[curr] == "Duplicated") for curr in range(len(busco_out_file.index))]
     good_buscos = busco_out_file.loc[select_inds,:]
     good_busco_sequences = [curr.split(".")[0] for curr in list(good_buscos.Sequence)]
     Covered_IDs = list(good_buscos.BuscoID)
@@ -59,14 +63,15 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
         curr_tax_list = set(list(full_taxonomy[level_hierarchy[curr_level]]))
         if len(curr_tax_list) > 1:
             print("More than 1 unique match found; using both matches: " + str("".join(curr_tax_list)))
-                  #using the first match (" + str(list(curr_tax_list)[0]) + ")")
-        curr_taxonomy = ";".join(curr_tax_list) #str(list(curr_tax_list)[0])
+        curr_taxonomy = ";".join(curr_tax_list)
         if (curr_taxonomy == "") | (curr_taxonomy.lower() == "nan"):
             print("No taxonomy found at level " + level_hierarchy[curr_level])
             continue
 
         #### CREATE A "MOCK TRANSCRIPTOME" BY PULLING BY TAXONOMIC LEVEL ####
-        taxonomy_file = pd.read_csv(taxonomy_file_prefix + "_all_" + str(level_hierarchy[curr_level]) + "_counts.csv", sep=",",header=0)
+        taxonomy_file = pd.read_csv(taxonomy_file_prefix + "_all_" + 
+                                    str(level_hierarchy[curr_level]) + 
+                                    "_counts.csv", sep=",",header=0)
         taxonomy_file = taxonomy_file.loc[[tax in curr_taxonomy for tax in list(taxonomy_file[level_hierarchy[curr_level].capitalize()])],:]
         transcripts_to_search = list(taxonomy_file["GroupedTranscripts"])
         transcripts_to_search_sep = []
@@ -75,7 +80,8 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
 
         set_transcripts_to_search = set(transcripts_to_search_sep)
         good_busco_sequences_list = list(good_busco_sequences)
-        BUSCOs_covered_all = [Covered_IDs[curr] for curr in range(len(good_busco_sequences_list)) if good_busco_sequences_list[curr] in list(set_transcripts_to_search)]
+        BUSCOs_covered_all = [Covered_IDs[curr] for curr in range(len(good_busco_sequences_list)) if \
+                              good_busco_sequences_list[curr] in list(set_transcripts_to_search)]
         BUSCOs_covered = set(BUSCOs_covered_all)
         number_appearences = [BUSCOs_covered_all.count(curr_busco) for curr_busco in list(BUSCOs_covered)]
         multiples = [curr_appear for curr_appear in number_appearences if curr_appear >= 2]
@@ -118,13 +124,21 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
             mock_file_name = organism + "_" + level_hierarchy[curr_level] + "_" + sample_name + "_BUSCO_complete.fasta"
             os.system("grep -w -A 2 -f " + file_written + " " + fasta_file + " --no-group-separator > " + mock_file_name)
 
-        reported.write("Taxonomy file successfully completed with BUSCO completeness " + str(busco_completeness) + "% at location " + str(file_written) + "This was at taxonomic level " + str(success_level) + ". The file containing the transcript names for the mock transcriptome corresponding to this taxonomic level is located here: " + str(file_written) + ".\n")
-        reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(taxonomy) + ") were: " + " ".join([str(curr) for curr in reversed_scores]))
+        reported.write("Taxonomy file successfully completed with BUSCO completeness " + str(busco_completeness) + 
+                       "% at location " + str(file_written) + "This was at taxonomic level " + str(success_level) + 
+                       ". The file containing the transcript names for the mock transcriptome corresponding to this "
+                       "taxonomic level is located here: " + str(file_written) + ".\n")
+        reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + 
+                       str(taxonomy) + ") were: " + " ".join([str(curr) for curr in reversed_scores]))
     else:
         reported.write("Sufficient BUSCO completeness not found at threshold " + str(busco_threshold) + "%. \n")
-        reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(taxonomy) + ") were: " + " ".join([str(curr) for curr in reversed_scores]) + "\n")
+        reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(taxonomy) + 
+                       ") were: " + " ".join([str(curr) for curr in reversed_scores]) + "\n")
     reported.close()
-    return pd.DataFrame({"Organism":[organism] * len(levels_out),"TaxonomicLevel":levels_out,"BuscoCompleteness":busco_scores,"NumberCovered":number_covered,"CtTwoCopies":number_duplicated,"CtThreeCopies":number_tripled,"CtFourCopies":number_quadrupled,"CtFivePlusCopies":number_higher_mult,"PercentageDuplicated":percent_multiples})
+    return pd.DataFrame({"Organism":[organism] * len(levels_out),"TaxonomicLevel":levels_out,
+                         "BuscoCompleteness":busco_scores,"NumberCovered":number_covered,"CtTwoCopies":number_duplicated,
+                         "CtThreeCopies":number_tripled,"CtFourCopies":number_quadrupled,"CtFivePlusCopies":number_higher_mult,
+                         "PercentageDuplicated":percent_multiples})
 
 def read_in_taxonomy(infile):
     with open(infile, 'rb') as f:
@@ -141,30 +155,40 @@ def read_in_taxonomy(infile):
 
 def queryBusco(args=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--busco_out',default="busco") # the output from the BUSCO run on the full sample file
-    parser.add_argument('--individual_or_summary','-i',default="summary",choices=["summary","individual"])
-    # Not necessary if we are running in summary mode.
-    parser.add_argument('--organism_group', nargs = "+", default = []) # the focal name(s) of species/genus/order/class etc.
-    parser.add_argument('--taxonomic_level', nargs = "+", default = []) # the taxonomic level(s) of the specified focal name.
-    parser.add_argument('--fasta_file') # the fasta file from which we pull sequences for the mock transcriptome.
-    parser.add_argument('--taxonomy_file_prefix') # the taxonomy file we use to create the mock transcriptome.
-    parser.add_argument('--tax_table') # the taxonomy table to get the full classification of the organism as assessed by the database being used.
-    parser.add_argument('--sample_name') # name of the original sample being assessed.
-    parser.add_argument('--download_busco',action='store_true') # if specified, we download BUSCO file from the url in the next argument
-    parser.add_argument('--create_fasta',action='store_true') # if specified, we create a "transcriptome fasta" when we query for the organisms
+    parser.add_argument('--busco_out',default="busco", help = "The output from the BUSCO run on the full sample file.")
+    parser.add_argument('--individual_or_summary','-i',default="summary",choices=["summary","individual"],
+                        help = "Not necessary if we are running in summary mode.")
+    parser.add_argument('--organism_group', nargs = "+", default = [],
+                        help = "The focal name(s) of species/genus/order/class.")
+    parser.add_argument('--taxonomic_level', nargs = "+", default = [], 
+                        help = "The taxonomic level(s) of the specified focal name.")
+    parser.add_argument('--fasta_file', 
+                        help = "The fasta file from which we pull sequences for the mock transcriptome.")
+    parser.add_argument('--taxonomy_file_prefix',
+                        help = "The taxonomy file we use to create the mock transcriptome.")
+    parser.add_argument('--tax_table', 
+                        "the taxonomy table to get the full classification of the organism, " + 
+                        "as assessed by the database being used.")
+    parser.add_argument('--sample_name', help = "The name of the original sample being assessed.")
+    parser.add_argument('--download_busco',action='store_true',
+                        help = "If specified, we download BUSCO file from the url in the next argument.")
+    parser.add_argument('--create_fasta',action='store_true', 
+                        help = "If specified, we create a 'transcriptome fasta' when we query for the organisms.")
     parser.add_argument('--busco_url',default=0)
-    parser.add_argument('--busco_location',default="busco") # location to store the BUSCO tar reference
+    parser.add_argument('--busco_location',default="busco",
+                        help = "Location to store the BUSCO tar reference.")
     parser.add_argument('--output_dir',default="output")
     parser.add_argument('--available_cpus',default=1)
     parser.add_argument('--busco_threshold',default=50)
-    parser.add_argument('--write_transcript_file',default=False,action='store_true') # whether to write an actual file with the subsetted transcriptome
+    parser.add_argument('--write_transcript_file', default=False, action='store_true',
+                       help = "Whether to write an actual file with the subsetted transcriptome.")
 
     if args != None:
         args = parser.parse_args(args)
     else:
         args = parser.parse_args()
         
-    organism = args.organism_group #[" ".join(curr.split(";")) for curr in args.organism_group] #args.organism_group
+    organism = args.organism_group 
     taxonomy = args.taxonomic_level
     tax_table = read_in_taxonomy(args.tax_table)
 
@@ -172,24 +196,52 @@ def queryBusco(args=None):
         print("You specified individual mode, but then did not provide a taxonomic group and/or accompanying taxonomic level.")
         sys.exit(1)
     if (len(args.organism_group) == 0) != (len(args.taxonomic_level) == 0):
-        print("The number of organisms you specified is not equal to the number of taxonomic levels you specified. " + str(len(args.organism_group)) + " organisms were specified, while " + str(args.taxonomic_level) + " taxonomic levels were specified.")
+        print("The number of organisms you specified is not equal to the number of taxonomic levels you specified. " +
+              str(len(args.organism_group)) + " organisms were specified, while " + str(args.taxonomic_level) + 
+              " taxonomic levels were specified.")
         sys.exit(1)
 
     if (args.individual_or_summary == "individual"):
-        results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(evaluate_organism)(organism[curr], taxonomy[curr], tax_table, args.create_fasta, args.write_transcript_file, args.busco_out, args.taxonomy_file_prefix, args.busco_threshold, args.output_dir, args.sample_name, args.fasta_file) for curr in range(len(organism)))
+        results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(evaluate_organism)(organism[curr], 
+                                                                                                taxonomy[curr], tax_table,
+                                                                                                args.create_fasta, 
+                                                                                                args.write_transcript_file, 
+                                                                                                args.busco_out, 
+                                                                                                args.taxonomy_file_prefix, 
+                                                                                                args.busco_threshold, 
+                                                                                                args.output_dir, 
+                                                                                                args.sample_name, 
+                                                                                                args.fasta_file) \
+                                                                     for curr in range(len(organism)))
         results_frame = pd.concat(results_frame)
         os.system("mkdir -p " + os.path.join(args.output_dir, "busco_assessment", args.sample_name, "individual"))
-        results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, "busco_assessment", args.sample_name, "individual", "summary_" + args.sample_name + ".tsv"), sep = "\t")
+        results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, "busco_assessment", 
+                                                        args.sample_name, "individual", "summary_" + 
+                                                        args.sample_name + ".tsv"), sep = "\t")
     else:
         for taxonomy in level_hierarchy:
-            taxonomy_file = pd.read_csv(args.taxonomy_file_prefix + "_all_" + str(taxonomy) + "_counts.csv", sep=",",header=0)
-            curr_frame = taxonomy_file.nlargest(multiprocessing.cpu_count(), 'NumTranscripts') # change this to number of CPUs 
+            taxonomy_file = pd.read_csv(args.taxonomy_file_prefix + "_all_" + str(taxonomy) + 
+                                        "_counts.csv", sep=",",header=0)
+            curr_frame = taxonomy_file.nlargest(multiprocessing.cpu_count(), 'NumTranscripts')
             organisms = list(curr_frame[taxonomy.capitalize()])
-            results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(
-        evaluate_organism)(organism, taxonomy, tax_table, args.create_fasta, args.write_transcript_file, args.busco_out, args.taxonomy_file_prefix, args.busco_threshold, args.output_dir, args.sample_name, args.fasta_file) for organism in organisms)
+            results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(evaluate_organism)(organism, 
+                                                                                                    taxonomy, tax_table, 
+                                                                                                    args.create_fasta, 
+                                                                                                    args.write_transcript_file, 
+                                                                                                    args.busco_out, 
+                                                                                                    args.taxonomy_file_prefix, 
+                                                                                                    args.busco_threshold, 
+                                                                                                    args.output_dir, 
+                                                                                                    args.sample_name, a
+                                                                                                    rgs.fasta_file) \
+                                                                         for organism in organisms)
             results_frame = pd.concat(results_frame)
-            os.system("mkdir -p " + os.path.join(args.output_dir, "busco_assessment", args.sample_name, taxonomy + "_combined"))
-            results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, "busco_assessment", args.sample_name, taxonomy + "_combined", "summary_" + taxonomy + "_" +  args.sample_name + ".tsv"), sep = "\t")
+            os.system("mkdir -p " + os.path.join(args.output_dir, "busco_assessment", args.sample_name, 
+                                                 taxonomy + "_combined"))
+            results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, "busco_assessment", 
+                                                            args.sample_name, taxonomy + "_combined", 
+                                                            "summary_" + taxonomy + "_" +  args.sample_name + 
+                                                            ".tsv"), sep = "\t")
         
     return 0
         
