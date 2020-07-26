@@ -19,11 +19,12 @@ setup(
     author_email="akrinos@mit.edu",
     packages=['EUKulele','scripts'],
     package_dir={'EUKulele': 'src/EUKulele'},
-    scripts=['bin/EUKulele','scripts/create_protein_table.py',\
+    scripts=['bin/EUKulele','scripts/create_protein_table.py','scripts/download_database.sh',\
              'scripts/mag_stats.py','scripts/names_to_reads.py','scripts/query_busco.py',\
              'scripts/configure_busco.sh','scripts/run_busco.sh','scripts/install_dependencies.sh'],
     license="MIT",
     include=['code'],
+    include_package_data = True,
     setup_requires=['pytest-runner'],
     test_suite='tests',
     tests_require=['pytest'],

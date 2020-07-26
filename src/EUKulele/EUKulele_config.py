@@ -72,7 +72,7 @@ def parseConfig(config_file):
     ## If reference_dir is provided, databases are not downloaded.
     if "reference_dir" in config:
         args = args + " --reference_dir " + str(config["reference"])
-    if "sample_dir" in config:
+    if "samples" in config:
         args = args + " --sample_dir " + str(config["samples"])
     if "ref_fasta" in config: # otherwise, this will default to reference.pep.fa! Set automatically if database is auto-downloaded ("download_reference", below)
         args = args + " --ref_fasta " + str(config["ref_fasta"])
@@ -107,9 +107,6 @@ def parseConfig(config_file):
         args = args + " --transdecoder_orfsize " + str(config["transdecoder_orfsize"])
     if "CPUs" in config:
         args = args + " --CPUs " + str(config["CPUs"])
-    if "choose_parallel" in config:
-        if (config["choose_parallel"] == "parallel") | (config["choose_parallel"] == 1) | (config["choose_parallel"] == "True") | (config["choose_parallel"] == True):
-            args = args + " -p "
 
     ## ALIGNMENT AND BUSCO OPTIONS ##
     if "alignment_choice" in config: 
@@ -137,9 +134,6 @@ def parseConfig(config_file):
     if ("taxonomy_col_id" in config):
         taxonomy_col_id = config["taxonomy_col_id"]
         args = args + " --taxonomy_col_id " + str(taxonomy_col_id)
-    if ("column" in config):
-        column = config["column"]
-        args = args + " --column " + str(column)
     if ("reformat_tax" in config):
         column = config["reformat_tax"]
         args = args + " --reformat_tax"

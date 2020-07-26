@@ -167,7 +167,7 @@ def queryBusco(args=None):
     parser.add_argument('--taxonomy_file_prefix',
                         help = "The taxonomy file we use to create the mock transcriptome.")
     parser.add_argument('--tax_table', 
-                        "the taxonomy table to get the full classification of the organism, " + 
+                        help = "the taxonomy table to get the full classification of the organism, " + 
                         "as assessed by the database being used.")
     parser.add_argument('--sample_name', help = "The name of the original sample being assessed.")
     parser.add_argument('--download_busco',action='store_true',
@@ -232,8 +232,8 @@ def queryBusco(args=None):
                                                                                                     args.taxonomy_file_prefix, 
                                                                                                     args.busco_threshold, 
                                                                                                     args.output_dir, 
-                                                                                                    args.sample_name, a
-                                                                                                    rgs.fasta_file) \
+                                                                                                    args.sample_name, 
+                                                                                                    args.fasta_file) \
                                                                          for organism in organisms)
             results_frame = pd.concat(results_frame)
             os.system("mkdir -p " + os.path.join(args.output_dir, "busco_assessment", args.sample_name, 

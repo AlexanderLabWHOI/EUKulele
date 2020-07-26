@@ -16,13 +16,8 @@ import glob
 from joblib import Parallel, delayed
 import pkgutil
 
-import tax_placement
-from tax_placement import *
-
-import visualize_results
-from visualize_results import *
-
 import EUKulele
+
 from EUKulele.download_database import downloadDatabase
 from EUKulele.manage_steps import manageEukulele
 from EUKulele.busco_runner import readBuscoFile
@@ -42,15 +37,15 @@ def main(args_in):
         description='Thanks for using EUKulele! EUKulele is a standalone taxonomic annotation software.\n'
                     'EUKulele is designed primarily for marine microbial eukaryotes. Check the README '
                     'for further information.',
-        usage='eukulele [subroutine] --mets_or_mags [dataset_type] --reference_dir [reference_database_location] ' + 
-              '--sample_dir [sample_directory] [all other options]')
+        usage='eukulele [subroutine] --mets_or_mags [dataset_type] --sample_dir [sample_directory] ' + 
+              '--reference_dir [reference_database_location] [all other options]')
     
     parser.add_argument('subroutine', metavar="subroutine", nargs='?', type=str, default="all", 
                         choices = ["","all","setup","alignment","busco"], help='Choice of subroutine to run.')
     parser.add_argument('--mets_or_mags', required = True) 
     parser.add_argument('--n_ext', '--nucleotide_extension', dest = "nucleotide_extension", default = ".fasta") 
     parser.add_argument('--p_ext', '--protein_extension', dest = "protein_extension", default = ".faa") 
-    parser.add_argument('f', '--force_rerun', action='store_true', default=False)
+    parser.add_argument('-f', '--force_rerun', action='store_true', default=False)
     parser.add_argument('--scratch', default = '../scratch', 
                         help = "The scratch location to store intermediate files.")
     parser.add_argument('--config_file', default = '')
@@ -96,7 +91,8 @@ def main(args_in):
                         help = "Taxonomic level of organisms specified in organisms tag.")
 
     ## OTHER USER CHOICES ## 
-    cutoff_file = pkgutil.get_data(__name__, "src/EUKulele/static/tax-cutoffs.yaml")
+    #cutoff_file = pkgutil.get_data(__name__, "tax-cutoffs.yaml")
+    cutoff_file = "tax-cutoffs.yaml"
     parser.add_argument('--cutoff_file', default = cutoff_file)
     parser.add_argument('--filter_metric', default = "evalue", choices = ["pid", "evalue", "bitscore"])
     parser.add_argument('--consensus_cutoff', default = 0.75, type = float)
@@ -143,8 +139,8 @@ def main(args_in):
     BUSCO_FILE = args.busco_file
     RERUN_RULES = args.force_rerun
     
-    ORGANISMS, ORGANISMS_TAXONOMY = readBuscoFile(individual_or_summary, busco_file, 
-                                                  organisms, organisms_taxonomy)
+    ORGANISMS, ORGANISMS_TAXONOMY = readBuscoFile(args.individual_or_summary, BUSCO_FILE, 
+                                                  ORGANISMS, ORGANISMS_TAXONOMY)
 
     SETUP = False
     ALIGNMENT = False
@@ -157,13 +153,13 @@ def main(args_in):
         BUSCO = True
 
     ## SETUP STEPS / DOWNLOAD DEPENDENCIES ##
-    manageEukulele(piece = "setup_eukulele)
+    manageEukulele(piece = "setup_eukulele", output_dir = OUTPUTDIR)
     samples = manageEukulele(piece = "get_samples", mets_or_mags = mets_or_mags,
                              sample_dir = SAMPLE_DIR, nt_ext = NT_EXT, pep_ext = PEP_EXT)
 
     ## Download the reference database if specified.
-    if (args.reference_dir == "") | (not os.path.isdir(args.referencedir)) | \
-        (not os.path.isdir(os.path.join(args.referencedir), REF_FASTA)):
+    #if (REFERENCE_DIR == "") | (not os.path.isdir(REFERENCE_DIR)) | \
+    if (not os.path.isdir(os.path.join(REFERENCE_DIR, REF_FASTA))):
         REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), args.alignment_choice)
         REFERENCE_DIR = args.database.lower()
 
@@ -188,7 +184,7 @@ def main(args_in):
                 rc1 = namesToReads(args.config_file)
 
         manageEukulele(piece = "estimate_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
-                       tax_tab = TAX_TAB, args.cutoff_file, consensus_cutoff = CONSENSUS_CUTOFF, 
+                       tax_tab = TAX_TAB, cutoff_file = args.cutoff_file, consensus_cutoff = CONSENSUS_CUTOFF, 
                        prot_tab = PROT_TAB, use_salmon_counts = USE_SALMON_COUNTS, 
                        names_to_reads = NAMES_TO_READS, alignment_res = alignment_res, 
                        rerun_rules = RERUN_RULES)

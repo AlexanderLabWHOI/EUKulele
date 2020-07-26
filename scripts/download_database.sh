@@ -60,9 +60,3 @@ elif [[ $DATABASE == "phylodb" ]]; then
 else
     exit 1
 fi
-
-if [ $ALIGNMENT_CHOICE == "blast" ]; then
-
-else
-
-fi

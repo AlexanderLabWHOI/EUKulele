@@ -2,29 +2,24 @@ import os
 import sys
 import subprocess
 
-import tax_placement
-from tax_placement import *
-
-import visualize_results
-from visualize_results import *
+import EUKulele
+from EUKulele.tax_placement import place_taxonomy
+from EUKulele.visualize_results import visualize_all_results
 
 from scripts.mag_stats import magStats
 
 def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "", 
                    output_dir = "", ref_fasta = "", alignment_choice = "diamond", 
-                   database_dir = "", rerun_rules = False, cutoff_file = "",
+                   rerun_rules = False, cutoff_file = "", sample_dir = "", nt_ext = "", pep_ext = "",
                    consensus_cutoff = 0.75, prot_tab = "", use_salmon_counts = False,
                    names_to_reads = "", alignment_res = ""):
     
-    output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
-                        prot_tab, use_salmon_counts, names_to_reads, alignment_res,
-                        rerun_rules 
     """
     This function diverts management tasks to the below helper functions.
     """
     
     if piece == "setup_eukulele":
-        setupEukulele()
+        setupEukulele(output_dir)
     elif piece == "setup_databases":
         createAlignmentDatabase(ref_fasta, rerun_rules, alignment_choice, database_dir)
     elif piece == "get_samples":
@@ -132,9 +127,9 @@ def manageTrandecode(met_samples):
         sys.exit(1)
     rcodes = [os.remove(curr) for curr in glob.glob("pipeliner*")]
               
-def setupEukulele():
+def setupEukulele(output_dir):
     print("Setting things up...")
-    os.system("mkdir -p " + OUTPUTDIR)
+    os.system("mkdir -p " + output_dir)
     os.system("mkdir -p log")
 
     ## Download software dependencies

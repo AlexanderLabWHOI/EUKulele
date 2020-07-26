@@ -34,16 +34,16 @@ def downloadDatabase(database_name, alignment_choice):
         print("Specified reference database, " + database_name + " is not supported.")
         sys.exit(1)
         
-    config_file = pkgutil.get_data(__name__, "src/EUKulele/static/reference_url.yaml")
+    #config_file = pkgutil.get_data(__name__, "static/reference_url.yaml")
+    config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "static/reference_url.yaml")
     with open(config_file, 'r') as configfile:
         config = yaml.safe_load(configfile)
         
     database_ref_url = config[database_name + "_ref"]
     database_tab_url = config[database_name + "_tab"]
-    p = subprocess.Popen(["source", "download_database.sh", database_name, database_ref_url, 
-                          database_tab_url])
-    p.wait()
-    if p.returncode != 0:
+    rc = os.system(" ".join(["source", "download_database.sh", database_name, database_ref_url, 
+                          database_tab_url]))
+    if rc != 0:
         print("Download of database " + database_name + " did not complete correctly.")
         sys.exit(1)
         
