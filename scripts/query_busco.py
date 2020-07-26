@@ -24,7 +24,8 @@ __email__ = "akrinos@mit.edu"
 
 level_hierarchy = ['supergroup','division','class','order','family','genus','species']
 
-def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcript_file, busco_out, taxonomy_file_prefix, busco_threshold, output_dir, sample_name, fasta_file):
+def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcript_file, busco_out, 
+                      taxonomy_file_prefix, busco_threshold, output_dir, sample_name, fasta_file):
     organism_format = organism
     if taxonomy == "species":
         organism_format = " ".join(str(organism).split(";"))
@@ -62,7 +63,7 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
         #### GET THE CURRENT LEVEL OF TAXONOMY FROM THE TAX TABLE FILE ####
         curr_tax_list = set(list(full_taxonomy[level_hierarchy[curr_level]]))
         if len(curr_tax_list) > 1:
-            print("More than 1 unique match found; using both matches: " + str("".join(curr_tax_list)))
+            print("More than 1 unique match found; using all matches: " + str(", ".join(curr_tax_list)))
         curr_taxonomy = ";".join(curr_tax_list)
         if (curr_taxonomy == "") | (curr_taxonomy.lower() == "nan"):
             print("No taxonomy found at level " + level_hierarchy[curr_level])
@@ -154,6 +155,10 @@ def read_in_taxonomy(infile):
     return tax_out
 
 def queryBusco(args=None):
+    """
+    Search through individual BUSCO outputs to find number of matches for each organism/taxonomic level.
+    """
+    
     parser = argparse.ArgumentParser()
     parser.add_argument('--busco_out',default="busco", help = "The output from the BUSCO run on the full sample file.")
     parser.add_argument('--individual_or_summary','-i',default="summary",choices=["summary","individual"],

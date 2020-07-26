@@ -51,7 +51,7 @@ def downloadDatabase(database_name, alignment_choice):
     orig_tax_name = os.path.join(database_name,"taxonomy-table.txt")
     
     tax_table = os.path.join(database_name,"tax-table.txt")
-    protein_json = os.path.join(database_name,"tax-table.txt")
+    protein_json = os.path.join(database_name,"prot-map.json")
     
     create_protein_table_args.extend(["--infile_peptide",fasta_name,"--infile_taxonomy",
                                       orig_tax_name,"--output",tax_table,"--outfile_json",
@@ -65,9 +65,9 @@ def downloadDatabase(database_name, alignment_choice):
         print("Taxonomy table and protein JSON file creation step did not complete successfully.")
         sys.exit(1)
         
-    rc2 = createAlignmentDatabase(fasta_name, database_name)
+    rc2 = createAlignmentDatabase(fasta_name.split("/")[-1], True, alignment_choice, database_name)
     if rc2 != 0:
-        print("Alignment database for " + alignment_choice + " did not complete successfully;" +
+        print("Alignment database for " + alignment_choice + " did not complete successfully; " +
               "check log for details.")
         sys.exit(1)
     

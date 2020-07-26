@@ -4,4 +4,4 @@ import sys
 
 import EUKulele
 from EUKulele.EUKulele_config import *
-EUKulele.eukulele(string_arguments=' '.join(sys.argv[0:]))
+EUKulele.eukulele(string_arguments=' '.join(sys.argv[1:]))

@@ -6,6 +6,7 @@ import sys
 import yaml
 import argparse
 import pathlib
+from joblib import Parallel, delayed
 try:
     import EUKulele
 except:
@@ -70,7 +71,7 @@ def parseConfig(config_file):
     args = args + " --mets_or_mags " + str(config["mets_or_mags"])
     
     ## If reference_dir is provided, databases are not downloaded.
-    if "reference_dir" in config:
+    if "reference" in config:
         args = args + " --reference_dir " + str(config["reference"])
     if "samples" in config:
         args = args + " --sample_dir " + str(config["samples"])

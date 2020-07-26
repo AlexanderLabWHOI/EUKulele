@@ -74,7 +74,7 @@ def main(args_in):
                                "constitute the database.")
   
     parser.add_argument('--tax_table', default = "tax-table.txt")
-    parser.add_argument('--protein_map', default = "protein-map.json")
+    parser.add_argument('--protein_map', default = "prot-map.json")
     
     ## ALIGNMENT OPTIONS ##
     parser.add_argument('--alignment_choice', default = "diamond", choices = ["diamond", "blast"])
@@ -112,8 +112,6 @@ def main(args_in):
     SAMPLE_DIR = args.sample_dir
     REF_FASTA = args.ref_fasta
 
-    TAX_TAB = os.path.join(REFERENCE_DIR, args.tax_table)
-    PROT_TAB = os.path.join(REFERENCE_DIR, args.protein_map)
     ALIGNMENT_CHOICE = args.alignment_choice
     OUTPUT_EXTENSION = "txt"
     DBEXTENSION = ""
@@ -159,22 +157,30 @@ def main(args_in):
 
     ## Download the reference database if specified.
     #if (REFERENCE_DIR == "") | (not os.path.isdir(REFERENCE_DIR)) | \
-    if (not os.path.isdir(os.path.join(REFERENCE_DIR, REF_FASTA))):
-        REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), args.alignment_choice)
+    if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))):
         REFERENCE_DIR = args.database.lower()
+        print("Specified reference directory and reference FASTA not found. Using database: " + REFERENCE_DIR + ".")
+    
+    TAX_TAB = os.path.join(REFERENCE_DIR, args.tax_table)
+    PROT_TAB = os.path.join(REFERENCE_DIR, args.protein_map)
+    
+    if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))):
+        REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), args.alignment_choice)
+    else:
+        print("Found database folder for " + REFERENCE_DIR + " in current directory; will not re-download.")
 
     if SETUP:
         manageEukulele(piece = "setup_databases", ref_fasta = REF_FASTA, rerun_rules = RERUN_RULES, 
-                       alignment_choice = ALIGNMENT_CHOICE, database_dir = DATABASE_DIR)
+                       alignment_choice = ALIGNMENT_CHOICE, database_dir = REFERENCE_DIR)
 
     if ALIGNMENT:
         ## First, we need to perform TransDecoder if needed
         manageEukulele(piece = "transdecode", mets_or_mags = mets_or_mags)
         
         ## Next to align against our database of choice ##
-        alignment_res = manageAlignment(alignment_choice = ALIGNMENT_CHOICE, sample_names = samples, 
+        alignment_res = manageEukulele(piece = "align_to_db", alignment_choice = ALIGNMENT_CHOICE, samples = samples, 
                                         filter_metric = args.filter_metric, output_dir = OUTPUTDIR, 
-                                        ref_fasta = REF_FASTA, mets_or_mags = mets_or_mags, database_dir = DATABASE_DIR,
+                                        ref_fasta = REF_FASTA, mets_or_mags = mets_or_mags, database_dir = REFERENCE_DIR,
                                         sample_dir = SAMPLE_DIR, rerun_rules = RERUN_RULES, 
                                         nt_ext = NT_EXT, pep_ext = PEP_EXT)
 
@@ -184,10 +190,10 @@ def main(args_in):
                 rc1 = namesToReads(args.config_file)
 
         manageEukulele(piece = "estimate_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
-                       tax_tab = TAX_TAB, cutoff_file = args.cutoff_file, consensus_cutoff = CONSENSUS_CUTOFF, 
-                       prot_tab = PROT_TAB, use_salmon_counts = USE_SALMON_COUNTS, 
+                       tax_tab = TAX_TAB, cutoff_file = args.cutoff_file, 
+                       consensus_cutoff = CONSENSUS_CUTOFF, prot_tab = PROT_TAB, use_salmon_counts = USE_SALMON_COUNTS, 
                        names_to_reads = NAMES_TO_READS, alignment_res = alignment_res, 
-                       rerun_rules = RERUN_RULES)
+                       rerun_rules = RERUN_RULES, samples = samples)
 
         ## Now to visualize the taxonomy ##
         manageEukulele(piece = "visualize_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
@@ -200,11 +206,12 @@ def main(args_in):
 
     if BUSCO:
         configRunBusco(output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, pep_ext = PEP_EXT, 
-                       nt_ext = NT_EXT, sample_dir = SAMPLE_DIR)
+                       nt_ext = NT_EXT, sample_dir = SAMPLE_DIR, samples = samples)
 
-        manageBuscoQuery(output_dir = OUTPUTDIR, individual_or_summary = individual_or_summary, 
+        manageBuscoQuery(output_dir = OUTPUTDIR, individual_or_summary = args.individual_or_summary, 
                          samples = samples, mets_or_mags = mets_or_mags, pep_ext = PEP_EXT, 
-                         nt_ext = NT_EXT, sample_dir = SAMPLE_DIR)
+                         nt_ext = NT_EXT, sample_dir = SAMPLE_DIR, organisms = ORGANISMS, 
+                         organisms_taxonomy = ORGANISMS_TAXONOMY, tax_tab = TAX_TAB)
                    
 if __name__ == "__main__": 
     main(args_in = " ".join(sys.argv[1:]))
