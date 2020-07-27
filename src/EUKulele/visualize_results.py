@@ -72,7 +72,9 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
     transcripts_classes = transcripts_classes.groupby("classifications").agg({"transcript_names": lambda x: ';'.join(x)})
     transcripts_classes.sort_values(by = "classifications", inplace=True)
     
-    final_frame = pd.DataFrame({name_level: sorted(list(set_list)), "Counts": [full_list.count(curr) for curr in sorted(list(set_list))], "GroupedTranscripts": list(transcripts_classes.transcript_names)})
+    final_frame = pd.DataFrame({name_level: sorted(list(set_list)), 
+                                "Counts": [full_list.count(curr) for curr in sorted(list(set_list))], 
+                                "GroupedTranscripts": list(transcripts_classes.transcript_names)})
     
     return classifications, final_frame
 
@@ -181,7 +183,7 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
     for l in level_hierarchy:
         ### SAVE THE CSVs OF THE DATA ###
         prefix = out_prefix
-        counts_all[l].to_csv(os.path.join(out_dir, prefix + "_all_" + l + "_counts.csv"))
+        counts_all[l].to_csv(os.path.join(out_dir, "taxonomy_counts", prefix + "_all_" + l + "_counts.csv"))
 
         ### INITIALIZE VARIABLES FOR LOOP ###
         Curr_Variable = l.capitalize()
@@ -236,7 +238,7 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
             pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05, transcript_or_counts="NumTranscripts")
             pivoted.plot(kind='bar', stacked=True, color = sns_palette)
             plt.tight_layout()
-            plt.savefig(os.path.join(out_dir, l + '_transcripts.png'),dpi=100)
+            plt.savefig(os.path.join(out_dir, "taxonomy_visualization", l + '_transcripts.png'),dpi=100)
             plt.show()
             plt.close()
         else:
@@ -248,6 +250,6 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
             pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05, transcript_or_counts="Counts")
             pivoted.plot(kind='bar', stacked=True, width=1, color = sns_palette, title="Counts", ax = ax2)
             plt.tight_layout()
-            plt.savefig(os.path.join(out_dir, l + '_counts_and_transcripts.png'),dpi=100)
+            plt.savefig(os.path.join(out_dir, "taxonomy_visualization", l + '_counts_and_transcripts.png'),dpi=100)
             plt.show()
             plt.close()

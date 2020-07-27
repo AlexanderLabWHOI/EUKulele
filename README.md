@@ -7,7 +7,7 @@
 ## Formalizing environmental eukaryotic taxonomic assignment
 
 ### About EUKulele
-`EUKulele` is a Python program for taxonomic annotation of microbes in metatranscriptomic and metagenomic samples, with special emphasis on eukaryote discovery. `EUKulele` can be downloaded from [PyPI](https://pypi.org/) and used as a Python module, or it may be downloaded via `conda` and used as a command-line program. The software includes three major features:
+`EUKulele` is a Python program for taxonomic annotation of microbes in metatranscriptomic and metagenomic samples, with special emphasis on eukaryote discovery. `EUKulele` can be downloaded from [PyPI](https://pypi.org/), or it may be downloaded via `conda` and used as a command-line program. The software includes three major features:
 - Database setup and formatting
 - Database creation, alignment, and taxonomic estimation
 - Assessment of the BUSCO completeness of subsets of contigs at each taxonomic level
@@ -17,22 +17,24 @@ In principle, there are two prerequisites for running the software:
 1. Metagenomic or metatranscriptomic sample files (unless using the provided sample data)
 2. A database to align the contigs from the metagenome/metatranscriptome to
 
-Three databases are supported by default from within `EUKulele`, and may be downloaded and formatted automatically if the user chooses:
+Three databases are supported by default from within `EUKulele`, and may be downloaded and formatted automatically if the user chooses (or if another reference directory is not specified/does not exist):
 - [PhyloDB](https://drive.google.com/drive/u/0/folders/0B-BsLZUMHrDQfldGeDRIUHNZMEREY0g3ekpEZFhrTDlQSjQtbm5heC1QX2V6TUxBeFlOejQ)
 - [EukProt](https://figshare.com/articles/EukProt_a_database_of_genome-scale_predicted_proteins_across_the_diversity_of_eukaryotic_life/12417881/2)
 - [MMETSP](https://zenodo.org/record/1212585#.Xw3PoJNKhTZ)
 
 ### Downloading and configuring EUKulele
 
-When `EUKulele` is used as a Python package, it will attempt to install dependent software for you. However, this is prone to error based on the idiosyncracies of your system. Hence, it is recommended that you create and activate a `conda` environment for `EUKulele`, by running the command 
+When used as a Python package, `EUKulele` will independently attempt to install dependent software for you. However, this is prone to error based on the idiosyncracies of your system. Hence, it is recommended that you create and activate a `conda` environment for `EUKulele`, by running the command 
 
 ```
 conda env create -f src/EUKulele/EUKulele-env.yaml
 ```
 
-from the base directory, and then typing `conda activate EUKulele`. 
+from the base directory, and then typing `conda activate EUKulele`. When `EUKulele` is used as a `conda` package, all dependent software will be checked for automatically.
 
 ### Basic usage
+
+#### Python module
 
 Inside of a Python script, include `import EUKulele` in the header.
 
@@ -65,17 +67,16 @@ where the `config` argument allows you to list the path of the configuration `YA
 | Flag 	| Configuration File Entry 	| Meaning 	|
 |-	|-	|-	|
 | --config 	| N/A 	| The path to the configuration file which should be used to retrieve the equivalent of command-line arguments. 	|
-| --mets_or_mags 	| mets_or_mags 	| A required flag to indicate whether metatranscriptomic ("mets") or metagenomic ("mags") samples are being used as input. 	|
-| --sample_dir 	| samples 	| A required flag to indicate where the samples (metagenomic or metatranscriptomic, depending on "mets_or_mags" flag) are located. 	|
-| --out_dir 	| output 	| The path to the directory where output will be stored. Defaults to a folder called `output` in the present working directory. 	|
+| -m/--mets_or_mags 	| mets_or_mags 	| A required flag to indicate whether metatranscriptomic ("mets") or metagenomic ("mags") samples are being used as input. 	|
+| -s/--sample_dir 	| samples 	| A required flag to indicate where the samples (metagenomic or metatranscriptomic, depending on "mets_or_mags" flag) are located. 	|
+| -o/--out_dir 	| output 	| The path to the directory where output will be stored. Defaults to a folder called `output` in the present working directory. 	|
 | --reference_dir 	| reference 	| A flag to indicate where the reference FASTA is stored, or a keyword argument for the dataset to be downloaded and used. Only used if not downloading automatically. 	|
 | --ref_fasta 	| ref_fasta 	| The name of the reference FASTA file in `reference_dir`; defaults to reference.pep.fa if not specified, or is set according to the downloaded file if using a keyword argument. 	|
 | --database 	| database 	| An optional additional argument for specifying the database name. 	|
 | --nucleotide_extension/--n_ext 	| nucleotide_extension 	| The file extension for samples in nucleotide format (metatranscriptomes). Defaults to .fasta. 	|
 | --protein_extension/--p_ext 	| protein_extension 	| The file extension for samples in protein format (metatranscriptomes). Defaults to .faa. 	|
-| --scratch 	| scratch 	| The directory where temporary files will be stored. Defaults to `../scratch`. 	|
 | --ref_fasta_ext 	| ref_fasta_ext 	| The file extension for `ref_fasta`, if applicable. Defaults to .fasta. 	|
-| --force_rerun 	| force_rerun 	| If included in a command line argument or set to 1 in a configuration file, this argument forces all steps to be re-run, regardless of whether output is already present. 	|
+| -f/--force_rerun 	| force_rerun 	| If included in a command line argument or set to 1 in a configuration file, this argument forces all steps to be re-run, regardless of whether output is already present. 	|
 | --use_salmon_counts 	| use_salmon_counts 	| If included in a command line argument or set to 1 in a configuration file, this argument causes classifications to be made based both on number of classified transcripts and by counts. 	|
 | --salmon_dir 	| salmon_dir 	| If `--use_salmon_counts` is true, this must be specified, which is the directory location of the `salmon` output/quantification files. 	|
 | --names_to_reads 	| names_to_reads 	| A file that creates a correspondence between each transcript name and the number of `salmon`-quantified reads. Can be generated manually via the `names_to_reads.py` script, or will be generated automatically if it does not exist. 	|
@@ -118,7 +119,7 @@ conda activate EUKulele
 Then download `EUKulele` via `pip` using:
 
 ```
-python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps EUKulele==0.1.6
+python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps EUKulele
 ```
 
 If any dependency is not satisfied, you can install it manually using `pip install <requirement> --user`. 

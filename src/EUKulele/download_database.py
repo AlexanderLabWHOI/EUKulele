@@ -47,14 +47,14 @@ def downloadDatabase(database_name, alignment_choice):
         print("Download of database " + database_name + " did not complete correctly.")
         sys.exit(1)
         
-    fasta_name = os.path.join(database_name,"reference.pep.fa")
+    fasta_name = "reference.pep.fa" #os.path.join(database_name,"reference.pep.fa")
     orig_tax_name = os.path.join(database_name,"taxonomy-table.txt")
     
     tax_table = os.path.join(database_name,"tax-table.txt")
     protein_json = os.path.join(database_name,"prot-map.json")
     
-    create_protein_table_args.extend(["--infile_peptide",fasta_name,"--infile_taxonomy",
-                                      orig_tax_name,"--output",tax_table,"--outfile_json",
+    create_protein_table_args.extend(["--infile_peptide",os.path.join(database_name,fasta_name),
+                                      "--infile_taxonomy",orig_tax_name,"--output",tax_table,"--outfile_json",
                                       protein_json,"--delim",str(delimiter),"--strain_col_id",
                                       "strain_name","--taxonomy_col_id", "taxonomy","--column",
                                       str(column_id)])

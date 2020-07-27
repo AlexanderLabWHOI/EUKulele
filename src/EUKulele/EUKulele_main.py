@@ -42,7 +42,7 @@ def main(args_in):
     
     parser.add_argument('subroutine', metavar="subroutine", nargs='?', type=str, default="all", 
                         choices = ["","all","setup","alignment","busco"], help='Choice of subroutine to run.')
-    parser.add_argument('--mets_or_mags', required = True) 
+    parser.add_argument('-m,', '--mets_or_mags', dest = "mets_or_mags", required = True) 
     parser.add_argument('--n_ext', '--nucleotide_extension', dest = "nucleotide_extension", default = ".fasta") 
     parser.add_argument('--p_ext', '--protein_extension', dest = "protein_extension", default = ".faa") 
     parser.add_argument('-f', '--force_rerun', action='store_true', default=False)
@@ -62,7 +62,7 @@ def main(args_in):
                         help = "The name of the database to be used to assess the reads.")
     parser.add_argument('-o','--out_dir', dest = "out_dir", default = "output", 
                         help = "Folder where the output will be written.")
-    parser.add_argument('--sample_dir', required = True, 
+    parser.add_argument('-s','--sample_dir', required = True, dest = "sample_dir",
                         help = "Folder where the input data is located (the protein or peptide files to be assessed).")
     
     ## ONLY SPECIFY THESE ARGUMENTS IF YOU HAVE ALREADY PROVIDED AND FORMATTED YOUR OWN DATABASE ##
@@ -175,7 +175,9 @@ def main(args_in):
 
     if ALIGNMENT:
         ## First, we need to perform TransDecoder if needed
-        manageEukulele(piece = "transdecode", mets_or_mags = mets_or_mags)
+        manageEukulele(piece = "transdecode", mets_or_mags = mets_or_mags, samples = samples, output_dir = OUTPUTDIR, 
+                       rerun_rules = RERUN_RULES, sample_dir = SAMPLE_DIR, transdecoder_orf_size = TRANSDECODERORFSIZE, 
+                       nt_ext = NT_EXT, pep_ext = PEP_EXT)
         
         ## Next to align against our database of choice ##
         alignment_res = manageEukulele(piece = "align_to_db", alignment_choice = ALIGNMENT_CHOICE, samples = samples, 
