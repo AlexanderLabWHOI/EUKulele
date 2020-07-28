@@ -175,17 +175,17 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
     """
     
     n_jobs_align = min(multiprocessing.cpu_count(), len(samples))
-    #alignment_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(alignToDatabase)(alignment_choice,
-    #                                                                                           sample_name, filter_metric, 
-    #                                                                                           output_dir, ref_fasta, 
-    #                                                                                           mets_or_mags, database_dir, 
-    #                                                                                           sample_dir, rerun_rules, nt_ext, 
-    #                                                                                           pep_ext) \
-    #                                                                for sample_name in samples)
-    alignment_res = []
-    for sample_name in samples:
-        alignment_res.append(alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, ref_fasta, 
-                         mets_or_mags, database_dir, sample_dir, rerun_rules, nt_ext, pep_ext))
+    alignment_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(alignToDatabase)(alignment_choice,
+                                                                                               sample_name, filter_metric, 
+                                                                                               output_dir, ref_fasta, 
+                                                                                               mets_or_mags, database_dir, 
+                                                                                               sample_dir, rerun_rules, nt_ext, 
+                                                                                               pep_ext) \
+                                                                    for sample_name in samples)
+    #alignment_res = []
+    #for sample_name in samples:
+    #    alignment_res.append(alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, ref_fasta, 
+    #                     mets_or_mags, database_dir, sample_dir, rerun_rules, nt_ext, pep_ext))
     
     if any([((curr == None) | (curr == 1)) for curr in alignment_res]):
         print("Alignment did not complete successfully.")
@@ -201,8 +201,8 @@ def createAlignmentDatabase(ref_fasta, rerun_rules, alignment_choice="diamond", 
     
     rc2 = 0
               
-    output_log = "alignment_out.log"
-    error_log = "alignment_err.log"
+    output_log = os.path.join("log", "alignment_out.log")
+    error_log = os.path.join("log", "alignment_err.log")
     if alignment_choice == "diamond":
         align_db = os.path.join(database_dir, "diamond", ref_fasta.strip('.fa') + '.dmnd')
         if (not os.path.isfile(align_db)) | (rerun_rules):
@@ -297,8 +297,8 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
     outfiles = [os.path.join(output_dir, samp + "-estimated-taxonomy.out") for samp in samples]
     n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res))
     for t in range(len(alignment_res)): 
-        sys.stdout = open(os.path.join("log", "tax_est_" + alignment_res[t] + ".out"), "w")
-        sys.stderr = open(os.path.join("log", "tax_est_" + alignment_res[t] + ".err"), "w")
+        sys.stdout = open(os.path.join("log", "tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".out"), "w")
+        sys.stderr = open(os.path.join("log", "tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".err"), "w")
         curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
                                                 prot_tab, use_salmon_counts, names_to_reads,\
                                                 alignment_res[t], outfiles[t],\
