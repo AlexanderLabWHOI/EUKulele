@@ -83,8 +83,9 @@ def main(args_in):
     parser.add_argument('--busco_file', default = "", type = str, 
                         help = "If specified, the following two arguments ('--organisms' and " + 
                         "'--taxonomy_organisms' are overwritten by the two columns of this tab-separated file.")
-    parser.add_argument('--individual_or_summary', '-i', default="summary", choices=["summary","individual"], 
+    parser.add_argument('--individual_or_summary', default="summary", choices=["summary","individual"], 
                         help = "These arguments are used if 'individual' is specified.") 
+    parser.add_argument('-i', dest = "individual_tag", action='store_true', default=False)
     parser.add_argument('--organisms', default = "", nargs = "+", 
                         help = "List of organisms to check BUSCO completeness on.")
     parser.add_argument('--taxonomy_organisms', default = "", nargs = "+", 
@@ -122,6 +123,9 @@ def main(args_in):
     NT_EXT = args.nucleotide_extension.strip('.')
     PEP_EXT = args.protein_extension.strip('.')
     mets_or_mags = args.mets_or_mags.lower()
+    individual_or_summary = args.individual_or_summary
+    if args.individual_tag:
+        individual_or_summary = "individual"
     
     if (mets_or_mags != "mets") & (mets_or_mags != "mags"):
         print("Only METs or MAGs are supported as input data types. Please update the 'mets_or_mags' flag accordingly.")
@@ -156,7 +160,6 @@ def main(args_in):
                              sample_dir = SAMPLE_DIR, nt_ext = NT_EXT, pep_ext = PEP_EXT)
 
     ## Download the reference database if specified.
-    #if (REFERENCE_DIR == "") | (not os.path.isdir(REFERENCE_DIR)) | \
     if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))):
         REFERENCE_DIR = args.database.lower()
         print("Specified reference directory and reference FASTA not found. Using database: " + REFERENCE_DIR + ".")
@@ -210,7 +213,7 @@ def main(args_in):
         configRunBusco(output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, pep_ext = PEP_EXT, 
                        nt_ext = NT_EXT, sample_dir = SAMPLE_DIR, samples = samples)
 
-        manageBuscoQuery(output_dir = OUTPUTDIR, individual_or_summary = args.individual_or_summary, 
+        manageBuscoQuery(output_dir = OUTPUTDIR, individual_or_summary = individual_or_summary, 
                          samples = samples, mets_or_mags = mets_or_mags, pep_ext = PEP_EXT, 
                          nt_ext = NT_EXT, sample_dir = SAMPLE_DIR, organisms = ORGANISMS, 
                          organisms_taxonomy = ORGANISMS_TAXONOMY, tax_tab = TAX_TAB)

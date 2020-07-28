@@ -35,7 +35,7 @@ def test_setup():
         yaml.dump(config, f)
         
     EUKulele.eukulele(config=config_file)
-    assert os.path.isfile(os.path.join(config["reference"],config["tax_table"]))
+    assert os.path.isfile(os.path.join(config["reference"], config["tax_table"]))
        
 def test_alignment():
     base_config = os.path.join(os.getcwd(), '..', 'aux_data', 'config.yaml')
@@ -65,7 +65,7 @@ def test_alignment():
         
     EUKulele.eukulele(config=config_file)
     outprefix = config["output"].split("/")[-1]
-    assert os.path.isfile(os.path.join(config["output"], outprefix + "_all_species_counts.csv"))
+    assert os.path.isfile(os.path.join(config["output"], "taxonomy_counts", outprefix + "_all_species_counts.csv"))
     
 def test_busco():
     base_config = os.path.join(os.getcwd(), '..', 'aux_data', 'config.yaml')
@@ -80,7 +80,7 @@ def test_busco():
     config["subroutine"] = "busco"
     config["create_tax_table"] = 1
     config["cutoff"] = os.path.join("src","EUKulele","static","tax-cutoffs.yaml")
-    config["output"] = os.path.join(base_dir, "test_out")
+    config["output"] = os.path.join(base_dir, "test_out_all")
     config["database"] = test_reference
     config["organisms"] = ["Chromera"]
     config["taxonomy_organisms"] = ["genus"]

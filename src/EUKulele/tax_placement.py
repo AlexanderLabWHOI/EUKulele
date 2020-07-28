@@ -9,6 +9,8 @@ import multiprocessing
 import os
 from joblib import Parallel, delayed
 
+import EUKulele
+
 def tax_placement(pident, tax_cutoffs):
     if pident >= tax_cutoffs['species']:
         out = 'species'; level = 7;
@@ -149,7 +151,8 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cuto
     chunksize = 10 ** 6
     counter = 0
     for chunk in pd.read_csv(str(df), sep = '\t', header = None, chunksize=chunksize):
-        chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore']
+        chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 'qstart', 
+                         'qend', 'sstart', 'send', 'evalue', 'bitscore']
         chunk['ssqid_TAXID']=chunk.sseqid.map(pdict)
         if namestoreads != 0:
             chunk['counts']=[namestoreads[curr.split(".")[0]] if curr.split(".")[0] in namestoreads else 0 for curr in chunk.qseqid]
@@ -227,7 +230,7 @@ def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,
         return pd.read_csv(outfile, sep = "\t")
     
     tax_table = read_in_taxonomy(tax_file)
-    tax_cutoffs = read_in_tax_cutoffs(cutoff_file)
+    tax_cutoffs = read_in_tax_cutoffs(os.path.join(os.path.dirname(os.path.realpath(__file__)), "static", cutoff_file))
     pdict = read_in_protein_map(prot_map_file)
     tax_dict = gen_dict(tax_table)
     consensus_cutoff = float(consensus_cutoff)

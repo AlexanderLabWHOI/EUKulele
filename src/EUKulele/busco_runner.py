@@ -92,7 +92,7 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
             # the BUSCO table that we're interested in using that contains the BUSCO matches and their level of completeness
             busco_table = os.path.join(output_dir, "busco", sample_name, "full_table.tsv") 
             # the prefix to specify where the taxonomy estimation output files are located
-            taxfile_stub = os.path.join(output_dir, output_dir.split("/")[-1]) 
+            taxfile_stub = os.path.join(output_dir, "taxonomy_counts", output_dir.split("/")[-1]) 
 
             if mets_or_mags == "mets":
                 fasta = os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext) 
@@ -119,7 +119,7 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
             # the BUSCO table that we're interested in using that contains the BUSCO matches and their level of completeness
             busco_table = os.path.join(output_dir, "busco", sample_name, "full_table.tsv") 
             # the prefix to specify where the taxonomy estimation output files are located
-            taxfile_stub = os.path.join(output_dir, output_dir.split("/")[-1])
+            taxfile_stub = os.path.join(output_dir, "taxonomy_counts", output_dir.split("/")[-1])
 
             if mets_or_mags == "mets":
                 fasta = os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext) 

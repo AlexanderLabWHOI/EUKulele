@@ -3,6 +3,7 @@ import sys
 import subprocess
 import multiprocessing
 from joblib import Parallel, delayed
+import shutil
 
 import EUKulele
 from EUKulele.tax_placement import place_taxonomy
@@ -30,7 +31,7 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
         if mets_or_mags == "mets":
             manageTrandecode(samples, output_dir, rerun_rules, sample_dir, 
                      mets_or_mags = "mets", transdecoder_orf_size = 100,
-                     nt_ext = "fasta", pep_ext = ".faa")
+                     nt_ext = "." + nt_ext.strip('.'), pep_ext = "." + pep_ext.strip('.'))
     elif piece == "align_to_db":
         return manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fasta, 
                         mets_or_mags, database_dir, sample_dir, rerun_rules, nt_ext, pep_ext)
@@ -72,22 +73,26 @@ def getSamples(mets_or_mags, sample_dir, nt_ext, pep_ext):
 
 def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir, 
                          mets_or_mags = "mets", transdecoder_orf_size = 100,
-                         nt_ext = "fasta", pep_ext = ".faa"):
+                         nt_ext = ".fasta", pep_ext = ".faa"):
     """
     Use TransDecoder to convert input nucleotide metatranscriptomic sequences to peptide sequences.
     """
     
-    print("Running TransDecoder for sample " + str(sample_name) + "...")
+    print("Running TransDecoder for sample " + str(sample_name) + "...", flush = True)
     os.system("mkdir -p " + os.path.join(output_dir, mets_or_mags, "transdecoder"))
     if (os.path.isfile(os.path.join(output_dir, mets_or_mags, 
-                                    sample_name + "." + pep_ext))) & (not rerun_rules):
+                                    sample_name + pep_ext))) & (not rerun_rules):
         print("TransDecoder file already detected for sample " + 
-              str(sample_name) + "; will not re-run step.")
+              str(sample_name) + "; will not re-run step.", flush = True)
         return 0
     
     TD_log = open(os.path.join("log","transdecoder_longorfs_" + sample_name + ".log"), "w+")
     TD_err = open(os.path.join("log","transdecoder_longorfs_" + sample_name + ".err"), "w+")
-    p1 = subprocess.Popen(["TransDecoder.LongOrfs", "-t", os.path.join(sample_dir, sample_name + "." + nt_ext),
+    if (not os.path.isfile(os.path.join(sample_dir, sample_name + nt_ext))):
+        print("File: " + os.path.join(sample_dir, sample_name + nt_ext) + " was called by TransDecoder and "
+              "does not exist. Check for typos.")
+        sys.exit(1)
+    p1 = subprocess.Popen(["TransDecoder.LongOrfs", "-t", os.path.join(sample_dir, sample_name + nt_ext),
                "-m", str(transdecoder_orf_size)], stdout = TD_log, stderr = TD_err)
     p1.wait()
     rc1 = p1.returncode
@@ -96,7 +101,7 @@ def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir,
     
     TD_log = open(os.path.join("log","transdecoder_predict_" + sample_name + ".log"), "w+") 
     TD_err = open(os.path.join("log","transdecoder_predict_" + sample_name + ".err"), "w+")
-    p2 = subprocess.Popen(["TransDecoder.Predict", "-t", os.path.join(sample_dir, sample_name + "." + nt_ext),
+    p2 = subprocess.Popen(["TransDecoder.Predict", "-t", os.path.join(sample_dir, sample_name + nt_ext),
                "--no_refine_starts"], stdout = TD_log, stderr = TD_err)
     p2.wait()
     rc2 = p2.returncode
@@ -108,13 +113,13 @@ def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir,
               str(sample_name) + ". Check log/ folder for details.")
         sys.exit(1)
         
-    merged_name = sample_name + "." + nt_ext
+    merged_name = sample_name + nt_ext
     
     os.system("mkdir -p " + os.path.join(output_dir, mets_or_mags))
     os.system("mkdir -p " + os.path.join(output_dir, mets_or_mags, "transdecoder"))
     
     os.replace(merged_name + ".transdecoder.pep", os.path.join(output_dir, mets_or_mags, 
-                                                               sample_name + "." + pep_ext))
+                                                               sample_name + pep_ext))
     os.replace(merged_name + ".transdecoder.cds", os.path.join(output_dir, mets_or_mags, 
                                                                "transdecoder", sample_name + 
                                                                ".fasta.transdecoder.cds"))
@@ -124,7 +129,7 @@ def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir,
     os.replace(merged_name + ".transdecoder.bed", os.path.join(output_dir, mets_or_mags, 
                                                                "transdecoder", sample_name + 
                                                                ".fasta.transdecoder.bed"))
-    shutil.rmtree(merged_name + ".transdecoder_dir*")
+    shutil.rmtree(merged_name + "*.transdecoder_dir*")
     return rc1 + rc2
     
 def manageTrandecode(met_samples, output_dir, rerun_rules, sample_dir, 
@@ -133,16 +138,19 @@ def manageTrandecode(met_samples, output_dir, rerun_rules, sample_dir,
     """
     Now for some TransDecoding - a manager for TransDecoder steps.
     """
+    
+    print("Running TransDecoder for MET samples...", flush = True)
     n_jobs_align = min(multiprocessing.cpu_count(), len(met_samples))
     transdecoder_res = Parallel(n_jobs=n_jobs_align)(delayed(transdecodeToPeptide)(sample_name, output_dir, 
                                                                                    rerun_rules, sample_dir, 
                          mets_or_mags = "mets", transdecoder_orf_size = 100,
-                         nt_ext = "fasta", pep_ext = ".faa") for sample_name in met_samples)
+                         nt_ext = nt_ext, pep_ext = pep_ext) for sample_name in met_samples)
     all_codes = sum(transdecoder_res)
+    os.system("rm -f pipeliner*")
     if all_codes > 0:
         print("TransDecoder did not complete successfully; check log folder for details.")
         sys.exit(1)
-    rcodes = [os.remove(curr) for curr in glob.glob("pipeliner*")]
+    #rcodes = [os.remove(curr) for curr in glob.glob("pipeliner*")]
               
 def setupEukulele(output_dir):
     print("Setting things up...")
@@ -167,13 +175,17 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
     """
     
     n_jobs_align = min(multiprocessing.cpu_count(), len(samples))
-    alignment_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(alignToDatabase)(alignment_choice,
-                                                                                               sample_name, filter_metric, 
-                                                                                               output_dir, ref_fasta, 
-                                                                                               mets_or_mags, database_dir, 
-                                                                                               sample_dir, rerun_rules, nt_ext, 
-                                                                                               pep_ext) \
-                                                                    for sample_name in samples)
+    #alignment_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(alignToDatabase)(alignment_choice,
+    #                                                                                           sample_name, filter_metric, 
+    #                                                                                           output_dir, ref_fasta, 
+    #                                                                                           mets_or_mags, database_dir, 
+    #                                                                                           sample_dir, rerun_rules, nt_ext, 
+    #                                                                                           pep_ext) \
+    #                                                                for sample_name in samples)
+    alignment_res = []
+    for sample_name in samples:
+        alignment_res.append(alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, ref_fasta, 
+                         mets_or_mags, database_dir, sample_dir, rerun_rules, nt_ext, pep_ext))
     
     if any([((curr == None) | (curr == 1)) for curr in alignment_res]):
         print("Alignment did not complete successfully.")
@@ -239,12 +251,14 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
                                    diamond_out, "--outfmt", str(outfmt), "-k", str(k), "--min-score", 
                                    str(bitscore)], stdout = diamond_log, stderr = diamond_err)
             p1.wait()
+            print("Diamond process exited.", flush = True)
             rc1 = p1.returncode
         else:
             p1 = subprocess.Popen(["diamond", "blastp", "--db", align_db, "-q", fasta, "-o", 
                                    diamond_out, "--outfmt", str(outfmt), "-k", str(k), "-e", 
                                    str(e)], stdout = diamond_log, stderr = diamond_err)
             p1.wait()
+            print("Diamond process exited.", flush = True)
             rc1 = p1.returncode
         if rc1 != 0:
             print("Diamond did not complete successfully.")
@@ -283,16 +297,24 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
     outfiles = [os.path.join(output_dir, samp + "-estimated-taxonomy.out") for samp in samples]
     n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res))
     for t in range(len(alignment_res)): 
+        sys.stdout = open(os.path.join("log", "tax_est_" + alignment_res[t] + ".out"), "w")
+        sys.stderr = open(os.path.join("log", "tax_est_" + alignment_res[t] + ".err"), "w")
         curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
                                                 prot_tab, use_salmon_counts, names_to_reads,\
                                                 alignment_res[t], outfiles[t],\
                                                 True, rerun_rules)
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
         
 def manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules):
     print("Performing taxonomic visualization steps...", flush=True)
     out_prefix = output_dir.split("/")[-1]
+    sys.stdout = open(os.path.join("log", "tax_vis.out"), "w")
+    sys.stderr = open(os.path.join("log", "tax_vis.err"), "w")
     visualize_all_results(out_prefix, output_dir, os.path.join(output_dir, mets_or_mags), 
                           sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules)
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
 
 def manageTaxAssignment(samples, mets_or_mags, output_dir):
     if mets_or_mags == "mags":

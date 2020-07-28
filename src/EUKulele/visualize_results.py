@@ -150,11 +150,11 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
     good_samples = 0
     for s in samples:
         file_name = s.split(".")[0] + "-estimated-taxonomy.out"
-        if not os.path.isfile(os.path.join(met_dir,file_name)):
+        if not os.path.isfile(os.path.join(out_dir, file_name)):
             print("One of the files, " + s + ", in the sample directory did not complete successfully.")
             sys.exit(1)
         else:
-            results_frame[file_name] = pd.read_csv(os.path.join(met_dir,file_name), sep = "\t", index_col=0)
+            results_frame[file_name] = pd.read_csv(os.path.join(out_dir, file_name), sep = "\t", index_col=0)
         good_samples = good_samples + 1
             
     if good_samples == 0:
@@ -183,7 +183,12 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
     for l in level_hierarchy:
         ### SAVE THE CSVs OF THE DATA ###
         prefix = out_prefix
+        os.system("mkdir -p " + os.path.join(out_dir, "taxonomy_counts"))
         counts_all[l].to_csv(os.path.join(out_dir, "taxonomy_counts", prefix + "_all_" + l + "_counts.csv"))
+        
+        if (not os.path.isfile(os.path.join(out_dir, "taxonomy_counts", prefix + "_all_" + l + "_counts.csv"))):
+            print("Taxonomy counts were not successfully generated. Check log for details.")
+            sys.exit(1)
 
         ### INITIALIZE VARIABLES FOR LOOP ###
         Curr_Variable = l.capitalize()
@@ -238,6 +243,7 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
             pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05, transcript_or_counts="NumTranscripts")
             pivoted.plot(kind='bar', stacked=True, color = sns_palette)
             plt.tight_layout()
+            os.system("mkdir -p " + os.path.join(out_dir, "taxonomy_visualization"))
             plt.savefig(os.path.join(out_dir, "taxonomy_visualization", l + '_transcripts.png'),dpi=100)
             plt.show()
             plt.close()

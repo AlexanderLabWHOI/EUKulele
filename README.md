@@ -94,6 +94,10 @@ where the `config` argument allows you to list the path of the configuration `YA
 | --protein_map 	| protein_map 	| The name of the JSON file containing protein correspondences; defaults to "protein-map.json". If this file is not found, it will be generated from the reference FASTA and original taxonomy file. 	|
 |  	|  	|  	|
 
+### Output organization 
+
+- here, put an example of what your output directory will look like if you run EUKulele using (a) mags or (b) mets
+
 ### Running a sample
 
 To test drive EUKulele, you can run the following:
