@@ -301,6 +301,7 @@ rule run_busco:
     shell:
         """
         mkdir -p {params.outputdir}
+        ./busco_configurator.py $BUSCO_CONFIG_FILE {params.static_config}
         cp {params.static_config} {params.config_loc}
         sed -i '/out = /c\out = {params.sample}' {params.config_loc} # the name of the output files
         sed -i '/out_path = /c\out_path = {params.outputdir}' {params.config_loc} # what directory the output will be stored in
