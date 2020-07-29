@@ -21,7 +21,5 @@ install:
   - conda activate test
   - conda install blast busco=4.0.6 diamond transdecoder ujson pandas yaml=0.1.7 chardet pyyaml=5.1.2 numpy joblib pandas
   - python setup.py install
-virtualenv:
-  system_site_packages: true
 script:
   - pytest
