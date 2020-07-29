@@ -5,6 +5,9 @@ python:
   - "3.8"
 before_install:
   - sudo apt-get -qq update
+  - pip install -U pip
+  - export PYTHONPATH=$PYTHONPATH:$(pwd)
+  - python setup.py install
 install:
   - sudo apt-get update -y
   - sudo apt-get install build-essential curl file git
