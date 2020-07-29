@@ -14,13 +14,13 @@ nucleotide_extension: .fna
 organisms:
 - Chromera
 original_tax_table: taxonomy-table.txt
-output: tests/aux_data/test_out_all
+output: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/test_out_all
 protein_extension: .faa
 protein_map: protein-map.json
 ref_fasta: reference-pep-trunc.pep.faa
-reference: tests/aux_data/mmetsp
+reference: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp
 salmon_dir: 0
-samples: tests/aux_data/real-world-samples/MAGs
+samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/real-world-samples/MAGs
 scratch: scratch
 subroutine: all
 tax_table: tax-table.txt

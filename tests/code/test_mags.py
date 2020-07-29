@@ -12,9 +12,8 @@ import os
 test_reference = "mmetsp"
 
 def test_setup():
-    base_config = os.path.join(os.getcwd(), '..', 'aux_data', 'config.yaml')
-    base_dir = os.path.join('tests', 'aux_data')
-    base_config = os.path.join('tests', 'aux_data', 'config.yaml')
+    base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
+    base_config = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config.yaml')
     with open(base_config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
        
@@ -27,7 +26,6 @@ def test_setup():
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
     config["ref_fasta"] = "reference-pep-trunc.pep.faa"
-    config["original_taxonomy"] = "taxonomy-table.txt"
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
@@ -39,9 +37,8 @@ def test_setup():
     assert os.path.isfile(os.path.join(config["reference"], config["tax_table"]))
        
 def test_alignment():
-    base_config = os.path.join(os.getcwd(), '..', 'aux_data', 'config.yaml')
-    base_dir = os.path.join('tests', 'aux_data')
-    base_config = os.path.join('tests', 'aux_data', 'config.yaml')
+    base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
+    base_config = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config.yaml')
     with open(base_config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
        
@@ -69,9 +66,8 @@ def test_alignment():
     assert os.path.isfile(os.path.join(config["output"], "taxonomy_counts", outprefix + "_all_species_counts.csv"))
     
 def test_busco():
-    base_config = os.path.join(os.getcwd(), '..', 'aux_data', 'config.yaml')
-    base_dir = os.path.join('tests', 'aux_data')
-    base_config = os.path.join('tests', 'aux_data', 'config.yaml')
+    base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
+    base_config = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config.yaml')
     with open(base_config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
        
@@ -102,9 +98,8 @@ def test_busco():
     assert os.path.isfile(busco_out)
     
 def test_all():
-    base_config = os.path.join(os.getcwd(), '..', 'aux_data', 'config.yaml')
-    base_dir = os.path.join('tests', 'aux_data')
-    base_config = os.path.join('tests', 'aux_data', 'config.yaml')
+    base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
+    base_config = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config.yaml')
     with open(base_config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
        
@@ -137,8 +132,8 @@ def test_all():
     assert os.path.isfile(busco_out)
     
 def test_cleanup():
-    base_dir = os.path.join('tests', 'aux_data')
-    config_path = os.path.join(base_dir, 'test_configs')
+    base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
+    config_path = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'test_configs')
     base_configs = [os.path.join(config_path, 'curr_config_alignment.yaml'),\
                     os.path.join(config_path, 'curr_config_setup.yaml')]
     
