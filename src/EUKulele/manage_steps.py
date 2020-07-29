@@ -174,7 +174,7 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
     Manage the multithreaded management of aligning to either BLAST or DIAMOND database.
     """
     
-    n_jobs_align = min(multiprocessing.cpu_count(), len(samples))
+    n_jobs_align = min(multiprocessing.cpu_count(), len(samples), 8)
     alignment_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(alignToDatabase)(alignment_choice,
                                                                                                sample_name, filter_metric, 
                                                                                                output_dir, ref_fasta, 
