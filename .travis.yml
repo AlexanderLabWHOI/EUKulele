@@ -18,7 +18,7 @@ install:
   - conda config --add channels bioconda
   - conda config --add channels conda-forge
   - conda create -n test
-  - source activate test
+  - conda activate test
   - conda install blast busco=4.0.6 diamond transdecoder ujson pandas yaml=0.1.7 chardet pyyaml=5.1.2 numpy joblib pandas
   - python setup.py install
 virtualenv:

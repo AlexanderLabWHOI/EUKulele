@@ -8,6 +8,8 @@ USAGE:
 Generates table useable for taxonomic placment with EUKulele. If no delimiter is provided, default is '/'. If no column header is provided, default is SOURCE_ID. 
 
 python EUKulele/scripts/create_protein_table.py --infile_peptide EUKulele/tests/aux_data/mmetsp/reference-pep-trunc.pep.faa --infile_taxonomy  EUKulele/tests/aux_data/mmetsp/taxonomy-table.txt --outfile_json EUKulele/tests/aux_data/mmetsp/protein-map.json --output EUKulele/tests/aux_data/mmetsp/tax-table.txt --delim "/" --strain_col_id strain_name --taxonomy_col_id taxonomy --column SOURCE_ID
+
+        python /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/scripts/create_protein_table.py --infile_peptide /vortexfs1/omics/alexander/akrinos/EUKulele-Reference/phylodb_db/reference.pep.fa --infile_taxonomy  /vortexfs1/omics/alexander/akrinos/EUKulele-Reference/phylodb_db/tax-table.txt --outfile_json /vortexfs1/omics/alexander/akrinos/EUKulele-Reference/phylodb_db/prot-map.json --output /vortexfs1/omics/alexander/akrinos/EUKulele-Reference/phylodb_db/taxonomy_table.txt --delim "\t" --strain_col_id strain_name --taxonomy_col_id taxonomy --column 2
 """
 
 from Bio import SeqIO
@@ -43,8 +45,12 @@ def createProteinTable(args=None):
         for record in SeqIO.parse(pepfile, "fasta"):
             header = record.description
             rid = record.id.replace(".","N") #record.id.split(".")[0] #record.id.replace(".","N")
-            header = str(header).replace(args.delim, "hello")
-            hlist = header.split("hello")
+            if 't' in args.delim: # why is this tab thing not working otherwise?? even the equality
+                tester = "".join(list(str(header))).replace('\t', '    ')
+                hlist = tester.split("    ")
+            else:
+                header = str(header).replace(args.delim, "hello")
+                hlist = header.split("hello")
             if len(args.infile_peptide) > 1: # if there is a list of files, use the filename as the ID
                 sid = pepfile.split("/")[-1].split("_")[0]
                 odict[rid] = sid
