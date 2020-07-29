@@ -5,6 +5,7 @@ from unittest import TestCase
 sys.path.insert(1, '..')
 sys.path.insert(1, '../src/EUKulele')
 import EUKulele
+from EUKulele.EUKulele_config import eukulele
 import yaml
 import os
 
@@ -34,7 +35,7 @@ def test_setup():
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
         
-    EUKulele.eukulele(config=config_file)
+    eukulele(config=config_file)
     assert os.path.isfile(os.path.join(config["reference"], config["tax_table"]))
        
 def test_alignment():
@@ -63,7 +64,7 @@ def test_alignment():
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
         
-    EUKulele.eukulele(config=config_file)
+    eukulele(config=config_file)
     outprefix = config["output"].split("/")[-1]
     assert os.path.isfile(os.path.join(config["output"], "taxonomy_counts", outprefix + "_all_species_counts.csv"))
     
@@ -95,7 +96,7 @@ def test_busco():
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
         
-    EUKulele.eukulele(config=config_file)
+    eukulele(config=config_file)
     samplenames = [curr.split(".")[0] for curr in os.listdir(config["samples"])]
     busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "individual", "summary_" + samplenames[0] + ".tsv")
     assert os.path.isfile(busco_out)
@@ -129,7 +130,7 @@ def test_all():
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
         
-    EUKulele.eukulele(config=config_file)
+    eukulele(config=config_file)
     samplenames = [curr.split(".")[0] for curr in os.listdir(config["samples"])]
     #busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "individual", "summary_" + samplenames[0] + ".tsv")
     busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "species_combined", "summary_species_" + samplenames[0] + ".tsv")
