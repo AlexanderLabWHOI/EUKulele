@@ -46,7 +46,7 @@ def test_alignment():
     config["reference"] = os.path.join(base_dir, test_reference)
     config["samples"] = os.path.join(base_dir, test_reference, "samples_MAGs")
     config["subroutine"] = "alignment"
-    config["cutoff"] = os.path.join("src","EUKulele","static","tax-cutoffs.yaml")
+    config["cutoff"] = os.path.join("tax-cutoffs.yaml")
     config["output"] = os.path.join(base_dir, "test_out")
     config["database"] = test_reference
     config["download_reference"] = 0
@@ -75,7 +75,7 @@ def test_busco():
     config["reference"] = os.path.join(base_dir, test_reference)
     config["samples"] = os.path.join(base_dir, test_reference, "samples_MAGs")
     config["subroutine"] = "busco"
-    config["cutoff"] = os.path.join("src","EUKulele","static","tax-cutoffs.yaml")
+    config["cutoff"] = os.path.join("tax-cutoffs.yaml")
     config["output"] = os.path.join(base_dir, "test_out_all")
     config["database"] = test_reference
     config["organisms"] = ["Chromera"]
@@ -108,7 +108,7 @@ def test_all():
     config["samples"] = os.path.join(base_dir, "real-world-samples", "MAGs")
     config["subroutine"] = "all"
     config["individual_or_summary"] = "summary"
-    config["cutoff"] = os.path.join("src","EUKulele","static","tax-cutoffs.yaml")
+    config["cutoff"] = os.path.join("tax-cutoffs.yaml")
     config["output"] = os.path.join(base_dir, "test_out_all")
     config["database"] = test_reference
     config["organisms"] = ["Chromera"]

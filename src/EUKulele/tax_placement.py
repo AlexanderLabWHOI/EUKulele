@@ -49,7 +49,8 @@ def read_in_protein_map(protjson):
 
 def read_in_diamond_file(dfile, pdict):
     dfout =  pd.read_csv(dfile, sep = '\t', header = None)
-    dfout.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore']
+    dfout.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 
+                     'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore']
     dfout['ssqid_TAXID']=dfout.sseqid.map(pdict)
     return dfout
 
@@ -144,7 +145,10 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts, tax_cutoffs):
                                 'classification', 'max_pid', 'ambiguous'])
 
 def apply_parallel(grouped_data, match_maker, consensus_cutoff, tax_dict, use_counts, tax_cutoffs):
-    resultdf = Parallel(n_jobs=multiprocessing.cpu_count(), prefer="threads")(delayed(match_maker)(group, consensus_cutoff, tax_dict, use_counts, tax_cutoffs) for name, group in grouped_data)
+    resultdf = Parallel(n_jobs=multiprocessing.cpu_count(), prefer="threads")(delayed(match_maker)(group, consensus_cutoff, 
+                                                                                                   tax_dict, use_counts, 
+                                                                                                   tax_cutoffs) for name, group \
+                                                                              in grouped_data)
     return pd.concat(resultdf)
 
 def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cutoff, tax_cutoffs):

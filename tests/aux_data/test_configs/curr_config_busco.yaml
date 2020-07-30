@@ -3,7 +3,7 @@ choose_parallel: parallel
 column: SOURCE_ID
 consensus_cutoff: 0.75
 create_tax_table: 1
-cutoff: src/EUKulele/static/tax-cutoffs.yaml
+cutoff: tax-cutoffs.yaml
 database: mmetsp
 download_reference: 0
 individual_or_summary: summary

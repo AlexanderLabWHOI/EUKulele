@@ -41,9 +41,13 @@ def configRunBusco(output_dir, mets_or_mags, pep_ext, nt_ext, sample_dir, sample
                                                                                                   sample_dir) \
                                                                                for sample_name in samples)
     all_codes = sum(busco_res) + busco_config_res
-    if all_codes > 0:
-        print("BUSCO initial run or configuration did not complete successfully.\n" + 
-              "Please check the BUSCO run and configuration log files in the log/ folder.")
+    if sum(busco_res) > 0:
+        print("BUSCO initial run did not complete successfully.\n" + 
+              "Please check the BUSCO run log files in the log/ folder.")
+        sys.exit(1)
+    if busco_config_res > 0:
+        print("BUSCO initial configuration did not complete successfully.\n" + 
+              "Please check the BUSCO configuration log files in the log/ folder.")
         sys.exit(1)
                 
 def configure_busco(busco_db):
