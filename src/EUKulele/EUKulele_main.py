@@ -158,14 +158,17 @@ def main(args_in):
     manageEukulele(piece = "setup_eukulele", output_dir = OUTPUTDIR)
     samples = manageEukulele(piece = "get_samples", mets_or_mags = mets_or_mags,
                              sample_dir = SAMPLE_DIR, nt_ext = NT_EXT, pep_ext = PEP_EXT)
-
-    ## Download the reference database if specified.
-    if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))):
-        REFERENCE_DIR = args.database.lower()
-        print("Specified reference directory and reference FASTA not found. Using database: " + REFERENCE_DIR + ".")
     
     TAX_TAB = os.path.join(REFERENCE_DIR, args.tax_table)
     PROT_TAB = os.path.join(REFERENCE_DIR, args.protein_map)
+
+    ## Download the reference database if specified.
+    if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))) | \
+       (not os.path.isfile(TAX_TAB)) | \
+       (not os.path.isfile(PROT_TAB)):
+        REFERENCE_DIR = args.database.lower()
+        print("Specified reference directory, reference FASTA, and protein map/taxonomy table not found. " +
+              "Using database: " + REFERENCE_DIR + ".")
     
     if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))):
         REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), args.alignment_choice)

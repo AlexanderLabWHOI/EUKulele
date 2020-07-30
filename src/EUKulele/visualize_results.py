@@ -149,12 +149,13 @@ def visualize_all_results(out_prefix, out_dir, met_dir, samples_dir, prot_extens
     samples = os.listdir(samples_dir)
     good_samples = 0
     for s in samples:
-        file_name = s.split(".")[0] + "-estimated-taxonomy.out"
-        if not os.path.isfile(os.path.join(out_dir, file_name)):
-            print("One of the files, " + s + ", in the sample directory did not complete successfully.")
-            sys.exit(1)
-        else:
-            results_frame[file_name] = pd.read_csv(os.path.join(out_dir, file_name), sep = "\t", index_col=0)
+        file_name = ".".join(s.split(".")[0:-1]) + "-estimated-taxonomy.out"
+        if (prot_extension in s):
+            if (not os.path.isfile(os.path.join(out_dir, file_name))):
+                print("One of the files, " + s + ", in the sample directory did not complete successfully.")
+                sys.exit(1)
+            else:
+                results_frame[file_name] = pd.read_csv(os.path.join(out_dir, file_name), sep = "\t", index_col=0)
         good_samples = good_samples + 1
             
     if good_samples == 0:

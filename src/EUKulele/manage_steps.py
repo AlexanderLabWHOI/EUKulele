@@ -4,6 +4,7 @@ import subprocess
 import multiprocessing
 from joblib import Parallel, delayed
 import shutil
+import pathlib
 
 import EUKulele
 from EUKulele.tax_placement import place_taxonomy
@@ -230,7 +231,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
     if alignment_choice == "diamond":
         os.system("mkdir -p " + os.path.join(output_dir, mets_or_mags, "diamond"))
         diamond_out = os.path.join(output_dir, mets_or_mags, "diamond", sample_name + ".diamond.out")
-        if (os.path.isfile(diamond_out)) & (not rerun_rules):
+        if (os.path.isfile(diamond_out)) & (pathlib.Path(diamond_out).stat().st_size != 0) & (not rerun_rules):
             print("Diamond alignment file already detected; will not re-run step.")
             return diamond_out
         
@@ -329,7 +330,7 @@ def manageTaxAssignment(samples, mets_or_mags, output_dir):
 def assignTaxonomy(sample_name, output_dir, mets_or_mags):
     taxfile = os.path.join(output_dir, sample_name + "-estimated-taxonomy.out")
     levels_directory = os.path.join(output_dir, mets_or_mags, "levels")
-    max_dir = os.path.join(output_dir, mets_or_mags)
+    max_dir = os.path.join(output_dir, "max_level_mags")
     error_log = os.path.join("log", "tax_assign_" + sample_name + ".err")
     out_log = os.path.join("log", "tax_assign_" + sample_name + ".out")
     

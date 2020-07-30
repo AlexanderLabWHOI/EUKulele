@@ -46,13 +46,13 @@ def test_alignment():
     config["reference"] = os.path.join(base_dir, test_reference)
     config["samples"] = os.path.join(base_dir, test_reference, "samples_MAGs")
     config["subroutine"] = "alignment"
-    config["create_tax_table"] = 1
     config["cutoff"] = os.path.join("src","EUKulele","static","tax-cutoffs.yaml")
     config["output"] = os.path.join(base_dir, "test_out")
     config["database"] = test_reference
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
     config["ref_fasta"] = "reference-pep-trunc.pep.faa"
+    config["protein_map"] = "protein-map.json"
     config["original_tax_table"] = "taxonomy-table.txt"
     
     config_path = os.path.join(base_dir, 'test_configs')
@@ -75,7 +75,6 @@ def test_busco():
     config["reference"] = os.path.join(base_dir, test_reference)
     config["samples"] = os.path.join(base_dir, test_reference, "samples_MAGs")
     config["subroutine"] = "busco"
-    config["create_tax_table"] = 1
     config["cutoff"] = os.path.join("src","EUKulele","static","tax-cutoffs.yaml")
     config["output"] = os.path.join(base_dir, "test_out_all")
     config["database"] = test_reference
@@ -84,6 +83,7 @@ def test_busco():
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
     config["ref_fasta"] = "reference-pep-trunc.pep.faa"
+    config["protein_map"] = "protein-map.json"
     config["original_tax_table"] = "taxonomy-table.txt"
     
     config_path = os.path.join(base_dir, 'test_configs')
@@ -107,7 +107,6 @@ def test_all():
     config["reference"] = os.path.join(base_dir, test_reference)
     config["samples"] = os.path.join(base_dir, "real-world-samples", "MAGs")
     config["subroutine"] = "all"
-    config["create_tax_table"] = 1
     config["individual_or_summary"] = "summary"
     config["cutoff"] = os.path.join("src","EUKulele","static","tax-cutoffs.yaml")
     config["output"] = os.path.join(base_dir, "test_out_all")
@@ -117,6 +116,7 @@ def test_all():
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
     config["ref_fasta"] = "reference-pep-trunc.pep.faa"
+    config["protein_map"] = "protein-map.json"
     config["original_tax_table"] = "taxonomy-table.txt"
     
     config_path = os.path.join(base_dir, 'test_configs')
