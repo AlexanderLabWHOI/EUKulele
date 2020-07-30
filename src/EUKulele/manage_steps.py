@@ -231,9 +231,10 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
     if alignment_choice == "diamond":
         os.system("mkdir -p " + os.path.join(output_dir, mets_or_mags, "diamond"))
         diamond_out = os.path.join(output_dir, mets_or_mags, "diamond", sample_name + ".diamond.out")
-        if (os.path.isfile(diamond_out)) & (pathlib.Path(diamond_out).stat().st_size != 0) & (not rerun_rules):
-            print("Diamond alignment file already detected; will not re-run step.")
-            return diamond_out
+        if (os.path.isfile(diamond_out))
+            if (pathlib.Path(diamond_out).stat().st_size != 0) & (not rerun_rules):
+                print("Diamond alignment file already detected; will not re-run step.")
+                return diamond_out
         
         align_db = os.path.join(database_dir, "diamond", ref_fasta.strip('.fa') + '.dmnd')
         if mets_or_mags == "mets":
