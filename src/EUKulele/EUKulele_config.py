@@ -17,9 +17,9 @@ abs_path = os.path.abspath(os.path.dirname(__file__))
 def eukulele(config="", string_arguments=""):
     split_args = string_arguments.split(" ")
     
-    if len(split_args) > 2:
-        if string_arguments.split(" ")[1] == "--config":
-            stringargs = parseConfig(string_arguments.split(" ")[2])
+    if len(split_args) > 1:
+        if string_arguments.split(" ")[0] == "--config":
+            stringargs = parseConfig(string_arguments.split(" ")[1])
             print("Running EUKulele with entries from the provided configuration file.")
             EUKulele.EUKulele_main.main(str(stringargs)) 
             return 0

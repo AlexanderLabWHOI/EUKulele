@@ -32,7 +32,8 @@ def configRunBusco(output_dir, mets_or_mags, pep_ext, nt_ext, sample_dir, sample
     ## Run BUSCO on the full dataset ##
     busco_db = "eukaryota_odb10"
     busco_config_res = configure_busco(busco_db)
-    busco_res = Parallel(n_jobs=multiprocessing.cpu_count(), prefer="threads")(delayed(run_busco)(sample_name, 
+    n_jobs_busco = min(multiprocessing.cpu_count(), len(samples), 4)
+    busco_res = Parallel(n_jobs=n_jobs_busco, prefer="threads")(delayed(run_busco)(sample_name, 
                                                                                                   os.path.join(output_dir, 
                                                                                                                "busco"), 
                                                                                                   output_dir,

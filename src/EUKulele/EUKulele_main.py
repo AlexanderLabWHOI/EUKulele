@@ -220,6 +220,8 @@ def main(args_in):
                          samples = samples, mets_or_mags = mets_or_mags, pep_ext = PEP_EXT, 
                          nt_ext = NT_EXT, sample_dir = SAMPLE_DIR, organisms = ORGANISMS, 
                          organisms_taxonomy = ORGANISMS_TAXONOMY, tax_tab = TAX_TAB)
+        
+    print("EUKulele run complete!", flush = True)
                    
 if __name__ == "__main__": 
     main(args_in = " ".join(sys.argv[1:]))
