@@ -74,7 +74,6 @@ def test_busco():
     config["mets_or_mags"] = "mags"
     config["reference"] = os.path.join(base_dir, test_reference)
     config["samples"] = os.path.join(base_dir, test_reference, "samples_MAGs")
-    config["subroutine"] = "busco"
     config["cutoff"] = os.path.join("tax-cutoffs.yaml")
     config["output"] = os.path.join(base_dir, "test_out_all")
     config["database"] = test_reference
@@ -92,6 +91,11 @@ def test_busco():
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
         
+        
+    config["subroutine"] = "alignment"
+    eukulele(config=config_file)
+        
+    config["subroutine"] = "busco"
     eukulele(config=config_file)
     samplenames = [curr.split(".")[0] for curr in os.listdir(config["samples"])]
     busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "individual", "summary_" + samplenames[0] + ".tsv")
