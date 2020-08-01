@@ -148,6 +148,7 @@ def main(args_in):
     SETUP = False
     ALIGNMENT = False
     BUSCO = False
+    COREGENES = False
     if (args.subroutine == "all") | (args.subroutine == "setup"):
         SETUP = True
     if (args.subroutine == "all") | (args.subroutine == "alignment"):
