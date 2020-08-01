@@ -56,7 +56,7 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
                             rerun_rules, samples)
     elif piece == "core_visualize_taxonomy":
         manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, 
-                               use_salmon_counts, rerun_rules)
+                               use_salmon_counts, rerun_rules, core = True)
     elif piece == "core_assign_taxonomy":
         manageTaxAssignment(samples, mets_or_mags, output_dir, core = True)
     else:
@@ -255,7 +255,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
         elif core == "core":
             # now concatenate the BUSCO output
             fasta = os.path.join(output_dir, sample_name + "_busco" + "." + pep_ext)
-            os.system(" ".join(["source", "concatenate_busco.sh", sample_name, fasta, output_dir]))
+            os.system(" ".join(["concatenate_busco.sh", sample_name, fasta, output_dir]))
             if not os.path.isfile(fasta):
                 print("No BUSCO matches found for sample: " + sample_name)
                 return ""
@@ -355,13 +355,14 @@ def manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext
     sys.stdout = sys.__stdout__
     sys.stderr = sys.__stderr__
     
-def manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules):
+def manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, use_salmon_counts, 
+                               rerun_rules, core = False):
     print("Performing taxonomic visualization steps...", flush=True)
     out_prefix = output_dir.split("/")[-1]
     sys.stdout = open(os.path.join("log", "core_tax_vis.out"), "w")
     sys.stderr = open(os.path.join("log", "core_tax_vis.err"), "w")
     visualize_all_results(out_prefix, output_dir, os.path.join(output_dir, "core_taxonomy_estimation"), 
-                          sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules)
+                          sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules, core)
     sys.stdout = sys.__stdout__
     sys.stderr = sys.__stderr__
 

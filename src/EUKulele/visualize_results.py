@@ -142,7 +142,8 @@ def makeConcatFrame(curr_df, new_df, level, sample_name, use_counts):
     new_df["Sample"] = sample_name
     return pd.concat([curr_df, new_df], sort=True)
 
-def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extension, nucle_extension, use_counts, rerun):
+def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extension, nucle_extension, use_counts, 
+                          rerun, core = False):
     results_frame = dict()
 
     ### READ IN RESULTS FILES FROM MET DIR THAT FIT SAMPLE SPEC FROM CONFIG ###
@@ -153,12 +154,13 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
         if (prot_extension in s):
             if (not os.path.isfile(os.path.join(est_dir, file_name))):
                 print("One of the files, " + s + ", in the sample directory did not complete successfully.")
-                sys.exit(1)
+                if (not core):
+                    sys.exit(1)
             else:
                 results_frame[file_name] = pd.read_csv(os.path.join(est_dir, file_name), sep = "\t", index_col=0)
         good_samples = good_samples + 1
             
-    if good_samples == 0:
+    if (good_samples == 0) & (not core):
         print("No taxonomic estimation files found! Exiting...")
         sys.exit(1)
 
