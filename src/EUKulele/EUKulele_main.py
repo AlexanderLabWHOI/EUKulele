@@ -41,8 +41,9 @@ def main(args_in):
               '--reference_dir [reference_database_location] [all other options]')
     
     parser.add_argument('subroutine', metavar="subroutine", nargs='?', type=str, default="all", 
-                        choices = ["","all","setup","alignment","busco"], help='Choice of subroutine to run.')
-    parser.add_argument('-m,', '--mets_or_mags', dest = "mets_or_mags", required = True) 
+                        choices = ["","all","setup","alignment","busco","coregenes"], 
+                        help='Choice of subroutine to run.')
+    parser.add_argument('-m', '--mets_or_mags', dest = "mets_or_mags", required = True) 
     parser.add_argument('--n_ext', '--nucleotide_extension', dest = "nucleotide_extension", default = ".fasta") 
     parser.add_argument('--p_ext', '--protein_extension', dest = "protein_extension", default = ".faa") 
     parser.add_argument('-f', '--force_rerun', action='store_true', default=False)
@@ -58,11 +59,11 @@ def main(args_in):
                         "that relates transcript names to salmon counts from the salmon directory.")
 
     ## WHERE FILES ARE LOCATED ##
-    parser.add_argument('--database', default="mmetsp", 
+    parser.add_argument('-d', '--database', default="mmetsp", 
                         help = "The name of the database to be used to assess the reads.")
-    parser.add_argument('-o','--out_dir', dest = "out_dir", default = "output", 
+    parser.add_argument('-o', '--out_dir', dest = "out_dir", default = "output", 
                         help = "Folder where the output will be written.")
-    parser.add_argument('-s','--sample_dir', required = True, dest = "sample_dir",
+    parser.add_argument('-s', '--sample_dir', required = True, dest = "sample_dir",
                         help = "Folder where the input data is located (the protein or peptide files to be assessed).")
     
     ## ONLY SPECIFY THESE ARGUMENTS IF YOU HAVE ALREADY PROVIDED AND FORMATTED YOUR OWN DATABASE ##
@@ -153,6 +154,8 @@ def main(args_in):
         ALIGNMENT = True
     if (args.subroutine == "all") | (args.subroutine == "busco"):
         BUSCO = True
+    if (args.subroutine == "all") | (args.subroutine == "coregenes"):
+        COREGENES = True
 
     ## SETUP STEPS / DOWNLOAD DEPENDENCIES ##
     manageEukulele(piece = "setup_eukulele", output_dir = OUTPUTDIR)
@@ -169,8 +172,13 @@ def main(args_in):
         REFERENCE_DIR = args.database.lower()
         print("Specified reference directory, reference FASTA, and protein map/taxonomy table not found. " +
               "Using database: " + REFERENCE_DIR + ".")
+        os.system("mkdir -p " + REFERENCE_DIR)
+        TAX_TAB = os.path.join(REFERENCE_DIR, "tax-table.txt")
+        PROT_TAB = os.path.join(REFERENCE_DIR, "prot-map.json")
     
-    if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))):
+    if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))) | \
+       (not os.path.isfile(TAX_TAB)) | \
+       (not os.path.isfile(PROT_TAB)):
         REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), args.alignment_choice)
     else:
         print("Found database folder for " + REFERENCE_DIR + " in current directory; will not re-download.")
@@ -220,6 +228,31 @@ def main(args_in):
                          samples = samples, mets_or_mags = mets_or_mags, pep_ext = PEP_EXT, 
                          nt_ext = NT_EXT, sample_dir = SAMPLE_DIR, organisms = ORGANISMS, 
                          organisms_taxonomy = ORGANISMS_TAXONOMY, tax_tab = TAX_TAB)
+        
+    if COREGENES:
+        print("Investigating core genes...")
+        ## Next to align against our database of choice ##
+        alignment_res = manageEukulele(piece = "core_align_to_db", alignment_choice = ALIGNMENT_CHOICE, samples = samples, 
+                                        filter_metric = args.filter_metric, output_dir = OUTPUTDIR, 
+                                        ref_fasta = REF_FASTA, mets_or_mags = mets_or_mags, database_dir = REFERENCE_DIR,
+                                        sample_dir = SAMPLE_DIR, rerun_rules = RERUN_RULES, 
+                                        nt_ext = NT_EXT, pep_ext = PEP_EXT)
+        
+        manageEukulele(piece = "core_estimate_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
+                       tax_tab = TAX_TAB, cutoff_file = args.cutoff_file, 
+                       consensus_cutoff = CONSENSUS_CUTOFF, prot_tab = PROT_TAB, use_salmon_counts = USE_SALMON_COUNTS, 
+                       names_to_reads = NAMES_TO_READS, alignment_res = alignment_res, 
+                       rerun_rules = RERUN_RULES, samples = samples)
+
+        ## Now to visualize the taxonomy ##
+        manageEukulele(piece = "core_visualize_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
+                       sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT, nt_ext = NT_EXT, 
+                       use_salmon_counts = USE_SALMON_COUNTS, rerun_rules = RERUN_RULES)
+
+        ## Next to assign taxonomy ##
+        manageEukulele(piece = "core_assign_taxonomy", samples = samples, mets_or_mags = mets_or_mags, 
+                       output_dir = OUTPUTDIR)
+        
         
     print("EUKulele run complete!", flush = True)
                    

@@ -20,7 +20,7 @@ setup(
     packages=['EUKulele','scripts'],
     package_dir={'EUKulele': 'src/EUKulele'},
     scripts=['bin/EUKulele','scripts/create_protein_table.py','scripts/download_database.sh',\
-             'scripts/mag_stats.py','scripts/names_to_reads.py','scripts/query_busco.py',\
+             'scripts/mag_stats.py','scripts/names_to_reads.py','scripts/query_busco.py','scripts/concatenate_busco.sh',\
              'scripts/configure_busco.sh','scripts/run_busco.sh','scripts/install_dependencies.sh'],
     license="MIT",
     include=['code'],

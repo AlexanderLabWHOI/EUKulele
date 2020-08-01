@@ -63,6 +63,8 @@ def magStats(args=None):
         args = parser.parse_args(args)
     else:
         args = parser.parse_args()
+    os.system("mkdir -p " + args.max_out_dir)
+    os.system("mkdir -p " + args.outdir)
     estimated_tax = pd.read_csv(args.estimated_taxonomy_file, sep='\t', index_col=0)
     split_taxonomy_df = split_taxonomy(estimated_tax)
     tax_dict = create_tax_dictionary(split_taxonomy_df)
@@ -78,7 +80,7 @@ def magStats(args=None):
         except:
             pass
     for l in levels:
-        tax_dict[l].to_csv(os.path.join(args.outdir, args.out_prefix+'.'+l), header=False, sep='\t')
+        tax_dict[l].to_csv(os.path.join(args.outdir, args.out_prefix + '.' + l), header=False, sep='\t')
     max_df.to_csv(os.path.join(args.max_out_dir, args.out_prefix + '-max-level.csv'), sep='\t')
     return 0
     
