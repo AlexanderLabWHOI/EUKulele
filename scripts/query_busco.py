@@ -184,7 +184,7 @@ def queryBusco(args=None):
                         help = "Location to store the BUSCO tar reference.")
     parser.add_argument('--output_dir',default="output")
     parser.add_argument('--available_cpus',default=1)
-    parser.add_argument('--busco_threshold',default=50)
+    parser.add_argument('--busco_threshold',default=0.50)
     parser.add_argument('--write_transcript_file', default=False, action='store_true',
                        help = "Whether to write an actual file with the subsetted transcriptome.")
 

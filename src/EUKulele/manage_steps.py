@@ -5,12 +5,29 @@ import multiprocessing
 from joblib import Parallel, delayed
 import shutil
 import pathlib
+import pandas as pd
+import math
 
 import EUKulele
 from EUKulele.tax_placement import place_taxonomy
 from EUKulele.visualize_results import visualize_all_results
 
 from scripts.mag_stats import magStats
+
+MEM_AVAIL_GB = 0
+while MEM_AVAIL_GB == 0:
+    try:
+        os.system("free -m > free.csv")
+        MEM_AVAIL_GB = pd.read_csv("free.csv", sep = "\s+").free[0] / 10**3
+    except:
+        pass
+MAX_JOBS = math.floor(MEM_AVAIL_GB / 48) #24)
+print("Max jobs are: ")
+print(MAX_JOBS)
+
+# For DIAMOND: The program can be expected to use roughly six times this number of memory (in GB). 
+# So for the default value of -b2.0, the memory usage will be about 12 GB.
+# So we want alignment to have -b6.0
 
 def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "", 
                    output_dir = "", ref_fasta = "", alignment_choice = "diamond", 
@@ -105,8 +122,7 @@ def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir,
               "does not exist. Check for typos.")
         sys.exit(1)
     p1 = subprocess.Popen(["TransDecoder.LongOrfs", "-t", os.path.join(sample_dir, sample_name + nt_ext),
-               "-m", str(transdecoder_orf_size)], stdout = TD_log, stderr = TD_err)
-    p1.wait()
+               "-m", str(transdecoder_orf_size)], stdout = TD_log, stderr = TD_err).wait()
     rc1 = p1.returncode
     TD_log.close()
     TD_err.close()
@@ -114,8 +130,7 @@ def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir,
     TD_log = open(os.path.join("log","transdecoder_predict_" + sample_name + ".log"), "w+") 
     TD_err = open(os.path.join("log","transdecoder_predict_" + sample_name + ".err"), "w+")
     p2 = subprocess.Popen(["TransDecoder.Predict", "-t", os.path.join(sample_dir, sample_name + nt_ext),
-               "--no_refine_starts"], stdout = TD_log, stderr = TD_err)
-    p2.wait()
+               "--no_refine_starts"], stdout = TD_log, stderr = TD_err).wait()
     rc2 = p2.returncode
     TD_log.close()
     TD_err.close()
@@ -152,7 +167,7 @@ def manageTrandecode(met_samples, output_dir, rerun_rules, sample_dir,
     """
     
     print("Running TransDecoder for MET samples...", flush = True)
-    n_jobs_align = min(multiprocessing.cpu_count(), len(met_samples))
+    n_jobs_align = min(multiprocessing.cpu_count(), len(met_samples), MAX_JOBS)
     transdecoder_res = Parallel(n_jobs=n_jobs_align)(delayed(transdecodeToPeptide)(sample_name, output_dir, 
                                                                                    rerun_rules, sample_dir, 
                          mets_or_mags = "mets", transdecoder_orf_size = 100,
@@ -186,7 +201,7 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
     Manage the multithreaded management of aligning to either BLAST or DIAMOND database.
     """
     
-    n_jobs_align = min(multiprocessing.cpu_count(), len(samples), 8)
+    n_jobs_align = min(multiprocessing.cpu_count(), len(samples), MAX_JOBS)
     alignment_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(alignToDatabase)(alignment_choice,
                                                                                                sample_name, filter_metric, 
                                                                                                output_dir, ref_fasta, 
@@ -265,19 +280,18 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
         k = 100
         e = 1e-5
         bitscore = 50
-        diamond_log = open(os.path.join("log","_diamond_align_" + sample_name + ".log"), "w+")
-        diamond_err = open(os.path.join("log","diamond_align_" + sample_name + ".err"), "w+")
+        diamond_log = open(os.path.join("log",core + "_diamond_align_" + sample_name + ".log"), "w+")
+        diamond_err = open(os.path.join("log",core + "_diamond_align_" + sample_name + ".err"), "w+")
         if filter_metric == "bitscore":
             p1 = subprocess.Popen(["diamond", "blastp", "--db", align_db, "-q", fasta, "-o", 
                                    diamond_out, "--outfmt", str(outfmt), "-k", str(k), "--min-score", 
-                                   str(bitscore)], stdout = diamond_log, stderr = diamond_err)
-            p1.wait()
+                                   str(bitscore), '-b3.0'], stdout = diamond_log, stderr = diamond_err).wait()
             print("Diamond process exited.", flush = True)
             rc1 = p1.returncode
         else:
             p1 = subprocess.Popen(["diamond", "blastp", "--db", align_db, "-q", fasta, "-o", 
                                    diamond_out, "--outfmt", str(outfmt), "-k", str(k), "-e", 
-                                   str(e)], stdout = diamond_log, stderr = diamond_err)
+                                   str(e), '-b3.0'], stdout = diamond_log, stderr = diamond_err)
             p1.wait()
             print("Diamond process exited.", flush = True)
             rc1 = p1.returncode
@@ -317,16 +331,19 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
     print("Performing taxonomic estimation steps...", flush=True)
     os.system("mkdir -p " + os.path.join(output_dir, "taxonomy_estimation"))
     outfiles = [os.path.join(output_dir, "taxonomy_estimation", samp + "-estimated-taxonomy.out") for samp in samples]
-    n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res))
+    n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res), MAX_JOBS)
     for t in range(len(alignment_res)): 
-        sys.stdout = open(os.path.join("log", "tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".out"), "w")
-        sys.stderr = open(os.path.join("log", "tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".err"), "w")
-        curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
-                                                prot_tab, use_salmon_counts, names_to_reads,\
-                                                alignment_res[t], outfiles[t],\
-                                                True, rerun_rules)
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
+        try:
+            sys.stdout = open(os.path.join("log", "tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".out"), "w")
+            sys.stderr = open(os.path.join("log", "tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".err"), "w")
+            curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
+                                                    prot_tab, use_salmon_counts, names_to_reads,\
+                                                    alignment_res[t], outfiles[t],\
+                                                    True, rerun_rules)
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
+        except:
+            print("Taxonomic estimation for core genes did not complete successfully. Check log file for details.")
         
 def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
                             prot_tab, use_salmon_counts, names_to_reads, alignment_res,
@@ -334,67 +351,90 @@ def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, cons
     print("Performing taxonomic estimation steps...", flush=True)
     os.system("mkdir -p " + os.path.join(output_dir, "core_taxonomy_estimation"))
     outfiles = [os.path.join(output_dir, "core_taxonomy_estimation", samp + "-estimated-taxonomy.out") for samp in samples]
-    n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res))
+    n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res), MAX_JOBS)
     for t in range(len(alignment_res)): 
-        sys.stdout = open(os.path.join("log", "core_tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".out"), "w")
-        sys.stderr = open(os.path.join("log", "core_tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".err"), "w")
-        curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
-                                                prot_tab, use_salmon_counts, names_to_reads,\
-                                                alignment_res[t], outfiles[t],\
-                                                True, rerun_rules)
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
+        try:
+            sys.stdout = open(os.path.join("log", "core_tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".out"), "w")
+            sys.stderr = open(os.path.join("log", "core_tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".err"), "w")
+            curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
+                                                    prot_tab, use_salmon_counts, names_to_reads,\
+                                                    alignment_res[t], outfiles[t],\
+                                                    True, rerun_rules)
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
+        except:
+            print("Taxonomic estimation for core genes did not complete successfully. Check log file for details.")
         
 def manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules):
     print("Performing taxonomic visualization steps...", flush=True)
     out_prefix = output_dir.split("/")[-1]
-    sys.stdout = open(os.path.join("log", "tax_vis.out"), "w")
-    sys.stderr = open(os.path.join("log", "tax_vis.err"), "w")
-    visualize_all_results(out_prefix, output_dir, os.path.join(output_dir, "taxonomy_estimation"), 
-                          sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules)
-    sys.stdout = sys.__stdout__
-    sys.stderr = sys.__stderr__
+    try:
+        sys.stdout = open(os.path.join("log", "tax_vis.out"), "w")
+        sys.stderr = open(os.path.join("log", "tax_vis.err"), "w")
+        visualize_all_results(out_prefix, output_dir, os.path.join(output_dir, "taxonomy_estimation"), 
+                              sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules)
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+    except:
+        print("Taxonomic visualization did not complete successfully. Check log files for details.")
     
 def manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, use_salmon_counts, 
                                rerun_rules, core = False):
     print("Performing taxonomic visualization steps...", flush=True)
     out_prefix = output_dir.split("/")[-1]
-    sys.stdout = open(os.path.join("log", "core_tax_vis.out"), "w")
-    sys.stderr = open(os.path.join("log", "core_tax_vis.err"), "w")
-    visualize_all_results(out_prefix, output_dir, os.path.join(output_dir, "core_taxonomy_estimation"), 
-                          sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules, core)
-    sys.stdout = sys.__stdout__
-    sys.stderr = sys.__stderr__
+    try:
+        sys.stdout = open(os.path.join("log", "core_tax_vis.out"), "w")
+        sys.stderr = open(os.path.join("log", "core_tax_vis.err"), "w")
+        visualize_all_results(out_prefix, output_dir, os.path.join(output_dir, "core_taxonomy_estimation"), 
+                              sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules, core)
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+    except:
+        print("Taxonomic visualization of core genes did not complete successfully. Check log files for details.")
 
 def manageTaxAssignment(samples, mets_or_mags, output_dir, core = False):
     if mets_or_mags == "mags":
         print("Performing taxonomic assignment steps...", flush=True)
-        n_jobs_viz = min(multiprocessing.cpu_count(), len(samples))
-        if core:
-            assign_res = Parallel(n_jobs=n_jobs_viz, prefer="threads")(delayed(assignTaxonomy)(samp, output_dir, 
-                                                                                               "core_taxonomy_estimation",
-                                                                                            mets_or_mags) for samp in samples)
-        else:
-            assign_res = Parallel(n_jobs=n_jobs_viz, prefer="threads")(delayed(assignTaxonomy)(samp, output_dir,
-                                                                                               "taxonomy_estimation",
-                                                                                            mets_or_mags) for samp in samples)
+        n_jobs_viz = min(multiprocessing.cpu_count(), len(samples), MAX_JOBS)
+        try:
+            if core:
+                assign_res = Parallel(n_jobs=n_jobs_viz, prefer="threads")(delayed(assignTaxonomy)(samp, output_dir, 
+                                                                                                   "core_taxonomy_estimation",
+                                                                                                mets_or_mags, core = True) \
+                                                                           for samp in samples)
+            else:
+                assign_res = Parallel(n_jobs=n_jobs_viz, prefer="threads")(delayed(assignTaxonomy)(samp, output_dir,
+                                                                                                   "taxonomy_estimation",
+                                                                                                mets_or_mags, core = False) \
+                                                                           for samp in samples)
+        except:
+            print("Taxonomic assignment did not complete successfully. Check log files for details.")
         
         if sum(assign_res) != 0:
-            print("Taxonomic assignment of MAGs did not complete successfully. Check log files for details.")
+            print("Taxonomic assignment did not complete successfully. Check log files for details.")
             sys.exit(1)
             
-def assignTaxonomy(sample_name, output_dir, est_dir, mets_or_mags):
+def assignTaxonomy(sample_name, output_dir, est_dir, mets_or_mags, core = False):
     taxfile = os.path.join(output_dir, est_dir, sample_name + "-estimated-taxonomy.out")
-    levels_directory = os.path.join(output_dir, mets_or_mags, "levels")
+    levels_directory = os.path.join(output_dir, "levels_mags")
     max_dir = os.path.join(output_dir, "max_level_mags")
+    if core:
+        levels_directory = os.path.join(output_dir, "core_levels_mags")
+        max_dir = os.path.join(output_dir, "core_max_level_mags")
+        
     error_log = os.path.join("log", "_".join(est_dir.split("_")[0:1]) + "_assign_" + sample_name + ".err")
     out_log = os.path.join("log", "_".join(est_dir.split("_")[0:1]) + "_assign_" + sample_name + ".out")
     
     sys.stdout = open(out_log, "w")
     sys.stderr = open(error_log, "w")
-    rc = magStats(["--estimated-taxonomy-file",taxfile,
-                   "--out-prefix",sample_name,"--outdir",
-                   levels_directory,"--max-out-dir",max_dir])
+    try:
+        rc = magStats(["--estimated-taxonomy-file",taxfile,
+                       "--out-prefix",sample_name,"--outdir",
+                       levels_directory,"--max-out-dir",max_dir])
+    except:
+        print("Taxonomic assignment did not complete successfully for sample " + str(sample_name) +
+              ". Check log for details")
+        sys.exit(1)
     sys.stdout = sys.__stdout__
     sys.stderr = sys.__stderr__
     return rc

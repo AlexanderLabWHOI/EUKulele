@@ -3,6 +3,17 @@ import sys
 import subprocess
 import multiprocessing
 from joblib import Parallel, delayed
+import pandas as pd
+import math
+
+MEM_AVAIL_GB = 0
+while MEM_AVAIL_GB == 0:
+    try:
+        os.system("free -m > free.csv")
+        MEM_AVAIL_GB = pd.read_csv("free.csv", sep = "\s+").free[0] / 10**3
+    except:
+        pass
+MAX_JOBS = math.floor(MEM_AVAIL_GB / 24)
 
 from scripts.query_busco import queryBusco
 
@@ -32,7 +43,7 @@ def configRunBusco(output_dir, mets_or_mags, pep_ext, nt_ext, sample_dir, sample
     ## Run BUSCO on the full dataset ##
     busco_db = "eukaryota_odb10"
     busco_config_res = configure_busco(busco_db)
-    n_jobs_busco = min(multiprocessing.cpu_count(), len(samples), 4)
+    n_jobs_busco = min(multiprocessing.cpu_count(), len(samples), MAX_JOBS)
     busco_res = Parallel(n_jobs=n_jobs_busco, prefer="threads")(delayed(run_busco)(sample_name, 
                                                                                                   os.path.join(output_dir, 
                                                                                                                "busco"), 
@@ -112,7 +123,11 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
                           str(" ".join(organisms_taxonomy)),"--output_dir",output_dir,"--fasta_file",
                           fasta,"--sample_name",sample_name,"--taxonomy_file_prefix",taxfile_stub,
                           "--tax_table",tax_tab,"--busco_out",busco_table,"-i","individual"]
-            rc = queryBusco(query_args)
+            try:
+                rc = queryBusco(query_args)
+            except:
+                print("BUSCO query did not complete successfully. Check log for details.")
+                sys.exit(1)
 
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__ 

@@ -145,6 +145,11 @@ def makeConcatFrame(curr_df, new_df, level, sample_name, use_counts):
 def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extension, nucle_extension, use_counts, 
                           rerun, core = False):
     results_frame = dict()
+    results_counts_dir = os.path.join(out_dir, "taxonomy_counts")
+    results_viz_dir = os.path.join(out_dir, "taxonomy_visualization")
+    if core:
+        results_counts_dir = os.path.join(out_dir, "core_taxonomy_counts")
+        results_viz_dir = os.path.join(out_dir, "core_taxonomy_visualization")
 
     ### READ IN RESULTS FILES FROM MET DIR THAT FIT SAMPLE SPEC FROM CONFIG ###
     samples = os.listdir(samples_dir)
@@ -186,10 +191,10 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
     for l in level_hierarchy:
         ### SAVE THE CSVs OF THE DATA ###
         prefix = out_prefix
-        os.system("mkdir -p " + os.path.join(out_dir, "taxonomy_counts"))
-        counts_all[l].to_csv(os.path.join(out_dir, "taxonomy_counts", prefix + "_all_" + l + "_counts.csv"))
+        os.system("mkdir -p " + results_counts_dir)
+        counts_all[l].to_csv(os.path.join(results_counts_dir, prefix + "_all_" + l + "_counts.csv"))
         
-        if (not os.path.isfile(os.path.join(out_dir, "taxonomy_counts", prefix + "_all_" + l + "_counts.csv"))):
+        if (not os.path.isfile(os.path.join(results_counts_dir, prefix + "_all_" + l + "_counts.csv"))):
             print("Taxonomy counts were not successfully generated. Check log for details.")
             sys.exit(1)
 
@@ -246,8 +251,8 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
             pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05, transcript_or_counts="NumTranscripts")
             pivoted.plot(kind='bar', stacked=True, color = sns_palette)
             plt.tight_layout()
-            os.system("mkdir -p " + os.path.join(out_dir, "taxonomy_visualization"))
-            plt.savefig(os.path.join(out_dir, "taxonomy_visualization", l + '_transcripts.png'),dpi=100)
+            os.system("mkdir -p " + results_viz_dir)
+            plt.savefig(os.path.join(results_viz_dir, l + '_transcripts.png'),dpi=100)
             plt.show()
             plt.close()
         else:
@@ -259,6 +264,7 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
             pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05, transcript_or_counts="Counts")
             pivoted.plot(kind='bar', stacked=True, width=1, color = sns_palette, title="Counts", ax = ax2)
             plt.tight_layout()
-            plt.savefig(os.path.join(out_dir, "taxonomy_visualization", l + '_counts_and_transcripts.png'),dpi=100)
+            os.system("mkdir -p " + results_viz_dir)
+            plt.savefig(os.path.join(results_viz_dir, l + '_counts_and_transcripts.png'),dpi=100)
             plt.show()
             plt.close()
