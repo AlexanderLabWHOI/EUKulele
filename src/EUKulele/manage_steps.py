@@ -21,7 +21,9 @@ while MEM_AVAIL_GB == 0:
         MEM_AVAIL_GB = pd.read_csv("free.csv", sep = "\s+").free[0] / 10**3
     except:
         pass
-MAX_JOBS = math.floor(MEM_AVAIL_GB / 48) #24)
+MAX_JOBS = math.floor(MEM_AVAIL_GB / 48)
+if MAX_JOBS == 0:
+    MAX_JOBS = 1
 
 # For DIAMOND: The program can be expected to use roughly six times this number of memory (in GB). 
 # So for the default value of -b2.0, the memory usage will be about 12 GB.

@@ -14,6 +14,8 @@ while MEM_AVAIL_GB == 0:
     except:
         pass
 MAX_JOBS = math.floor(MEM_AVAIL_GB / 80)
+if MAX_JOBS == 0:
+    MAX_JOBS = 1
 
 from scripts.query_busco import queryBusco
 
