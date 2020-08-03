@@ -31,7 +31,7 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
         organism_format = " ".join(str(organism).split(";"))
     full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in list(tax_table[taxonomy])],:]
     if len(full_taxonomy.index) < 1:
-        print("No taxonomy found for that organism and taxonomic level.")
+        print("No taxonomy found for that organism " + str(organism) + " and taxonomic level " + str(taxonomy) + ".")
         return pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness","NumberCovered",
                                        "CtTwoCopies","CtThreeCopies","CtFourCopies","CtFivePlusCopies",
                                        "PercentageDuplicated"])
@@ -122,12 +122,13 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
                 for transcript_name in transcripts_to_search_sep:
                     filehandle.write(transcript_name + '\n')
         if (create_fasta):
-            mock_file_name = organism + "_" + level_hierarchy[curr_level] + "_" + sample_name + "_BUSCO_complete.fasta"
+            mock_file_name = os.path.join(report_dir, organism + "_" + level_hierarchy[curr_level] + "_" + 
+                                          sample_name + "_transcripts.fasta")
             os.system("grep -w -A 2 -f " + file_written + " " + fasta_file + " --no-group-separator > " + mock_file_name)
 
         reported.write("Taxonomy file successfully completed with BUSCO completeness " + str(busco_completeness) + 
-                       "% at location " + str(file_written) + "This was at taxonomic level " + str(success_level) + 
-                       ". The file containing the transcript names for the mock transcriptome corresponding to this "
+                       "% at location " + str(file_written) + "\n This was at taxonomic level " + str(success_level) + 
+                       ". \n The file containing the transcript names for the mock transcriptome corresponding to this "
                        "taxonomic level is located here: " + str(file_written) + ".\n")
         reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + 
                        str(taxonomy) + ") were: " + " ".join([str(curr) for curr in reversed_scores]))
@@ -136,7 +137,9 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
         reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " + str(taxonomy) + 
                        ") were: " + " ".join([str(curr) for curr in reversed_scores]) + "\n")
     reported.close()
-    return pd.DataFrame({"Organism":[organism] * len(levels_out),"TaxonomicLevel":levels_out,
+    reversed_levels = levels_out
+    reversed_levels.reverse()
+    return pd.DataFrame({"Organism":[organism] * len(levels_out),"TaxonomicLevel":reversed_levels,
                          "BuscoCompleteness":busco_scores,"NumberCovered":number_covered,"CtTwoCopies":number_duplicated,
                          "CtThreeCopies":number_tripled,"CtFourCopies":number_quadrupled,"CtFivePlusCopies":number_higher_mult,
                          "PercentageDuplicated":percent_multiples})
@@ -184,7 +187,7 @@ def queryBusco(args=None):
                         help = "Location to store the BUSCO tar reference.")
     parser.add_argument('--output_dir',default="output")
     parser.add_argument('--available_cpus',default=1)
-    parser.add_argument('--busco_threshold',default=0.50)
+    parser.add_argument('--busco_threshold',default=50)
     parser.add_argument('--write_transcript_file', default=False, action='store_true',
                        help = "Whether to write an actual file with the subsetted transcriptome.")
 

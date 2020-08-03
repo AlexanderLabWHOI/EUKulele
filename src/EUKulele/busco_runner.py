@@ -13,7 +13,7 @@ while MEM_AVAIL_GB == 0:
         MEM_AVAIL_GB = pd.read_csv("free.csv", sep = "\s+").free[0] / 10**3
     except:
         pass
-MAX_JOBS = math.floor(MEM_AVAIL_GB / 24)
+MAX_JOBS = math.floor(MEM_AVAIL_GB / 80)
 
 from scripts.query_busco import queryBusco
 
@@ -38,12 +38,13 @@ def readBuscoFile(individual_or_summary, busco_file, organisms, organisms_taxono
 
 def configRunBusco(output_dir, mets_or_mags, pep_ext, nt_ext, sample_dir, samples):
     print("Performing BUSCO steps...", flush=True)
-    print("Running busco...")
+    print("Configuring BUSCO...", flush=True)
     
     ## Run BUSCO on the full dataset ##
     busco_db = "eukaryota_odb10"
     busco_config_res = configure_busco(busco_db)
     n_jobs_busco = min(multiprocessing.cpu_count(), len(samples), MAX_JOBS)
+    print("Running busco...", flush=True)
     busco_res = Parallel(n_jobs=n_jobs_busco, prefer="threads")(delayed(run_busco)(sample_name, 
                                                                                                   os.path.join(output_dir, 
                                                                                                                "busco"), 
@@ -55,11 +56,11 @@ def configRunBusco(output_dir, mets_or_mags, pep_ext, nt_ext, sample_dir, sample
     all_codes = sum(busco_res) + busco_config_res
     if sum(busco_res) > 0:
         print("BUSCO initial run did not complete successfully.\n" + 
-              "Please check the BUSCO run log files in the log/ folder.")
+              "Please check the BUSCO run log files in the log/ folder.", flush = True)
         sys.exit(1)
     if busco_config_res > 0:
         print("BUSCO initial configuration did not complete successfully.\n" + 
-              "Please check the BUSCO configuration log files in the log/ folder.")
+              "Please check the BUSCO configuration log files in the log/ folder.", flush = True)
         sys.exit(1)
                 
 def configure_busco(busco_db):
@@ -154,12 +155,16 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
                           sample_name,"--taxonomy_file_prefix",taxfile_stub,"--tax_table",
                           tax_tab,"--busco_out",busco_table,"-i","summary"]
 
+            rc = queryBusco(query_args)
+            print("Tried query once")
             try:
                 rc = queryBusco(query_args)
             except OSError as e:
-                print("Not all files needed to run BUSCO query (output of BUSCO run) not found; check log file for details.")
+                print("Not all files needed to run BUSCO query (output of BUSCO run) found; check log file for details.")
+                rc = 1
             except:
                 print("Unexpected error:", sys.exc_info()[0])
+                rc = 1
                 
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__ 

@@ -22,8 +22,6 @@ while MEM_AVAIL_GB == 0:
     except:
         pass
 MAX_JOBS = math.floor(MEM_AVAIL_GB / 48) #24)
-print("Max jobs are: ")
-print(MAX_JOBS)
 
 # For DIAMOND: The program can be expected to use roughly six times this number of memory (in GB). 
 # So for the default value of -b2.0, the memory usage will be about 12 GB.
@@ -121,17 +119,17 @@ def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir,
         print("File: " + os.path.join(sample_dir, sample_name + nt_ext) + " was called by TransDecoder and "
               "does not exist. Check for typos.")
         sys.exit(1)
-    p1 = subprocess.Popen(["TransDecoder.LongOrfs", "-t", os.path.join(sample_dir, sample_name + nt_ext),
+    rc1 = subprocess.Popen(["TransDecoder.LongOrfs", "-t", os.path.join(sample_dir, sample_name + nt_ext),
                "-m", str(transdecoder_orf_size)], stdout = TD_log, stderr = TD_err).wait()
-    rc1 = p1.returncode
+    #rc1 = p1.returncode
     TD_log.close()
     TD_err.close()
     
     TD_log = open(os.path.join("log","transdecoder_predict_" + sample_name + ".log"), "w+") 
     TD_err = open(os.path.join("log","transdecoder_predict_" + sample_name + ".err"), "w+")
-    p2 = subprocess.Popen(["TransDecoder.Predict", "-t", os.path.join(sample_dir, sample_name + nt_ext),
+    rc2 = subprocess.Popen(["TransDecoder.Predict", "-t", os.path.join(sample_dir, sample_name + nt_ext),
                "--no_refine_starts"], stdout = TD_log, stderr = TD_err).wait()
-    rc2 = p2.returncode
+    #rc2 = p2.returncode
     TD_log.close()
     TD_err.close()
     
@@ -156,7 +154,8 @@ def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir,
     os.replace(merged_name + ".transdecoder.bed", os.path.join(output_dir, mets_or_mags, 
                                                                "transdecoder", sample_name + 
                                                                ".fasta.transdecoder.bed"))
-    shutil.rmtree(merged_name + "*.transdecoder_dir*")
+    #shutil.rmtree
+    os.system("rm -rf " + merged_name + "*.transdecoder_dir*")
     return rc1 + rc2
     
 def manageTrandecode(met_samples, output_dir, rerun_rules, sample_dir, 
@@ -283,18 +282,17 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
         diamond_log = open(os.path.join("log",core + "_diamond_align_" + sample_name + ".log"), "w+")
         diamond_err = open(os.path.join("log",core + "_diamond_align_" + sample_name + ".err"), "w+")
         if filter_metric == "bitscore":
-            p1 = subprocess.Popen(["diamond", "blastp", "--db", align_db, "-q", fasta, "-o", 
+            rc1 = subprocess.Popen(["diamond", "blastp", "--db", align_db, "-q", fasta, "-o", 
                                    diamond_out, "--outfmt", str(outfmt), "-k", str(k), "--min-score", 
                                    str(bitscore), '-b3.0'], stdout = diamond_log, stderr = diamond_err).wait()
             print("Diamond process exited.", flush = True)
-            rc1 = p1.returncode
+            #rc1 = p1.returncode
         else:
-            p1 = subprocess.Popen(["diamond", "blastp", "--db", align_db, "-q", fasta, "-o", 
+            rc1 = subprocess.Popen(["diamond", "blastp", "--db", align_db, "-q", fasta, "-o", 
                                    diamond_out, "--outfmt", str(outfmt), "-k", str(k), "-e", 
-                                   str(e), '-b3.0'], stdout = diamond_log, stderr = diamond_err)
-            p1.wait()
+                                   str(e), '-b3.0'], stdout = diamond_log, stderr = diamond_err).wait()
             print("Diamond process exited.", flush = True)
-            rc1 = p1.returncode
+            #rc1 = p1.returncode
         if rc1 != 0:
             print("Diamond did not complete successfully.")
             os.system("rm -f " + diamond_out)
@@ -340,10 +338,10 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
                                                     prot_tab, use_salmon_counts, names_to_reads,\
                                                     alignment_res[t], outfiles[t],\
                                                     True, rerun_rules)
-            sys.stdout = sys.__stdout__
-            sys.stderr = sys.__stderr__
         except:
             print("Taxonomic estimation for core genes did not complete successfully. Check log file for details.")
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
         
 def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
                             prot_tab, use_salmon_counts, names_to_reads, alignment_res,
@@ -360,37 +358,33 @@ def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, cons
                                                     prot_tab, use_salmon_counts, names_to_reads,\
                                                     alignment_res[t], outfiles[t],\
                                                     True, rerun_rules)
-            sys.stdout = sys.__stdout__
-            sys.stderr = sys.__stderr__
         except:
             print("Taxonomic estimation for core genes did not complete successfully. Check log file for details.")
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
         
 def manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules):
     print("Performing taxonomic visualization steps...", flush=True)
     out_prefix = output_dir.split("/")[-1]
-    try:
-        sys.stdout = open(os.path.join("log", "tax_vis.out"), "w")
-        sys.stderr = open(os.path.join("log", "tax_vis.err"), "w")
-        visualize_all_results(out_prefix, output_dir, os.path.join(output_dir, "taxonomy_estimation"), 
-                              sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules)
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
-    except:
-        print("Taxonomic visualization did not complete successfully. Check log files for details.")
+    sys.stdout = open(os.path.join("log", "tax_vis.out"), "w")
+    sys.stderr = open(os.path.join("log", "tax_vis.err"), "w")
+    visualize_all_results(out_prefix, output_dir, os.path.join(output_dir, "taxonomy_estimation"), 
+                          sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules)
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
     
 def manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, use_salmon_counts, 
                                rerun_rules, core = False):
     print("Performing taxonomic visualization steps...", flush=True)
     out_prefix = output_dir.split("/")[-1]
-    try:
-        sys.stdout = open(os.path.join("log", "core_tax_vis.out"), "w")
-        sys.stderr = open(os.path.join("log", "core_tax_vis.err"), "w")
-        visualize_all_results(out_prefix, output_dir, os.path.join(output_dir, "core_taxonomy_estimation"), 
-                              sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules, core)
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
-    except:
-        print("Taxonomic visualization of core genes did not complete successfully. Check log files for details.")
+    sys.stdout = open(os.path.join("log", "core_tax_vis.out"), "w")
+    sys.stderr = open(os.path.join("log", "core_tax_vis.err"), "w")
+    visualize_all_results(out_prefix, output_dir, os.path.join(output_dir, "core_taxonomy_estimation"), 
+                          sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules, core)
+    #except:
+    #    print("Taxonomic visualization of core genes did not complete successfully. Check log files for details.")
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
 
 def manageTaxAssignment(samples, mets_or_mags, output_dir, core = False):
     if mets_or_mags == "mags":

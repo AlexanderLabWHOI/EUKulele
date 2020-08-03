@@ -28,3 +28,5 @@ install:
   - configure_busco.sh "eukaryota_odb10"
 script:
   - pytest
+after_success:
+  - coveralls

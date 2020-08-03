@@ -153,10 +153,11 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
 
     ### READ IN RESULTS FILES FROM MET DIR THAT FIT SAMPLE SPEC FROM CONFIG ###
     samples = os.listdir(samples_dir)
+    print(samples, flush=True)
     good_samples = 0
     for s in samples:
         file_name = ".".join(s.split(".")[0:-1]) + "-estimated-taxonomy.out"
-        if (prot_extension in s):
+        if (prot_extension in s.split(".")[-1]) | (nucle_extension in s.split(".")[-1]):
             if (not os.path.isfile(os.path.join(est_dir, file_name))):
                 print("One of the files, " + s + ", in the sample directory did not complete successfully.")
                 if (not core):
@@ -175,6 +176,7 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
     # characterizing by major classes 
     for curr in results_frame.keys():
         list_results[curr], frame_results[curr] = stripClassifData(results_frame[curr], use_counts)
+        print(frame_results[curr]["species"].head())
 
     counts_all = dict()
     level_hierarchy = ['supergroup','division','class','order','family','genus','species']

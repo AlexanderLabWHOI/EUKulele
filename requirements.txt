@@ -11,6 +11,7 @@ multiprocess
 #glob
 joblib
 ujson
+python-coveralls
 pyyaml
 matplotlib
 #pkgutil

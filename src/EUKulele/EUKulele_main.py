@@ -102,6 +102,8 @@ def main(args_in):
 
     parser.add_argument('--CPUs', default=multiprocessing.cpu_count())
     parser.add_argument('--busco_threshold', default=50)
+    parser.add_argument('--create_fasta', action='store_true', default=False, 
+                       help = "Whether to create FASTA files containing ID'd transcripts during BUSCO analysis.")
                
     args = parser.parse_args(list(filter(None, args_in.split(" "))))
     if args.subroutine == "":
