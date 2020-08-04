@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://travis-ci.com/AlexanderLabWHOI/EUKulele.svg?branch=master)](https://travis-ci.com/AlexanderLabWHOI/EUKulele)
+[![Coverage Status](https://coveralls.io/repos/github/AlexanderLabWHOI/EUKulele/badge.svg?branch=master)](https://coveralls.io/github/AlexanderLabWHOI/EUKulele?branch=master)
 
 ![EUKulele-logo](/.infrastructure/eukulele-logo.png)
 

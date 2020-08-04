@@ -8,7 +8,6 @@ DEST_DIR=$1
 echo $DEST_DIR
 mkdir -p "$DEST_DIR" #references_bins/
 export PATH=$PATH:$DEST_DIR
-echo "export PATH=$PATH:$DEST_DIR" >> ~/.bashrc
 
 # INSTALL DIAMOND
 
