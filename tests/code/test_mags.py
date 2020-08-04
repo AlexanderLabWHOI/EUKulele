@@ -133,7 +133,9 @@ def test_all():
     samplenames = [curr.split(".")[0] for curr in os.listdir(config["samples"])]
     #busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "individual", "summary_" + samplenames[0] + ".tsv")
     busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "species_combined", "summary_species_" + samplenames[0] + ".tsv")
-    assert os.path.isfile(busco_out)
+    out_prefix = samplenames[0]
+    mag_file = os.path.join(config["output"], "levels_mags", out_prefix + '.' + "species")
+    assert (os.path.isfile(busco_out)) & (os.path.isfile(mag_file)) 
     
 def test_cleanup():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')

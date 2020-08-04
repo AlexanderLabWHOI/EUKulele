@@ -231,7 +231,7 @@ def queryBusco(args=None):
             taxonomy_file = pd.read_csv(args.taxonomy_file_prefix + "_all_" + str(taxonomy) + 
                                         "_counts.csv", sep=",",header=0)
             curr_frame = taxonomy_file.nlargest(multiprocessing.cpu_count(), 'NumTranscripts')
-            organisms = list(curr_frame[taxonomy.capitalize()])
+            organisms = list(set(list(curr_frame[taxonomy.capitalize()])))
             results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(evaluate_organism)(organism, 
                                                                                                     taxonomy, tax_table, 
                                                                                                     args.create_fasta, 

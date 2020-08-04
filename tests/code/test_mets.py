@@ -47,6 +47,8 @@ def test_setup_commandline():
     output_dir = os.path.join(base_dir, "test_out")
     reference_dir = os.path.join(base_dir, test_reference)
     os.system("rm -rf " + output_dir)
+    
+    os.system("cd ..")
     subprocess.Popen(["EUKulele", "setup", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, 
                       "--reference_dir", reference_dir])
@@ -58,6 +60,7 @@ def test_all_commandline():
     reference_dir = os.path.join(base_dir, test_reference)
     os.system("rm -rf " + output_dir)
     
+    os.system("cd ..")
     subprocess.Popen(["EUKulele", "all", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--organisms", "Chromera",
                       "--taxonomy_organisms", "genus", "--reference_dir", reference_dir]).wait()
@@ -73,6 +76,8 @@ def test_all_commandline_busco():
     output_dir = os.path.join(base_dir, "test_out")
     reference_dir = os.path.join(base_dir, test_reference)
     os.system("rm -rf " + output_dir)
+    
+    os.system("cd ..")
     subprocess.Popen(["EUKulele", "all", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--individual_or_summary",
                       "summary", "--reference_dir", reference_dir]).wait()
