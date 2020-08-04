@@ -49,9 +49,18 @@ def test_setup_commandline():
     os.system("rm -rf " + output_dir)
     
     os.system("cd ..")
-    subprocess.Popen(["EUKulele", "setup", "--database", "mmetsp", "--sample_dir", sample_dir, 
+    #subprocess.Popen(["EUKulele", "setup", "--database", "mmetsp", "--sample_dir", sample_dir, 
+    #                  "--mets_or_mags", "mets", "--out_dir", output_dir, 
+    #                  "--reference_dir", reference_dir])
+    
+    string_arguments = " ".join(["setup", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, 
                       "--reference_dir", reference_dir])
+    
+    eukulele(string_arguments=string_arguments)
+    assert os.path.isfile(os.path.join(reference_dir, "tax-table.txt"))
+
+    
     
 def test_all_commandline():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
@@ -61,10 +70,14 @@ def test_all_commandline():
     os.system("rm -rf " + output_dir)
     
     os.system("cd ..")
-    subprocess.Popen(["EUKulele", "all", "--database", "mmetsp", "--sample_dir", sample_dir, 
+    #subprocess.Popen(["EUKulele", "all", "--database", "mmetsp", "--sample_dir", sample_dir, 
+    #                  "--mets_or_mags", "mets", "--out_dir", output_dir, "--organisms", "Chromera",
+    #                  "--taxonomy_organisms", "genus", "--reference_dir", reference_dir]).wait()
+    string_arguments=" ".join(["all", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--organisms", "Chromera",
-                      "--taxonomy_organisms", "genus", "--reference_dir", reference_dir]).wait()
+                      "--taxonomy_organisms", "genus", "--reference_dir", reference_dir])
     
+    eukulele(string_arguments=string_arguments)
     samplenames = [curr.split(".")[0] for curr in os.listdir(sample_dir)]
     busco_out = os.path.join(output_dir, "busco_assessment", samplenames[0], 
                              "species_combined", "summary_species_" + samplenames[0] + ".tsv")
@@ -78,9 +91,15 @@ def test_all_commandline_busco():
     os.system("rm -rf " + output_dir)
     
     os.system("cd ..")
-    subprocess.Popen(["EUKulele", "all", "--database", "mmetsp", "--sample_dir", sample_dir, 
+    #subprocess.Popen(["EUKulele", "all", "--database", "mmetsp", "--sample_dir", sample_dir, 
+    #                  "--mets_or_mags", "mets", "--out_dir", output_dir, "--individual_or_summary",
+    #                  "summary", "--reference_dir", reference_dir]).wait()
+    
+    string_arguments = " ".join(["all", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--individual_or_summary",
-                      "summary", "--reference_dir", reference_dir]).wait()
+                      "summary", "--reference_dir", reference_dir])
+    
+    eukulele(string_arguments=string_arguments)
     
     samplenames = [curr.split(".")[0] for curr in os.listdir(sample_dir)]
     busco_out = os.path.join(output_dir, "busco_assessment", samplenames[0], 
