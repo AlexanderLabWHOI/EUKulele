@@ -27,6 +27,7 @@ install:
   - python setup.py install
   - configure_busco.sh "eukaryota_odb10"
 script:
-  - pytest
+  - pip install coverage==4.5.4
+  - py.test --doctest-modules -v --cov EUKulele --cov-report term-missing
 after_success:
   - coveralls

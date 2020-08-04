@@ -212,7 +212,7 @@ def main(args_in):
                        tax_tab = TAX_TAB, cutoff_file = args.cutoff_file, 
                        consensus_cutoff = CONSENSUS_CUTOFF, prot_tab = PROT_TAB, use_salmon_counts = USE_SALMON_COUNTS, 
                        names_to_reads = NAMES_TO_READS, alignment_res = alignment_res, 
-                       rerun_rules = RERUN_RULES, samples = samples)
+                       rerun_rules = RERUN_RULES, samples = samples, sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT)
 
         ## Now to visualize the taxonomy ##
         manageEukulele(piece = "visualize_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
@@ -221,6 +221,7 @@ def main(args_in):
 
         ## Next to assign taxonomy ##
         manageEukulele(piece = "assign_taxonomy", samples = samples, mets_or_mags = mets_or_mags, 
+                       sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT,
                        output_dir = OUTPUTDIR)
 
     if BUSCO:
@@ -245,7 +246,7 @@ def main(args_in):
                        tax_tab = TAX_TAB, cutoff_file = args.cutoff_file, 
                        consensus_cutoff = CONSENSUS_CUTOFF, prot_tab = PROT_TAB, use_salmon_counts = USE_SALMON_COUNTS, 
                        names_to_reads = NAMES_TO_READS, alignment_res = alignment_res, 
-                       rerun_rules = RERUN_RULES, samples = samples)
+                       rerun_rules = RERUN_RULES, samples = samples, sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT)
 
         ## Now to visualize the taxonomy ##
         manageEukulele(piece = "core_visualize_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
@@ -254,6 +255,7 @@ def main(args_in):
 
         ## Next to assign taxonomy ##
         manageEukulele(piece = "core_assign_taxonomy", samples = samples, mets_or_mags = mets_or_mags, 
+                       sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT,
                        output_dir = OUTPUTDIR)
         
         
