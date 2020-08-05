@@ -11,14 +11,14 @@ def generate_metatranscriptome(mmetsp_files, outputdir, METindex):
     for mmetsp_file_ind in range(len(mmetsp_files)):
         mmetsp_file = mmetsp_files[mmetsp_file_ind]
         os.system("reformat.sh in=" + os.path.join(mmetsp_dir, mmetsp_file) + " out=" + samplefiles[mmetsp_file_ind] + \
-              " samplerate=0.0005 overwrite=true ignorejunk")
+              " samplerate=0.0001 overwrite=true ignorejunk")
         
     metatranscriptome_file = os.path.join(outputdir, "met_sample_" + str(METindex) + ".fasta")
     os.system("cat " + " ".join(samplefiles) + " > " + metatranscriptome_file)
     [os.system("rm " + curr_file) for curr_file in samplefiles]
     
 number_samples = 10
-outputdir = os.path.join("aux_data","mmetsp","samples_METs")
+outputdir = os.path.join("aux_data","mmetsp","samples_METs_small")
 os.system("mkdir -p " + outputdir)
 
 for r in range(number_samples):

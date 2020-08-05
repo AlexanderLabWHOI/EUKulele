@@ -23,7 +23,7 @@ def test_setup():
     
     config["mets_or_mags"] = "mets"
     config["reference"] = os.path.join(base_dir, test_reference)
-    config["samples"] = os.path.join(base_dir, test_reference, "samples_METs")
+    config["samples"] = os.path.join(base_dir, test_reference, "samples_METs_small")
     config["subroutine"] = "setup"
     config["output"] = outputdir
     config["database"] = test_reference
@@ -43,7 +43,7 @@ def test_setup():
     
 def test_setup_commandline():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
-    sample_dir = os.path.join(base_dir, test_reference, "samples_METs")
+    sample_dir = os.path.join(base_dir, test_reference, "samples_METs_small")
     output_dir = os.path.join(base_dir, "test_out")
     reference_dir = os.path.join(base_dir, test_reference)
     os.system("rm -rf " + output_dir)
@@ -64,10 +64,10 @@ def test_setup_commandline():
     
 def test_all_commandline():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
-    sample_dir = os.path.join(base_dir, test_reference, "samples_METs")
+    sample_dir = os.path.join(base_dir, test_reference, "samples_METs_small")
     output_dir = os.path.join(base_dir, "test_out")
     reference_dir = os.path.join(base_dir, test_reference)
-    os.system("rm -rf " + output_dir)
+    #os.system("rm -rf " + output_dir)
     
     os.system("cd ..")
     #subprocess.Popen(["EUKulele", "all", "--database", "mmetsp", "--sample_dir", sample_dir, 
@@ -85,10 +85,10 @@ def test_all_commandline():
     
 def test_all_commandline_busco():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
-    sample_dir = os.path.join(base_dir, test_reference, "samples_METs")
+    sample_dir = os.path.join(base_dir, test_reference, "samples_METs_small")
     output_dir = os.path.join(base_dir, "test_out")
     reference_dir = os.path.join(base_dir, test_reference)
-    os.system("rm -rf " + output_dir)
+    #os.system("rm -rf " + output_dir)
     
     os.system("cd ..")
     #subprocess.Popen(["EUKulele", "all", "--database", "mmetsp", "--sample_dir", sample_dir, 

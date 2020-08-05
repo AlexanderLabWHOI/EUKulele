@@ -107,7 +107,8 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
             success_level = level_hierarchy[curr_level]
         curr_level = curr_level - 1
 
-    report_dir = os.path.join(output_dir, "busco_assessment", "output_by_level", taxonomy, "_".join(organism_format.split(" ")))
+    report_dir = os.path.join(output_dir, "busco_assessment", "output_by_level", taxonomy,
+                              "_".join(organism_format.replace("(", "_").replace(")", "_").split(" ")))
     os.system("mkdir -p " + report_dir)
 
     report_file = os.path.join(report_dir, sample_name + "_report.txt")

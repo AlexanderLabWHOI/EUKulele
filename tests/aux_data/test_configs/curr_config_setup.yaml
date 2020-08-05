@@ -20,7 +20,7 @@ protein_map: protein-map.json
 ref_fasta: reference-pep-trunc.pep.faa
 reference: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp
 salmon_dir: 0
-samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/samples_METs
+samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/samples_METs_small
 scratch: scratch
 subroutine: setup
 tax_table: tax-table.txt
