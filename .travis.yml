@@ -27,7 +27,6 @@ install:
   - python3 -m pip install -e . --user
   - python setup.py install
   - configure_busco.sh "eukaryota_odb10"
-  - travis_wait 30 mvn install
 script:
   - pip install coverage==4.5.4
   - py.test --doctest-modules -v --cov EUKulele --cov-report term-missing
