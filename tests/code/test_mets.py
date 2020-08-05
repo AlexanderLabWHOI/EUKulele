@@ -47,8 +47,6 @@ def test_setup_commandline():
     output_dir = os.path.join(base_dir, "test_out")
     reference_dir = os.path.join(base_dir, test_reference)
     os.system("rm -rf " + output_dir)
-    
-    os.system("cd ..")
     #subprocess.Popen(["EUKulele", "setup", "--database", "mmetsp", "--sample_dir", sample_dir, 
     #                  "--mets_or_mags", "mets", "--out_dir", output_dir, 
     #                  "--reference_dir", reference_dir])
@@ -68,8 +66,6 @@ def test_all_commandline():
     output_dir = os.path.join(base_dir, "test_out")
     reference_dir = os.path.join(base_dir, test_reference)
     #os.system("rm -rf " + output_dir)
-    
-    os.system("cd ..")
     #subprocess.Popen(["EUKulele", "all", "--database", "mmetsp", "--sample_dir", sample_dir, 
     #                  "--mets_or_mags", "mets", "--out_dir", output_dir, "--organisms", "Chromera",
     #                  "--taxonomy_organisms", "genus", "--reference_dir", reference_dir]).wait()
@@ -82,9 +78,8 @@ def test_all_commandline():
     
     eukulele(string_arguments=string_arguments)
     samplenames = [curr.split(".")[0] for curr in os.listdir(sample_dir)]
-    busco_out = os.path.join(output_dir, "busco_assessment", samplenames[0], 
-                             "species_combined", "summary_species_" + samplenames[0] + ".tsv")
-    assert os.path.isfile(busco_out)
+    est_out = os.path.join(output_dir, "taxonomy_estimation", samplenames[0] + "-estimated-taxonomy.out")
+    assert os.path.isfile(est_out)
     
 def test_all_commandline_busco():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
@@ -93,7 +88,6 @@ def test_all_commandline_busco():
     reference_dir = os.path.join(base_dir, test_reference)
     #os.system("rm -rf " + output_dir)
     
-    os.system("cd ..")
     #subprocess.Popen(["EUKulele", "all", "--database", "mmetsp", "--sample_dir", sample_dir, 
     #                  "--mets_or_mags", "mets", "--out_dir", output_dir, "--individual_or_summary",
     #                  "summary", "--reference_dir", reference_dir]).wait()
