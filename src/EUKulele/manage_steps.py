@@ -198,7 +198,7 @@ def setupEukulele(output_dir):
     os.system("mkdir -p log")
 
     ## Download software dependencies
-    rc1 = os.system("source " + "install_dependencies.sh references_bins/ " + 
+    rc1 = os.system("install_dependencies.sh references_bins/ " + 
                     "1> log/dependency_log.txt 2> log/dependency_err.txt")
     sys.path.append("references_bins/")
     os.system("echo $PATH > path_test.txt")
