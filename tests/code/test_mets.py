@@ -73,7 +73,10 @@ def test_all_commandline():
     #subprocess.Popen(["EUKulele", "all", "--database", "mmetsp", "--sample_dir", sample_dir, 
     #                  "--mets_or_mags", "mets", "--out_dir", output_dir, "--organisms", "Chromera",
     #                  "--taxonomy_organisms", "genus", "--reference_dir", reference_dir]).wait()
-    string_arguments=" ".join(["all", "--database", "mmetsp", "--sample_dir", sample_dir, 
+    
+    #EUKulele all --database mmetsp --sample_dir  tests/aux_data/mmetsp/samples_METs_small --mets_or_mags mets --out_dir tests/test_out --organisms Chromera --taxonomy_organisms genus --reference_dir tests/aux_data/mmetsp
+            
+    string_arguments=" ".join(["alignment", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--organisms", "Chromera",
                       "--taxonomy_organisms", "genus", "--reference_dir", reference_dir])
     
@@ -95,7 +98,7 @@ def test_all_commandline_busco():
     #                  "--mets_or_mags", "mets", "--out_dir", output_dir, "--individual_or_summary",
     #                  "summary", "--reference_dir", reference_dir]).wait()
     
-    string_arguments = " ".join(["all", "--database", "mmetsp", "--sample_dir", sample_dir, 
+    string_arguments = " ".join(["busco", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--individual_or_summary",
                       "summary", "--reference_dir", reference_dir])
     

@@ -123,6 +123,12 @@ def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir,
         print("TransDecoder file already detected for sample " + 
               str(sample_name) + "; will not re-run step.", flush = True)
         return 0
+    elif (os.path.isfile(os.path.join(sample_dir, sample_name + pep_ext))) & (not rerun_rules):
+        print("Protein files detected for sample in sample directory; " +
+              "will not TransDecode.", flush = True)
+        os.system("cp " + os.path.join(sample_dir, sample_name + pep_ext) + " " +
+                  os.path.join(output_dir, mets_or_mags, sample_name + pep_ext))
+        return 0
     
     TD_log = open(os.path.join("log","transdecoder_longorfs_" + sample_name + ".log"), "w+")
     TD_err = open(os.path.join("log","transdecoder_longorfs_" + sample_name + ".err"), "w+")
@@ -214,7 +220,7 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
     Manage the multithreaded management of aligning to either BLAST or DIAMOND database.
     """
     
-    
+    print("Aligning to reference database...")
     if mets_or_mags == "mets":
         fastas = [os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext) for sample in samples]
     else:
@@ -274,6 +280,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
     Align the samples against the created database.
     """
     
+    print("Aligning sample " + sample_name + "...")
     if alignment_choice == "diamond":
         os.system("mkdir -p " + os.path.join(output_dir, mets_or_mags + "_" + core, "diamond"))
         diamond_out = os.path.join(output_dir, mets_or_mags + "_" + core, "diamond", sample_name + ".diamond.out")
