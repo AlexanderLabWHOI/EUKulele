@@ -70,7 +70,7 @@ def test_all_commandline():
     #                  "--mets_or_mags", "mets", "--out_dir", output_dir, "--organisms", "Chromera",
     #                  "--taxonomy_organisms", "genus", "--reference_dir", reference_dir]).wait()
     
-    #EUKulele all --database mmetsp --sample_dir  tests/aux_data/mmetsp/samples_METs_small --mets_or_mags mets --out_dir tests/test_out --organisms Chromera --taxonomy_organisms genus --reference_dir tests/aux_data/mmetsp
+    #EUKulele alignment --database mmetsp --sample_dir  tests/aux_data/mmetsp/samples_METs_small --mets_or_mags mets --out_dir tests/test_out --organisms Chromera --taxonomy_organisms genus --reference_dir tests/aux_data/mmetsp
             
     string_arguments=" ".join(["alignment", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--organisms", "Chromera",
