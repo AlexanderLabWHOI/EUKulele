@@ -41,7 +41,7 @@ def downloadDatabase(database_name, alignment_choice):
         
     database_ref_url = config[database_name + "_ref"]
     database_tab_url = config[database_name + "_tab"]
-    rc = os.system(" ".join(["source", "download_database.sh", database_name, database_ref_url, 
+    rc = os.system(" ".join(["download_database.sh", database_name, database_ref_url, 
                           database_tab_url]))
     if rc != 0:
         print("Download of database " + database_name + " did not complete correctly.")
