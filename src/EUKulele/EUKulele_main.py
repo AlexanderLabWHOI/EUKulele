@@ -91,6 +91,7 @@ def main(args_in):
                         help = "List of organisms to check BUSCO completeness on.")
     parser.add_argument('--taxonomy_organisms', default = "", nargs = "+", 
                         help = "Taxonomic level of organisms specified in organisms tag.")
+    parser.add_argument('--test', action='store_true', default=False)
 
     ## OTHER USER CHOICES ## 
     #cutoff_file = pkgutil.get_data(__name__, "tax-cutoffs.yaml")
@@ -110,6 +111,7 @@ def main(args_in):
         args.subroutine = "all"
     
     ## VARIABLES ##
+    TEST = args.test
     CONSENSUS_CUTOFF = args.consensus_cutoff
     REFERENCE_DIR = args.reference_dir
     OUTPUTDIR = args.out_dir
@@ -159,6 +161,12 @@ def main(args_in):
         BUSCO = True
     if (args.subroutine == "all") | (args.subroutine == "coregenes"):
         COREGENES = True
+        
+    if TEST:
+        SETUP = False
+        ALIGNMENT = False
+        BUSCO = False
+        COREGENES = False
 
     ## SETUP STEPS / DOWNLOAD DEPENDENCIES ##
     manageEukulele(piece = "setup_eukulele", output_dir = OUTPUTDIR)

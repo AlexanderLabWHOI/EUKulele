@@ -56,7 +56,7 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
         return getSamples(mets_or_mags, sample_dir, nt_ext, pep_ext)
     elif piece == "transdecode":
         if mets_or_mags == "mets":
-            manageTrandecode(samples, output_dir, rerun_rules, sample_dir, 
+            manageTrandecode(samples, output_dir, rerun_rules, sample_dir,
                      mets_or_mags = "mets", transdecoder_orf_size = 100,
                      nt_ext = "." + nt_ext.strip('.'), pep_ext = "." + pep_ext.strip('.'))
     elif piece == "align_to_db":

@@ -61,6 +61,10 @@ def test_setup_commandline():
     
     
 def test_all_commandline():
+    """
+    Tests that alignment works properly using a string of arguments.
+    """
+    
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_METs_small")
     output_dir = os.path.join(base_dir, "test_out")
@@ -82,15 +86,13 @@ def test_all_commandline():
     assert os.path.isfile(est_out)
     
 def test_all_commandline_busco():
+    """
+    Tests that BUSCO runs using arguments provided as a string.
+    """
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_METs_small")
     output_dir = os.path.join(base_dir, "test_out")
     reference_dir = os.path.join(base_dir, test_reference)
-    #os.system("rm -rf " + output_dir)
-    
-    #subprocess.Popen(["EUKulele", "all", "--database", "mmetsp", "--sample_dir", sample_dir, 
-    #                  "--mets_or_mags", "mets", "--out_dir", output_dir, "--individual_or_summary",
-    #                  "summary", "--reference_dir", reference_dir]).wait()
     
     string_arguments = " ".join(["busco", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--individual_or_summary",

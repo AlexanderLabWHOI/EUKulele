@@ -29,7 +29,8 @@ install:
   - configure_busco.sh "eukaryota_odb10"
 script:
   - pip install coverage==4.5.4 
-  - travis_wait 100 py.test tests/code/test_mags.py --doctest-modules -v --cov EUKulele --cov-report term-missing
-  - travis_wait 100 py.test tests/code/test_mets.py --doctest-modules -v --cov EUKulele --cov-report term-missing
+  - py.test tests/code/test_mags.py --doctest-modules -v --cov EUKulele --cov-report term-missing
+  #- travis_wait 25 py.test tests/code/test_mags_2.py --doctest-modules -v --cov EUKulele --cov-report term-missing
+  - py.test tests/code/test_mets.py --doctest-modules -v --cov EUKulele --cov-report term-missing
 after_success:
   - coveralls

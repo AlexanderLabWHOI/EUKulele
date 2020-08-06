@@ -6,7 +6,7 @@ create_tax_table: 1
 cutoff: tax-cutoffs.yaml
 database: mmetsp
 download_reference: 0
-individual_or_summary: summary
+individual_or_summary: individual
 jobname: test
 mets_or_mags: mags
 names_to_reads: 0
@@ -20,7 +20,7 @@ protein_map: protein-map.json
 ref_fasta: reference-pep-trunc.pep.faa
 reference: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp
 salmon_dir: 0
-samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/real-world-samples/MAGs
+samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/samples_MAGs
 scratch: scratch
 subroutine: all
 tax_table: tax-table.txt
