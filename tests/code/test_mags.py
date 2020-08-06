@@ -116,7 +116,7 @@ def test_individual():
     
     eukulele(string_arguments=string_arguments)
     samplenames = [curr.split(".")[0] for curr in os.listdir(sample_dir)]
-    busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "individual", 
+    busco_out = os.path.join(output_dir, "busco_assessment", samplenames[0], "individual", 
                              "summary_" + samplenames[0] + ".tsv")
     assert os.path.isfile(busco_out)
     
