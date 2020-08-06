@@ -95,17 +95,20 @@ def run_busco(sample_name, output_dir_busco, output_dir, busco_db, mets_or_mags,
                               fastaname, str(CPUS), busco_db], stdout = busco_run_log, stderr = busco_run_err)
     
     ## TRAVIS DEBUGGING!! ##
-    a_file = open(busco_run_err)
-
-    lines = a_file.readlines()
-    for line in lines:
-        print(line)
     
     p1.wait()
     rc1 = p1.returncode
     
     busco_run_log.close()
     busco_run_err.close()
+    
+    
+    a_file = open(os.path.join("log","busco_run.err"))
+
+    lines = a_file.readlines()
+    for line in lines:
+        print(line)
+        
     return rc1 
 
 def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, pep_ext, nt_ext,
