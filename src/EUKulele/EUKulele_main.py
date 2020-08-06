@@ -86,7 +86,7 @@ def main(args_in):
                         "'--taxonomy_organisms' are overwritten by the two columns of this tab-separated file.")
     parser.add_argument('--individual_or_summary', default="summary", choices=["summary","individual"], 
                         help = "These arguments are used if 'individual' is specified.") 
-    parser.add_argument('-i', dest = "individual_tag", action='store_true', default=False)
+    parser.add_argument('-i', '--individual', dest = "individual_tag", action='store_true', default=False)
     parser.add_argument('--organisms', default = "", nargs = "+", 
                         help = "List of organisms to check BUSCO completeness on.")
     parser.add_argument('--taxonomy_organisms', default = "", nargs = "+", 

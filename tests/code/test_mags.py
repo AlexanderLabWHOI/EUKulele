@@ -98,8 +98,46 @@ def test_busco():
     config["subroutine"] = "busco"
     eukulele(config=config_file)
     samplenames = [curr.split(".")[0] for curr in os.listdir(config["samples"])]
-    busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "individual", "summary_" + samplenames[0] + ".tsv")
+    busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "individual", 
+                             "summary_" + samplenames[0] + ".tsv")
     assert os.path.isfile(busco_out)
+    
+def test_individual():
+    base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
+    sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
+    output_dir = os.path.join(base_dir, "test_out")
+    os.system("rm -rf " + output_dir)
+    reference_dir = os.path.join(base_dir, test_reference)
+    
+    string_arguments = " ".join(["--database", "mmetsp", "--sample_dir", sample_dir, 
+                                 "--mets_or_mags", "mags", "--out_dir", output_dir, "-i",
+                                 '--organisms', 'Chromera', '--taxonomy_organisms', 'genus',
+                                 "--reference_dir", reference_dir])
+    
+    eukulele(string_arguments=string_arguments)
+    samplenames = [curr.split(".")[0] for curr in os.listdir(sample_dir)]
+    busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "individual", 
+                             "summary_" + samplenames[0] + ".tsv")
+    assert os.path.isfile(busco_out)
+    
+def test_error_input():
+    base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
+    sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
+    output_dir = os.path.join(base_dir, "test_out")
+    os.system("rm -rf " + output_dir)
+    reference_dir = os.path.join(base_dir, test_reference)
+    
+    string_arguments = " ".join(["", "--database", "mmetsp", "--sample_dir", sample_dir, 
+                                 "--mets_or_mags", "mmm", "--out_dir", output_dir, "-i",
+                                 '--organisms', 'Chromera', '--taxonomy_organisms', 'genus',
+                                 "--reference_dir", reference_dir])
+    error = 0
+    try:
+        eukulele(string_arguments=string_arguments)
+    except:
+        error = 1
+    
+    assert error == 1
     
 def test_all():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
