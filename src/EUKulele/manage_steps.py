@@ -228,6 +228,7 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
         
     MAX_JOBS = max([calc_max_jobs(pathlib.Path(sample).stat().st_size) for sample in fastas])
     n_jobs_align = min(multiprocessing.cpu_count(), len(samples), MAX_JOBS)
+    print(MAX_JOBS)
     alignment_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(alignToDatabase)(alignment_choice,
                                                                                                sample_name, filter_metric, 
                                                                                                output_dir, ref_fasta, 
