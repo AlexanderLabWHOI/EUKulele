@@ -93,6 +93,14 @@ def run_busco(sample_name, output_dir_busco, output_dir, busco_db, mets_or_mags,
     p1 = subprocess.Popen(["run_busco.sh", str(sample_name), str(output_dir_busco), 
                               os.path.join(output_dir_busco, "config_" + sample_name + ".ini"), 
                               fastaname, str(CPUS), busco_db], stdout = busco_run_log, stderr = busco_run_err)
+    
+    ## TRAVIS DEBUGGING!! ##
+    a_file = open(busco_run_err)
+
+    lines = a_file.readlines()
+    for line in lines:
+        print(line)
+    
     p1.wait()
     rc1 = p1.returncode
     

@@ -30,6 +30,7 @@ setup(
     test_suite='tests',
     tests_require=['pytest'],
     install_requires=required,
+    zip_safe=False,
         #['setuptools','hypothesis',\
         #'pandas','numpy','matplotlib','argparse','seaborn',\
         #'multiprocess','chardet','biopython',\
