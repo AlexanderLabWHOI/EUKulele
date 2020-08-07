@@ -1,0 +1,55 @@
+package:
+  name: eukulele
+  version: 0.0.1
+
+source:
+  path: ../
+
+requirements:
+  build:
+    - numpy
+    - biopython
+    - pandas
+    - seaborn
+    - chardet
+    - argparse
+    - multiprocess
+    - joblib
+    - ujson
+    - python-coveralls
+    - pyyaml
+    - yaml
+    - matplotlib
+    - pytest-cov
+    
+    - blast 
+    - busco==4.0.6 
+    - diamond 
+    - transdecoder
+
+  run:
+    - numpy
+    - biopython
+    - pandas
+    - seaborn
+    - chardet
+    - argparse
+    - multiprocess
+    - joblib
+    - ujson
+    - python-coveralls
+    - pyyaml
+    - yaml
+    - matplotlib
+    - pytest-cov
+    
+    - blast 
+    - busco==4.0.6 
+    - diamond 
+    - transdecoder
+
+about:
+  home: https://github.com/AlexanderLabWHOI/EUKulele
+  license: MIT
+  license_file: LICENSE
+  summary: Easy taxonomic annotation for eukaryotic microbes

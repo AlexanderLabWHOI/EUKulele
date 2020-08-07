@@ -12,7 +12,9 @@ with open('requirements.txt') as f:
 setup(
     name="EUKulele",
     version=version,
-    #distclass=distutils.command.bdist_conda.CondaDistribution,
+    description = ("A package to make the process of taxonomically classifying "
+                   "microbial eukaryotes easier."),
+    keywords = "eukaryote taxonomy classification",
     conda_buildnum=1,
     url="https://github.com/AlexanderLabWHOI/EUKulele",
     author="Arianna Krinos",
@@ -31,9 +33,4 @@ setup(
     tests_require=['pytest'],
     install_requires=required,
     zip_safe=False,
-        #['setuptools','hypothesis',\
-        #'pandas','numpy','matplotlib','argparse','seaborn',\
-        #'multiprocess','chardet','biopython',\
-        #'joblib','ujson','pyyaml'],
-    #packages=['EUKulele','EUKulele.tests','EUKulele.scripts'],
 )
