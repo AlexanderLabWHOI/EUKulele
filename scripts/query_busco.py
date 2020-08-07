@@ -231,20 +231,21 @@ def queryBusco(args=None):
         for taxonomy in level_hierarchy:
             taxonomy_file = pd.read_csv(args.taxonomy_file_prefix + "_all_" + str(taxonomy) + 
                                         "_counts.csv", sep=",",header=0)
-            curr_frame = taxonomy_file.nlargest(multiprocessing.cpu_count(), 'NumTranscripts')
-            organisms = list(set(list(curr_frame[taxonomy.capitalize()])))
-            results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(evaluate_organism)(organism, 
-                                                                                                    taxonomy, tax_table, 
-                                                                                                    args.create_fasta, 
-                                                                                                    args.write_transcript_file, 
-                                                                                                    args.busco_out, 
-                                                                                                    args.taxonomy_file_prefix, 
-                                                                                                    args.busco_threshold, 
-                                                                                                    args.output_dir, 
-                                                                                                    args.sample_name, 
-                                                                                                    args.fasta_file) \
-                                                                         for organism in organisms)
-            results_frame = pd.concat(results_frame)
+            if len(taxonomy_file.index) > 0:
+                curr_frame = taxonomy_file.nlargest(multiprocessing.cpu_count(), 'NumTranscripts')
+                organisms = list(set(list(curr_frame[taxonomy.capitalize()])))
+                results_frame = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(evaluate_organism)(organism, taxonomy, tax_table, args.create_fasta, args.write_transcript_file, args.busco_out, args.taxonomy_file_prefix, args.busco_threshold, 
+                                                                                                        args.output_dir, 
+                                                                                                        args.sample_name, 
+                                                                                                        args.fasta_file) \
+                                                                             for organism in organisms)
+                results_frame = pd.concat(results_frame)
+            else:
+                results_frame = pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness",
+                                                        "NumberCovered","CtTwoCopies",
+                                                        "CtThreeCopies","CtFourCopies","CtFivePlusCopies",
+                                                        "PercentageDuplicated"])
+                
             os.system("mkdir -p " + os.path.join(args.output_dir, "busco_assessment", args.sample_name, 
                                                  taxonomy + "_combined"))
             results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, "busco_assessment", 

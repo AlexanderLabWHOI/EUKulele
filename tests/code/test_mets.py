@@ -52,12 +52,11 @@ def test_setup_commandline():
     #                  "--reference_dir", reference_dir])
     
     string_arguments = " ".join(["setup", "--database", "mmetsp", "--sample_dir", sample_dir, 
-                      "--mets_or_mags", "mets", "--out_dir", output_dir, 
-                      "--reference_dir", reference_dir])
+                      "--mets_or_mags", "mets", "--out_dir", output_dir, "--ref_fasta", 
+                      "reference-pep-trunc.pep.faa", "--reference_dir", reference_dir])
     
     eukulele(string_arguments=string_arguments)
     assert os.path.isfile(os.path.join(reference_dir, "tax-table.txt"))
-
     
     
 def test_all_commandline():
@@ -78,6 +77,7 @@ def test_all_commandline():
             
     string_arguments=" ".join(["alignment", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--organisms", "Chromera",
+                      "--ref_fasta", "reference-pep-trunc.pep.faa", 
                       "--taxonomy_organisms", "genus", "--reference_dir", reference_dir])
     
     eukulele(string_arguments=string_arguments)
@@ -95,8 +95,10 @@ def test_all_commandline_busco():
     reference_dir = os.path.join(base_dir, test_reference)
     
     string_arguments = " ".join(["busco", "--database", "mmetsp", "--sample_dir", sample_dir, 
-                      "--mets_or_mags", "mets", "--out_dir", output_dir, "--individual_or_summary",
-                      "summary", "--reference_dir", reference_dir])
+                      "--mets_or_mags", "mets", "--out_dir", output_dir, 
+                      "--individual_or_summary","summary", 
+                      "--ref_fasta", "reference-pep-trunc.pep.faa", 
+                      "--reference_dir", reference_dir])
     
     eukulele(string_arguments=string_arguments)
     
