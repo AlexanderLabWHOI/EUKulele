@@ -26,6 +26,8 @@ def test_setup():
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
     config["ref_fasta"] = "reference.pep.fa"
+    config["protein_map"] = "prot-map.json"
+    config["tax_table"] = "tax-table.txt"
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
@@ -52,6 +54,8 @@ def test_alignment():
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
     config["ref_fasta"] = "reference.pep.fa"
+    config["protein_map"] = "prot-map.json"
+    config["tax_table"] = "tax-table.txt"
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
@@ -80,13 +84,14 @@ def test_busco():
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
     config["ref_fasta"] = "reference.pep.fa"
+    config["protein_map"] = "prot-map.json"
+    config["tax_table"] = "tax-table.txt"
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
     config_file = os.path.join(config_path, 'curr_config_busco.yaml')
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
-        
         
     config["subroutine"] = "alignment"
     eukulele(config=config_file)

@@ -31,6 +31,8 @@ def test_setup():
     config["column"] = "SOURCE_ID"
     config["nucleotide_extension"] = ".fasta"
     config["ref_fasta"] = "reference.pep.fa"
+    config["protein_map"] = "prot-map.json"
+    config["tax_table"] = "tax-table.txt"
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)

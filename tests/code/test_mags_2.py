@@ -67,6 +67,8 @@ def test_all():
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
     config["ref_fasta"] = "reference.pep.fa"
+    config["protein_map"] = "prot-map.json"
+    config["tax_table"] = "tax-table.txt"
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
