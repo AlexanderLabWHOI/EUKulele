@@ -318,21 +318,21 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
             print(rc1,flush=True)
             #rc1 = p1.returncode
         else:
-            rc1 = subprocess.Popen(["diamond", "blastp", "--db", align_db, "-q", fasta, "-o", 
+            p = subprocess.Popen(["diamond", "blastp", "--db", align_db, "-q", fasta, "-o", 
                                    diamond_out, "--outfmt", str(outfmt), "-k", str(k), "-e", 
-                                   str(e), '-b3.0'], stdout = diamond_log, stderr = diamond_err).wait()
+                                   str(e), '-b3.0'], stdout=subprocess.PIPE, stderr=subprocess.PIPE) #stdout = diamond_log, stderr = diamond_err).wait()
             # For debugging.
             #, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            #stdout, stderr = p.communicate()
-            #rc1 = p.returncode
-            #print(stderr)
-            #print(stdout)
+            stdout, stderr = p.communicate()
+            rc1 = p.returncode
+            print(stderr)
+            print(stdout)
             print("Diamond process exited.", flush = True)
-            print(rc1,flush=True)
+            #print(rc1,flush=True)
         if rc1 != 0:
             print("Diamond did not complete successfully.")
             os.system("rm -f " + diamond_out)
-            #return 1
+            return 1
         return diamond_out
     else:
         blast_out = os.path.join(output_dir, mets_or_mags, "blast", sample_name + ".blast.txt")
