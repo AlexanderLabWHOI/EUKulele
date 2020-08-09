@@ -22,7 +22,7 @@ def test_setup():
     os.system("rm -rf " + outputdir)
     
     config["mets_or_mags"] = "mets"
-    config["reference"] = os.path.join(base_dir, test_reference)
+    config["reference"] = os.path.join(base_dir, test_reference, "sample_ref")
     config["samples"] = os.path.join(base_dir, test_reference, "samples_METs_small")
     config["subroutine"] = "setup"
     config["output"] = outputdir
@@ -30,7 +30,7 @@ def test_setup():
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
     config["nucleotide_extension"] = ".fasta"
-    config["ref_fasta"] = "reference-pep-trunc.pep.faa"
+    config["ref_fasta"] = "reference.pep.fa"
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
@@ -45,7 +45,7 @@ def test_setup_commandline():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_METs_small")
     output_dir = os.path.join(base_dir, "test_out")
-    reference_dir = os.path.join(base_dir, test_reference)
+    reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     os.system("rm -rf " + output_dir)
     #subprocess.Popen(["EUKulele", "setup", "--database", "mmetsp", "--sample_dir", sample_dir, 
     #                  "--mets_or_mags", "mets", "--out_dir", output_dir, 
@@ -53,7 +53,7 @@ def test_setup_commandline():
     
     string_arguments = " ".join(["setup", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--ref_fasta", 
-                      "reference-pep-trunc.pep.faa", "--reference_dir", reference_dir])
+                      "reference.pep.fa", "--reference_dir", reference_dir])
     
     eukulele(string_arguments=string_arguments)
     assert os.path.isfile(os.path.join(reference_dir, "tax-table.txt"))
@@ -67,7 +67,7 @@ def test_all_commandline():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_METs_small")
     output_dir = os.path.join(base_dir, "test_out")
-    reference_dir = os.path.join(base_dir, test_reference)
+    reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     #os.system("rm -rf " + output_dir)
     #subprocess.Popen(["EUKulele", "all", "--database", "mmetsp", "--sample_dir", sample_dir, 
     #                  "--mets_or_mags", "mets", "--out_dir", output_dir, "--organisms", "Chromera",
@@ -77,7 +77,7 @@ def test_all_commandline():
             
     string_arguments=" ".join(["alignment", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--organisms", "Chromera",
-                      "--ref_fasta", "reference-pep-trunc.pep.faa", 
+                      "--ref_fasta", "reference.pep.fa", 
                       "--taxonomy_organisms", "genus", "--reference_dir", reference_dir])
     
     eukulele(string_arguments=string_arguments)
@@ -92,13 +92,12 @@ def test_all_commandline_busco():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_METs_small")
     output_dir = os.path.join(base_dir, "test_out")
-    reference_dir = os.path.join(base_dir, test_reference)
+    reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
     string_arguments = " ".join(["busco", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, 
                       "--individual_or_summary","summary", 
-                      "--ref_fasta", "reference-pep-trunc.pep.faa", 
-                      "--reference_dir", reference_dir])
+                      "--ref_fasta", "reference.pep.fa", "--reference_dir", reference_dir])
     
     eukulele(string_arguments=string_arguments)
     

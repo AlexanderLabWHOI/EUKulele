@@ -18,14 +18,14 @@ def test_setup():
         config = yaml.load(f, Loader=yaml.FullLoader)
        
     config["mets_or_mags"] = "mags"
-    config["reference"] = os.path.join(base_dir, test_reference)
+    config["reference"] = os.path.join(base_dir, test_reference, "sample_ref")
     config["samples"] = os.path.join(base_dir, test_reference, "samples_MAGs")
     config["subroutine"] = "setup"
     config["output"] = os.path.join(base_dir, "test_out")
     config["database"] = test_reference
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
-    config["ref_fasta"] = "reference-pep-trunc.pep.faa"
+    config["ref_fasta"] = "reference.pep.fa"
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
@@ -43,7 +43,7 @@ def test_alignment():
         config = yaml.load(f, Loader=yaml.FullLoader)
        
     config["mets_or_mags"] = "mags"
-    config["reference"] = os.path.join(base_dir, test_reference)
+    config["reference"] = os.path.join(base_dir, test_reference, "sample_ref")
     config["samples"] = os.path.join(base_dir, test_reference, "samples_MAGs")
     config["subroutine"] = "alignment"
     config["cutoff"] = os.path.join("tax-cutoffs.yaml")
@@ -51,9 +51,7 @@ def test_alignment():
     config["database"] = test_reference
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
-    config["ref_fasta"] = "reference-pep-trunc.pep.faa"
-    config["protein_map"] = "protein-map.json"
-    config["original_tax_table"] = "taxonomy-table.txt"
+    config["ref_fasta"] = "reference.pep.fa"
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
@@ -72,7 +70,7 @@ def test_busco():
         config = yaml.load(f, Loader=yaml.FullLoader)
        
     config["mets_or_mags"] = "mags"
-    config["reference"] = os.path.join(base_dir, test_reference)
+    config["reference"] = os.path.join(base_dir, test_reference, "sample_ref")
     config["samples"] = os.path.join(base_dir, test_reference, "samples_MAGs")
     config["cutoff"] = os.path.join("tax-cutoffs.yaml")
     config["output"] = os.path.join(base_dir, "test_out_all")
@@ -81,9 +79,7 @@ def test_busco():
     config["taxonomy_organisms"] = ["genus"]
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
-    config["ref_fasta"] = "reference-pep-trunc.pep.faa"
-    config["protein_map"] = "protein-map.json"
-    config["original_tax_table"] = "taxonomy-table.txt"
+    config["ref_fasta"] = "reference.pep.fa"
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)

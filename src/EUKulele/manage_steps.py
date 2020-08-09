@@ -479,7 +479,7 @@ def assignTaxonomy(sample_name, output_dir, est_dir, mets_or_mags, core = False)
                        levels_directory,"--max-out-dir",max_dir])
     except:
         print("Taxonomic assignment did not complete successfully for sample " + str(sample_name) +
-              ". Check log for details")
+              ". Check log for details.")
         sys.exit(1)
     sys.stdout = sys.__stdout__
     sys.stderr = sys.__stderr__

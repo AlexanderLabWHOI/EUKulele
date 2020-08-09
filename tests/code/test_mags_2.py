@@ -16,9 +16,9 @@ def test_individual():
     sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
     output_dir = os.path.join(base_dir, "test_out")
     os.system("rm -rf " + output_dir)
-    reference_dir = os.path.join(base_dir, test_reference)
+    reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
-    string_arguments = " ".join(["setup", "--database", "mmetsp", "--sample_dir", sample_dir, 
+    string_arguments = " ".join(["all", "--database", "mmetsp", "--sample_dir", sample_dir, 
                                  "--mets_or_mags", "mags", "--out_dir", output_dir, "-i",
                                  '--organisms', 'Chromera', '--taxonomy_organisms', 'genus',
                                  "--reference_dir", reference_dir])
@@ -34,7 +34,7 @@ def test_error_input():
     sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
     output_dir = os.path.join(base_dir, "test_out")
     os.system("rm -rf " + output_dir)
-    reference_dir = os.path.join(base_dir, test_reference)
+    reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
     string_arguments = " ".join(["--database", "mmetsp", "--sample_dir", sample_dir, 
                                  "--mets_or_mags", "mmm", "--out_dir", output_dir, "-i",
@@ -55,7 +55,7 @@ def test_all():
         config = yaml.load(f, Loader=yaml.FullLoader)
        
     config["mets_or_mags"] = "mags"
-    config["reference"] = os.path.join(base_dir, test_reference)
+    config["reference"] = os.path.join(base_dir, test_reference, "sample_ref")
     config["samples"] = os.path.join(base_dir, "real-world-samples", "MAGs")
     config["subroutine"] = "all"
     config["individual_or_summary"] = "summary"
@@ -66,9 +66,7 @@ def test_all():
     config["taxonomy_organisms"] = ["genus"]
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
-    config["ref_fasta"] = "reference-pep-trunc.pep.faa"
-    config["protein_map"] = "protein-map.json"
-    config["original_tax_table"] = "taxonomy-table.txt"
+    config["ref_fasta"] = "reference.pep.fa"
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)

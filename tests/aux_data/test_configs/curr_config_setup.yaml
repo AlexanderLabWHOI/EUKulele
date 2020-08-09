@@ -17,8 +17,8 @@ original_tax_table: taxonomy-table.txt
 output: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/test_out
 protein_extension: .faa
 protein_map: protein-map.json
-ref_fasta: reference-pep-trunc.pep.faa
-reference: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp
+ref_fasta: reference.pep.fa
+reference: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/sample_ref
 salmon_dir: 0
 samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/samples_METs_small
 scratch: scratch
