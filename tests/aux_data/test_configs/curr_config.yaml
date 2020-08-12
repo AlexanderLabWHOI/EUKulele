@@ -1,0 +1,31 @@
+alignment_choice: diamond
+choose_parallel: parallel
+column: SOURCE_ID
+consensus_cutoff: 0.75
+create_tax_table: 1
+cutoff: EUKulele/src/EUKulele/static/tax-cutoffs.yaml #tax-cutoffs.yaml
+database: mmetsp
+download_reference: 0
+individual_or_summary: individual
+jobname: test
+mets_or_mags: mags
+names_to_reads: 0
+nucleotide_extension: .fna
+organisms:
+- Phaeocystis;antarctica
+original_tax_table: taxonomy-table.txt
+original_taxonomy: taxonomy-table.txt
+output: EUKulele/tests/aux_data/test_out_23July
+protein_extension: .faa
+protein_map: protein-map.json
+ref_fasta: reference-pep-trunc.pep.faa
+reference: EUKulele/tests/aux_data/mmetsp
+salmon_dir: 0
+samples: EUKulele/tests/aux_data/mmetsp/samples_MAGs
+scratch: scratch
+subroutine: all
+tax_table: tax-table.txt
+taxonomy_organisms:
+- species
+transdecoder_orfsize: 100
+use_salmon_counts: 0

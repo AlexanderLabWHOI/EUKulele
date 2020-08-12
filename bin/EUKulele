@@ -1,0 +1,8 @@
+#!/usr/local/bin/python
+##!/usr/bin/env python3
+
+import sys
+
+import EUKulele
+from EUKulele.EUKulele_config import *
+EUKulele.eukulele(string_arguments=' '.join(sys.argv[1:]))

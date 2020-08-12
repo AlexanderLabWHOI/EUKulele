@@ -4,3 +4,11 @@
 *output/
 samples/
 logs/*
+EUKulele/tests/aux_data
+tax-table.txt
+*/tax-table.txt/*
+protein-map.json
+*/protein-map.json/*
+*__pycache__*
+references_bins/
+*diamond*

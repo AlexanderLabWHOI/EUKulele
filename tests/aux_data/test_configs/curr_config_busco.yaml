@@ -1,0 +1,30 @@
+alignment_choice: diamond
+choose_parallel: parallel
+column: SOURCE_ID
+consensus_cutoff: 0.75
+create_tax_table: 1
+cutoff: tax-cutoffs.yaml
+database: mmetsp
+download_reference: 0
+individual_or_summary: summary
+jobname: test
+mets_or_mags: mags
+names_to_reads: 0
+nucleotide_extension: .fna
+organisms:
+- Chromera
+original_tax_table: taxonomy-table.txt
+output: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/test_out_all
+protein_extension: .faa
+protein_map: prot-map.json
+ref_fasta: reference.pep.fa
+reference: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/sample_ref
+salmon_dir: 0
+samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/real-world-samples/MAGs
+scratch: scratch
+subroutine: all
+tax_table: tax-table.txt
+taxonomy_organisms:
+- genus
+transdecoder_orfsize: 100
+use_salmon_counts: 0

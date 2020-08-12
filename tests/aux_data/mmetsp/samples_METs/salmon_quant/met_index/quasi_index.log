@@ -1,0 +1,26 @@
+[2020-08-12 10:06:30.407] [jointLog] [info] [Step 1 of 4] : counting k-mers
+[2020-08-12 10:06:30.485] [jointLog] [warning] Entry with header [CAMPEP_0113989198], had length less than the k-mer length of 31 (perhaps after poly-A clipping)
+[2020-08-12 10:06:30.534] [jointLog] [info] Replaced 2,196,806 non-ATCG nucleotides
+[2020-08-12 10:06:30.534] [jointLog] [info] Clipped poly-A tails from 4 transcripts
+[2020-08-12 10:06:30.534] [jointLog] [info] Building rank-select dictionary and saving to disk
+[2020-08-12 10:06:30.535] [jointLog] [info] done
+[2020-08-12 10:06:30.535] [jointLog] [info] Writing sequence data to file . . . 
+[2020-08-12 10:06:30.566] [jointLog] [info] done
+[2020-08-12 10:06:30.566] [jointLog] [info] Building 32-bit suffix array (length of generalized text is 3,513,368)
+[2020-08-12 10:06:30.571] [jointLog] [info] Building suffix array . . . 
+[2020-08-12 10:06:31.865] [jointLog] [info] khash had 3,223,409 keys
+[2020-08-12 10:06:31.866] [jointLog] [info] saving hash to disk . . . 
+[2020-08-12 10:06:32.145] [jointLog] [info] done
+[2020-08-12 10:07:37.504] [jointLog] [info] [Step 1 of 4] : counting k-mers
+[2020-08-12 10:07:37.580] [jointLog] [warning] Entry with header [CAMPEP_0113989198], had length less than the k-mer length of 31 (perhaps after poly-A clipping)
+[2020-08-12 10:07:37.626] [jointLog] [info] Replaced 2,196,806 non-ATCG nucleotides
+[2020-08-12 10:07:37.626] [jointLog] [info] Clipped poly-A tails from 4 transcripts
+[2020-08-12 10:07:37.626] [jointLog] [info] Building rank-select dictionary and saving to disk
+[2020-08-12 10:07:37.628] [jointLog] [info] done
+[2020-08-12 10:07:37.629] [jointLog] [info] Writing sequence data to file . . . 
+[2020-08-12 10:07:37.653] [jointLog] [info] done
+[2020-08-12 10:07:37.654] [jointLog] [info] Building 32-bit suffix array (length of generalized text is 3,513,368)
+[2020-08-12 10:07:37.658] [jointLog] [info] Building suffix array . . . 
+[2020-08-12 10:07:38.910] [jointLog] [info] khash had 3,223,409 keys
+[2020-08-12 10:07:38.910] [jointLog] [info] saving hash to disk . . . 
+[2020-08-12 10:07:39.183] [jointLog] [info] done

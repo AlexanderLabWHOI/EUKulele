@@ -1,0 +1,36 @@
+language: python
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+before_install:
+  - sudo apt-get -qq update
+  - pip install -U pip
+  - export PYTHONPATH=$PYTHONPATH:$(pwd)
+  - python setup.py install
+install:
+  - sudo apt-get update -y
+  - sudo apt-get install build-essential curl file git
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - source "$HOME/miniconda/etc/profile.d/conda.sh"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a
+  - conda config --add channels defaults
+  - conda config --add channels bioconda
+  - conda config --add channels conda-forge
+  - conda create -n test
+  - conda activate test
+  - conda install blast busco=4.0.6 diamond transdecoder ujson pandas yaml chardet pyyaml numpy joblib pandas
+  - python3 -m pip install -e . --user
+  - python setup.py install
+  - configure_busco.sh "eukaryota_odb10"
+script:
+  - pip install coverage==4.5.4 
+  - py.test --doctest-modules -v --cov EUKulele --cov-report term-missing
+  #- travis_wait 25 py.test tests/code/test_mags_2.py --doctest-modules -v --cov EUKulele --cov-report term-missing
+  #- py.test tests/code/test_mets.py --doctest-modules -v --cov EUKulele --cov-report term-missing
+after_success:
+  - coveralls
