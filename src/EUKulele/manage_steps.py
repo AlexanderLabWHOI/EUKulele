@@ -143,7 +143,6 @@ def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir,
         sys.exit(1)
     rc1 = subprocess.Popen(["TransDecoder.LongOrfs", "-t", os.path.join(sample_dir, sample_name + nt_ext),
                "-m", str(transdecoder_orf_size)], stdout = TD_log, stderr = TD_err).wait()
-    #rc1 = p1.returncode
     TD_log.close()
     TD_err.close()
     
@@ -190,7 +189,6 @@ def manageTrandecode(met_samples, output_dir, rerun_rules, sample_dir,
     print("Running TransDecoder for MET samples...", flush = True)
     MAX_JOBS = max([calc_max_jobs(pathlib.Path(os.path.join(sample_dir, sample + nt_ext)).stat().st_size) 
                     for sample in met_samples])
-    print(MAX_JOBS)
     n_jobs_align = min(multiprocessing.cpu_count(), len(met_samples), MAX_JOBS)
     transdecoder_res = Parallel(n_jobs=n_jobs_align)(delayed(transdecodeToPeptide)(sample_name, output_dir, 
                                                                                    rerun_rules, sample_dir, 
