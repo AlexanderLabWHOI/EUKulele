@@ -9,6 +9,17 @@ Welcome to EUKulele's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+   install
+   tutorial
+   community
+   
+Source Code
+-----------
+
+You can find the `source <http://github.com/AlexanderLabWHOI/EUKulele>`_ for EUKulele on GitHub.
+
+Badging
+-------
 
 .. image:: https://coveralls.io/repos/github/AlexanderLabWHOI/EUKulele/badge.svg?branch=remodeling
    :target: https://coveralls.io/github/AlexanderLabWHOI/EUKulele?branch=remodeling

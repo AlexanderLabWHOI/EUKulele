@@ -27,6 +27,11 @@ level_hierarchy = ['supergroup','division','class','order','family','genus','spe
 def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcript_file, busco_out, 
                       taxonomy_file_prefix, busco_threshold, output_dir, sample_name, fasta_file):
     organism_format = organism
+    if organism == "":
+        print("No organism found")
+        return pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness","NumberCovered",
+                                       "CtTwoCopies","CtThreeCopies","CtFourCopies","CtFivePlusCopies",
+                                       "PercentageDuplicated"])
     if taxonomy == "species":
         organism_format = " ".join(str(organism).split(";"))
     full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in list(tax_table[taxonomy])],:]
@@ -55,6 +60,12 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
                    (busco_out_file.Status[curr] == "Duplicated") for curr in range(len(busco_out_file.index))]
     good_buscos = busco_out_file.loc[select_inds,:]
     good_busco_sequences = [curr.split(".")[0] for curr in list(good_buscos.Sequence)]
+    if len(good_busco_sequences) == 0:
+        print("No BUSCO matches were made")
+        return pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness","NumberCovered",
+                                       "CtTwoCopies","CtThreeCopies","CtFourCopies","CtFivePlusCopies",
+                                       "PercentageDuplicated"])
+    
     Covered_IDs = list(good_buscos.BuscoID)
     total_buscos = len(set(list(busco_out_file.BuscoID)))
     
@@ -222,6 +233,7 @@ def queryBusco(args=None):
                                                                                                 args.sample_name, 
                                                                                                 args.fasta_file) \
                                                                      for curr in range(len(organism)))
+        print(results_frame,flush=True)
         results_frame = pd.concat(results_frame)
         os.system("mkdir -p " + os.path.join(args.output_dir, "busco_assessment", args.sample_name, "individual"))
         results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, "busco_assessment", 

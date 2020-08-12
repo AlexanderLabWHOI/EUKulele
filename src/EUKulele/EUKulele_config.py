@@ -7,10 +7,7 @@ import yaml
 import argparse
 import pathlib
 from joblib import Parallel, delayed
-try:
-    import EUKulele
-except:
-    pass
+import EUKulele
 
 abs_path = os.path.abspath(os.path.dirname(__file__))
 
@@ -31,25 +28,7 @@ def eukulele(config="", string_arguments=""):
     else:
         print("Running EUKulele with entries from the provided configuration file.")
         args = parseConfig(config)
-        EUKulele.EUKulele_main.main(str(args)) 
- 
-def eukulele_cl():
-    sys.path.append(os.path.realpath('..'))
-    sys.path.append(pathlib.Path(__file__).parent.absolute())
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", dest = "configfile", default = "")
-    args = parser.parse_args()
-
-    if (args.configfile == "") | (not os.path.isfile(args.configfile)):
-        arglist = sys.argv[1:]
-        print("Running EUKulele with command line arguments, as no valid configuration file was provided.")
-        #os.system("python EUKulele_main.py " + str(arglist))
-        EUKulele.EUKulele_main.main(str(arglist)) 
-        sys.exit(0)
-        
-    euk_args = parseConfig(args.configfile)
-    EUKulele.EUKulele_main.main(str(euk_args)) 
-    #os.system("python EUKulele_main.py " + str(euk_args))   
+        EUKulele.EUKulele_main.main(str(args))   
 
 def parseConfig(config_file):
     with open(config_file, 'r') as configfile:
@@ -93,8 +72,8 @@ def parseConfig(config_file):
 
     ## SALMON OPTIONS ##
     if "use_salmon_counts" in config:
-        args = args + " --use_salmon_counts " + str(config["use_salmon_counts"])
         if config["use_salmon_counts"] == 1:
+            args = args + " --use_salmon_counts"
             if "salmon_dir" in config:
                 args = args + " --salmon_dir " + config["salmon_dir"]
             else:
@@ -108,6 +87,8 @@ def parseConfig(config_file):
         args = args + " --transdecoder_orfsize " + str(config["transdecoder_orfsize"])
     if "CPUs" in config:
         args = args + " --CPUs " + str(config["CPUs"])
+    if "run_transdecoder" in config:
+        args = args + " --run_transdecoder"
 
     ## ALIGNMENT AND BUSCO OPTIONS ##
     if "alignment_choice" in config: 
@@ -129,18 +110,6 @@ def parseConfig(config_file):
     if "busco_threshold" in config:
         args = args + " --busco_threshold " + str(config["busco_threshold"])
 
-    if ("strain_col_id" in config):
-        strain_col_id = config["strain_col_id"]
-        args = args + " --strain_col_id " + str(strain_col_id)
-    if ("taxonomy_col_id" in config):
-        taxonomy_col_id = config["taxonomy_col_id"]
-        args = args + " --taxonomy_col_id " + str(taxonomy_col_id)
-    if ("reformat_tax" in config):
-        column = config["reformat_tax"]
-        args = args + " --reformat_tax"
-    if ("delimiter" in config):
-        delimiter = config["delimiter"]
-        args = args + " --delimiter " + str(delimiter)
     if ("tax_table" in config): # unique, non-default name for formatted taxonomy table
         tax_table = config["tax_table"]
         args = args + " --tax_table " + str(tax_table)

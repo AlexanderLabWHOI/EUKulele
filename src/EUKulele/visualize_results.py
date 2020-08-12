@@ -181,7 +181,7 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
     counts_all = dict()
     level_hierarchy = ['supergroup','division','class','order','family','genus','species']
     for l in level_hierarchy:
-        counts_all[l] = pd.DataFrame(columns = [l.capitalize(),"NumTranscripts","Sample"])
+        counts_all[l] = pd.DataFrame(columns = [l.capitalize(),"NumTranscripts","GroupedTranscripts","Sample"])
 
     for curr in results_frame.keys():
         sample_name = curr #curr.split("-")[0]
@@ -206,7 +206,7 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
         cutoff_transcripts = 100
 
         ### GRAB DATAFRAME FROM SAVED DATA ###
-        curr_df_start = counts_all[l].reset_index() #read.csv(paste0(prefix,"all_",tolower(Curr_Variable),"_counts.csv"))
+        curr_df_start = counts_all[l].reset_index()
         if Curr_Variable in curr_df_start:
             curr_df_start["OfInterest"] = curr_df_start[Curr_Variable]
         else:

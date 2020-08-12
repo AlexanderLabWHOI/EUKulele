@@ -52,7 +52,7 @@ def main(args_in):
     parser.add_argument('--config_file', default = '')
 
     ## SALMON OPTIONS ##
-    parser.add_argument('--use_salmon_counts', type = int, default = 0)
+    parser.add_argument('--use_salmon_counts', action='store_true', default=False)
     parser.add_argument('--salmon_dir', 
                         help = "Salmon directory is required if use_salmon_counts is true.")
     parser.add_argument('--names_to_reads',default=0, help = "A file to be created or used if it exists " +
@@ -105,10 +105,12 @@ def main(args_in):
     parser.add_argument('--busco_threshold', default=50)
     parser.add_argument('--create_fasta', action='store_true', default=False, 
                        help = "Whether to create FASTA files containing ID'd transcripts during BUSCO analysis.")
+    parser.add_argument('--run_transdecoder', action='store_true', default=False,
+                       help = "Whether TransDecoder should be run on metatranscriptomic samples. Otherwise, " +
+                       "BLASTp is run if protein translated samples are provided, otherwise BLASTx is run " + 
+                       "on nucleotide samples.")
                
     args = parser.parse_args(list(filter(None, args_in.split(" "))))
-    if args.subroutine == "":
-        args.subroutine = "all"
     
     ## VARIABLES ##
     TEST = args.test
@@ -145,8 +147,9 @@ def main(args_in):
     ORGANISMS_TAXONOMY = args.taxonomy_organisms
     BUSCO_FILE = args.busco_file
     RERUN_RULES = args.force_rerun
+    RUN_TRANSDECODER = args.run_transdecoder
     
-    ORGANISMS, ORGANISMS_TAXONOMY = readBuscoFile(args.individual_or_summary, BUSCO_FILE, 
+    ORGANISMS, ORGANISMS_TAXONOMY = readBuscoFile(individual_or_summary, BUSCO_FILE, 
                                                   ORGANISMS, ORGANISMS_TAXONOMY)
 
     SETUP = False
@@ -167,32 +170,32 @@ def main(args_in):
         ALIGNMENT = False
         BUSCO = False
         COREGENES = False
+    else: 
+        ## SETUP STEPS / DOWNLOAD DEPENDENCIES ##
+        manageEukulele(piece = "setup_eukulele", output_dir = OUTPUTDIR)
+        samples = manageEukulele(piece = "get_samples", mets_or_mags = mets_or_mags,
+                                 sample_dir = SAMPLE_DIR, nt_ext = NT_EXT, pep_ext = PEP_EXT)
 
-    ## SETUP STEPS / DOWNLOAD DEPENDENCIES ##
-    manageEukulele(piece = "setup_eukulele", output_dir = OUTPUTDIR)
-    samples = manageEukulele(piece = "get_samples", mets_or_mags = mets_or_mags,
-                             sample_dir = SAMPLE_DIR, nt_ext = NT_EXT, pep_ext = PEP_EXT)
-    
-    TAX_TAB = os.path.join(REFERENCE_DIR, args.tax_table)
-    PROT_TAB = os.path.join(REFERENCE_DIR, args.protein_map)
+        TAX_TAB = os.path.join(REFERENCE_DIR, args.tax_table)
+        PROT_TAB = os.path.join(REFERENCE_DIR, args.protein_map)
 
-    ## Download the reference database if specified.
-    if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))) | \
-       (not os.path.isfile(TAX_TAB)) | \
-       (not os.path.isfile(PROT_TAB)):
-        REFERENCE_DIR = args.database.lower()
-        print("Specified reference directory, reference FASTA, and protein map/taxonomy table not found. " +
-              "Using database: " + REFERENCE_DIR + ".")
-        os.system("mkdir -p " + REFERENCE_DIR)
-        TAX_TAB = os.path.join(REFERENCE_DIR, "tax-table.txt")
-        PROT_TAB = os.path.join(REFERENCE_DIR, "prot-map.json")
-    
-    if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))) | \
-       (not os.path.isfile(TAX_TAB)) | \
-       (not os.path.isfile(PROT_TAB)):
-        REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), args.alignment_choice)
-    else:
-        print("Found database folder for " + REFERENCE_DIR + " in current directory; will not re-download.")
+        ## Download the reference database if specified.
+        if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))) | \
+           (not os.path.isfile(TAX_TAB)) | \
+           (not os.path.isfile(PROT_TAB)):
+            REFERENCE_DIR = args.database.lower()
+            print("Specified reference directory, reference FASTA, and protein map/taxonomy table not found. " +
+                  "Using database: " + REFERENCE_DIR + ".")
+            os.system("mkdir -p " + REFERENCE_DIR)
+            TAX_TAB = os.path.join(REFERENCE_DIR, "tax-table.txt")
+            PROT_TAB = os.path.join(REFERENCE_DIR, "prot-map.json")
+
+        if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))) | \
+           (not os.path.isfile(TAX_TAB)) | \
+           (not os.path.isfile(PROT_TAB)):
+            REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), args.alignment_choice)
+        else:
+            print("Found database folder for " + REFERENCE_DIR + " in current directory; will not re-download.")
 
     if SETUP:
         manageEukulele(piece = "setup_databases", ref_fasta = REF_FASTA, rerun_rules = RERUN_RULES, 
@@ -202,7 +205,7 @@ def main(args_in):
         ## First, we need to perform TransDecoder if needed
         manageEukulele(piece = "transdecode", mets_or_mags = mets_or_mags, samples = samples, output_dir = OUTPUTDIR, 
                        rerun_rules = RERUN_RULES, sample_dir = SAMPLE_DIR, transdecoder_orf_size = TRANSDECODERORFSIZE, 
-                       nt_ext = NT_EXT, pep_ext = PEP_EXT)
+                       nt_ext = NT_EXT, pep_ext = PEP_EXT, run_transdecoder = RUN_TRANSDECODER)
         
         ## Next to align against our database of choice ##
         alignment_res = manageEukulele(piece = "align_to_db", alignment_choice = ALIGNMENT_CHOICE, samples = samples, 
@@ -211,16 +214,21 @@ def main(args_in):
                                         sample_dir = SAMPLE_DIR, rerun_rules = RERUN_RULES, 
                                         nt_ext = NT_EXT, pep_ext = PEP_EXT)
 
-        ## Next to do salmon counts estimation (NOTE: currently only supported with a config file). ##
+        ## Next to do salmon counts estimation. ##
         if (USE_SALMON_COUNTS == 1):
-            if args.config_file != "":
-                rc1 = namesToReads(args.config_file)
+            try:
+                NAMES_TO_READS = namesToReads(args.config_file)
+            except:
+                print("The salmon directory provided could not be converted to a salmon file. Check " +
+                      "above error messages. EUKulele will continue running without counts.")
+                USE_SALMON_COUNTS = 0
 
         manageEukulele(piece = "estimate_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
                        tax_tab = TAX_TAB, cutoff_file = args.cutoff_file, 
                        consensus_cutoff = CONSENSUS_CUTOFF, prot_tab = PROT_TAB, use_salmon_counts = USE_SALMON_COUNTS, 
                        names_to_reads = NAMES_TO_READS, alignment_res = alignment_res, 
-                       rerun_rules = RERUN_RULES, samples = samples, sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT)
+                       rerun_rules = RERUN_RULES, samples = samples, sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT,
+                       nt_ext = NT_EXT)
 
         ## Now to visualize the taxonomy ##
         manageEukulele(piece = "visualize_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
@@ -254,7 +262,8 @@ def main(args_in):
                        tax_tab = TAX_TAB, cutoff_file = args.cutoff_file, 
                        consensus_cutoff = CONSENSUS_CUTOFF, prot_tab = PROT_TAB, use_salmon_counts = USE_SALMON_COUNTS, 
                        names_to_reads = NAMES_TO_READS, alignment_res = alignment_res, 
-                       rerun_rules = RERUN_RULES, samples = samples, sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT)
+                       rerun_rules = RERUN_RULES, samples = samples, sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT,
+                       nt_ext = NT_EXT)
 
         ## Now to visualize the taxonomy ##
         manageEukulele(piece = "core_visualize_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 

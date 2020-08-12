@@ -10,6 +10,7 @@ Welcome to EUKulele's documentation!
    :maxdepth: 2
    :caption: Contents:
    install
+   tutorial
    community
    
 Source Code

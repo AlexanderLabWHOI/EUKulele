@@ -22,7 +22,7 @@ from scripts.query_busco import queryBusco
 def readBuscoFile(individual_or_summary, busco_file, organisms, organisms_taxonomy):
     if individual_or_summary == "individual":
         if (busco_file != "") & (os.path.isfile(busco_file)):
-            busco_file_read = read.csv(busco_file, sep = "\t")
+            busco_file_read = pd.read_csv(busco_file, sep = "\t")
             organisms = list(busco_file_read.iloc[:,0])
             organisms_taxonomy = list(busco_file_read.iloc[:,1])
             print("Organisms and their taxonomy levels for BUSCO analysis were read from file.")
@@ -83,8 +83,12 @@ def configure_busco(busco_db):
         
 def run_busco(sample_name, output_dir_busco, output_dir, busco_db, mets_or_mags, pep_ext, nt_ext, sample_dir):
     CPUS = multiprocessing.cpu_count()
+    
     if mets_or_mags == "mets":
-        fastaname = os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext) 
+        if os.path.isfile(os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext)):
+            fastaname = os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext) 
+        else:
+            fastaname = os.path.join(sample_dir, sample_name + "." + nt_ext)
     else:
         fastaname = os.path.join(sample_dir, sample_name + "." + pep_ext)
         
@@ -118,6 +122,16 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
     """
     
     if individual_or_summary == "individual":
+        if (len(organisms) != len(organisms_taxonomy)):
+            print("A different number of organisms was specified than the taxonomic levels given in " + 
+                  "individual mode. Please check inputs.")
+            sys.exit(1)
+        if (len(organisms) == 0) | (len(organisms_taxonomy) == 0):
+            print("The number of organisms specified was " + str(len(organisms)) +
+                  " and the number of taxonomic levels specified was " + str(len(organisms_taxonomy)) + 
+                  " in individual mode. Neither can be zero. Please check inputs.")
+            sys.exit(1)
+            
         for sample_name in samples:
             # the BUSCO table that we're interested in using that contains the BUSCO matches and their level of completeness
             busco_table = os.path.join(output_dir, "busco", sample_name, "full_table.tsv") 
@@ -125,9 +139,12 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
             taxfile_stub = os.path.join(output_dir, "taxonomy_counts", output_dir.split("/")[-1]) 
 
             if mets_or_mags == "mets":
-                fasta = os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext) 
+                if os.path.isfile(os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext)):
+                    fasta = os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext) 
+                else:
+                    fasta = os.path.join(sample_dir, sample_name + "." + nt_ext)
             else:
-                fasta = os.path.join(sample_dir, sample_name + "." + nt_ext)
+                fasta = os.path.join(sample_dir, sample_name + "." + pep_ext)
 
             query_busco_log = open(os.path.join("log","busco_query_" + sample_name + ".log"), "w+")
             query_busco_err = open(os.path.join("log","busco_query_" + sample_name + ".err"), "w+")
@@ -140,14 +157,14 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
             try:
                 rc = queryBusco(query_args)
             except:
-                print("BUSCO query did not complete successfully. Check log for details.")
+                print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
                 sys.exit(1)
 
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__ 
-            if (rc != 0) | (os.stat(os.path.join("log","busco_query_" + sample_name + ".err")).st_size != 0):
-                print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
-                sys.exit(1)
+            #if (rc != 0) | (os.stat(os.path.join("log","busco_query_" + sample_name + ".err")).st_size != 0):
+            #    print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
+            #    sys.exit(1)
     else:
         for sample_name in samples:
             # the BUSCO table that we're interested in using that contains the BUSCO matches and their level of completeness
@@ -168,8 +185,6 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
                           sample_name,"--taxonomy_file_prefix",taxfile_stub,"--tax_table",
                           tax_tab,"--busco_out",busco_table,"-i","summary"]
 
-            rc = queryBusco(query_args)
-            print("Tried query once")
             try:
                 rc = queryBusco(query_args)
             except OSError as e:

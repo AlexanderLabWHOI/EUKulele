@@ -4,15 +4,12 @@ import os
 import yaml
 import sys
 
-def namesToReads(config_file):
-    with open(config_file, 'r') as configfile:
-        config = yaml.safe_load(configfile)
+def namesToReads(reference_dir, names_to_reads, salmon_dir):
 
-    if os.path.isfile(os.path.join(config["reference"],config["names_to_reads"])):
+    if os.path.isfile(os.path.join(reference_dir,names_to_reads)):
         print("Salmon reads file previously created; new file will not be created from Salmon directory.")
         sys.exit(0)
 
-    salmon_dir = config["salmon_dir"]
     folder_names = glob.glob(os.path.join(salmon_dir,'*quant*'))
     files_salmon = [os.path.join(curr,"quant.sf") for curr in folder_names]
 
@@ -26,14 +23,12 @@ def namesToReads(config_file):
         transcript_counts.extend(curr_salmon["NumReads"])
         sample_names.extend([folder_names[curr_ind].split("_")[-2]] * len(curr_salmon.index))
 
-    names_to_reads = pd.DataFrame({"TranscriptNames": transcript_names, "NumReads": transcript_counts, "SampleName": sample_names})
-    if ".csv" in config["names_to_reads"]:
-        names_to_reads.to_csv(path_or_buf = os.path.join(config["reference"],config["names_to_reads"]), sep = "\t")
+    names_to_reads = pd.DataFrame({"TranscriptNames": transcript_names, "NumReads": transcript_counts, 
+                                   "SampleName": sample_names})
+    if ".csv" in names_to_reads:
+        names_to_reads.to_csv(path_or_buf = os.path.join(reference_dir,names_to_reads), sep = "\t")
     else:
-        names_to_reads.to_csv(path_or_buf = os.path.join(config["reference"],"namestoreads.csv"), sep = "\t")
-        config['names_to_reads'] = "namestoreads.csv"
-
-        with open('config.yaml', 'w') as f:
-            yaml.dump(config, f)
+        names_to_reads.to_csv(path_or_buf = os.path.join(reference_dir,"namestoreads.csv"), sep = "\t")
+        names_to_reads = "namestoreads.csv"
     
-    return 0
+    return names_to_reads

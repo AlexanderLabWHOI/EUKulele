@@ -154,11 +154,3 @@ If you have questions about how to use `EUKulele`, or would like to seek out col
 Authors: Arianna Krinos, Sarah Hu, and Harriet Alexander.
 
 We gratefully acknowledge Natalie Cohen, who contributed significantly to project development and testing. 
-
-## TO DO
-
-- Create a link for downloading the MMETSP formatted database from Zenodo etc.
-- "We might consider looking into BIOM files but this might be overkill at this point. Helps integrate with an ecosystem of other tools though (e.g. qiime2)"
-- "Amalgamate all the hits for the proteins and assess the LCA based on all hits. % cutoffs? How to do this?"
-- Output all proteins with top hits and proteins that do not have good matches. (check in on what this meant)
-- Stats on next best hit?

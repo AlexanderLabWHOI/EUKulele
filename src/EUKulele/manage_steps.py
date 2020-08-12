@@ -42,7 +42,8 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
                    output_dir = "", ref_fasta = "", alignment_choice = "diamond", 
                    rerun_rules = False, cutoff_file = "", sample_dir = "", nt_ext = "", pep_ext = "",
                    consensus_cutoff = 0.75, tax_tab = "", prot_tab = "", use_salmon_counts = False,
-                   names_to_reads = "", alignment_res = "", filter_metric = "evalue", transdecoder_orf_size = 100):
+                   names_to_reads = "", alignment_res = "", filter_metric = "evalue", 
+                   run_transdecoder = False, transdecoder_orf_size = 100):
     
     """
     This function diverts management tasks to the below helper functions.
@@ -58,14 +59,15 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
         if mets_or_mags == "mets":
             manageTrandecode(samples, output_dir, rerun_rules, sample_dir,
                      mets_or_mags = "mets", transdecoder_orf_size = 100,
-                     nt_ext = "." + nt_ext.strip('.'), pep_ext = "." + pep_ext.strip('.'))
+                     nt_ext = "." + nt_ext.strip('.'), pep_ext = "." + pep_ext.strip('.'),
+                     run_transdecoder = run_transdecoder)
     elif piece == "align_to_db":
         return manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fasta, 
                         mets_or_mags, database_dir, sample_dir, rerun_rules, nt_ext, pep_ext, core = "full")
     elif piece == "estimate_taxonomy":
         manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
                             prot_tab, use_salmon_counts, names_to_reads, alignment_res,
-                            rerun_rules, samples, sample_dir, pep_ext)
+                            rerun_rules, samples, sample_dir, pep_ext, nt_ext)
     elif piece == "visualize_taxonomy":
         manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, 
                                use_salmon_counts, rerun_rules)
@@ -79,7 +81,7 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
     elif piece == "core_estimate_taxonomy":
         manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
                             prot_tab, use_salmon_counts, names_to_reads, alignment_res,
-                            rerun_rules, samples, sample_dir, pep_ext)
+                            rerun_rules, samples, sample_dir, pep_ext, nt_ext)
     elif piece == "core_visualize_taxonomy":
         manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, 
                                use_salmon_counts, rerun_rules, core = True)
@@ -111,7 +113,7 @@ def getSamples(mets_or_mags, sample_dir, nt_ext, pep_ext):
 
 def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir, 
                          mets_or_mags = "mets", transdecoder_orf_size = 100,
-                         nt_ext = ".fasta", pep_ext = ".faa"):
+                         nt_ext = ".fasta", pep_ext = ".faa", run_transdecoder = False):
     """
     Use TransDecoder to convert input nucleotide metatranscriptomic sequences to peptide sequences.
     """
@@ -128,6 +130,9 @@ def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir,
               "will not TransDecode.", flush = True)
         os.system("cp " + os.path.join(sample_dir, sample_name + pep_ext) + " " +
                   os.path.join(output_dir, mets_or_mags, sample_name + pep_ext))
+        return 0
+    
+    if (not run_transdecoder):
         return 0
     
     TD_log = open(os.path.join("log","transdecoder_longorfs_" + sample_name + ".log"), "w+")
@@ -177,7 +182,7 @@ def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir,
     
 def manageTrandecode(met_samples, output_dir, rerun_rules, sample_dir, 
                      mets_or_mags = "mets", transdecoder_orf_size = 100,
-                     nt_ext = "fasta", pep_ext = ".faa"):
+                     nt_ext = "fasta", pep_ext = ".faa", run_transdecoder = False):
     """
     Now for some TransDecoding - a manager for TransDecoder steps.
     """
@@ -190,7 +195,8 @@ def manageTrandecode(met_samples, output_dir, rerun_rules, sample_dir,
     transdecoder_res = Parallel(n_jobs=n_jobs_align)(delayed(transdecodeToPeptide)(sample_name, output_dir, 
                                                                                    rerun_rules, sample_dir, 
                          mets_or_mags = "mets", transdecoder_orf_size = 100,
-                         nt_ext = nt_ext, pep_ext = pep_ext) for sample_name in met_samples)
+                         nt_ext = nt_ext, pep_ext = pep_ext, 
+                         run_transdecoder = run_transdecoder) for sample_name in met_samples)
     all_codes = sum(transdecoder_res)
     os.system("rm -f pipeliner*")
     if all_codes > 0:
@@ -222,7 +228,10 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
     
     print("Aligning to reference database...")
     if mets_or_mags == "mets":
-        fastas = [os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext) for sample in samples]
+        fastas = [os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext) if 
+                  os.path.isfile(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext)) else
+                  os.path.join(sample_dir, sample + "." + nt_ext)
+                  for sample in samples]
     else:
         fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
         
@@ -269,10 +278,14 @@ def createAlignmentDatabase(ref_fasta, rerun_rules, alignment_choice="diamond", 
             print("Diamond database file already created; will not re-create database.", flush = True)
     else:
         db = os.path.join(database_dir, "blast", ref_fasta.strip('.fa'), "database")
+        os.system("mkdir -p " + db)
         db_type = "prot"
         blast_version = 5
-        rc2 = os.system("makeblastdb -in " + ref_fasta + " -parse_seqids -blastdb_version " + 
-                        str(blast_version) + " -title " + database + " -dbtype " + db_type + " -out " + db)
+        database = ref_fasta.strip('.')
+        # makeblastdb -in tests/aux_data/mmetsp/sample_ref_MAG/reference.pep.fa -parse_seqids -title referencefa -dbtype prot -out tests/aux_data/mmetsp/sample_ref_MAG/blast/reference.pep/database
+        rc2 = os.system("makeblastdb -in " + os.path.join(database_dir, ref_fasta) + " -parse_seqids -title " + database + 
+                        " -dbtype " + db_type + " -out " + db + " 1> " + output_log + " 2> " + 
+                        error_log)
     return rc2
  
 def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, ref_fasta,
@@ -291,8 +304,13 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
                 return diamond_out
         
         align_db = os.path.join(database_dir, "diamond", ref_fasta.strip('.fa') + '.dmnd')
+        alignment_method = "blastp"
         if mets_or_mags == "mets":
-            fasta = os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext) 
+            if os.path.isfile(os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext)):
+                fasta = os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext) 
+            else:
+                fasta = os.path.join(sample_dir, sample_name + "." + nt_ext)
+                alignment_method = "blastx"
         elif core == "full":
             fasta = os.path.join(sample_dir, sample_name + "." + pep_ext)
         elif core == "core":
@@ -311,48 +329,59 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
         diamond_log = open(os.path.join("log",core + "_diamond_align_" + sample_name + ".log"), "w+")
         diamond_err = open(os.path.join("log",core + "_diamond_align_" + sample_name + ".err"), "w+")
         if filter_metric == "bitscore":
-            rc1 = subprocess.Popen(["diamond", "blastp", "--db", align_db, "-q", fasta, "-o", 
+            rc1 = subprocess.Popen(["diamond", alignment_method, "--db", align_db, "-q", fasta, "-o", 
                                    diamond_out, "--outfmt", str(outfmt), "-k", str(k), "--min-score", 
                                    str(bitscore), '-b3.0'], stdout = diamond_log, stderr = diamond_err).wait()
             print("Diamond process exited.", flush = True)
-            print(rc1,flush=True)
-            #rc1 = p1.returncode
         else:
-            p = subprocess.Popen(["diamond", "blastp", "--db", align_db, "-q", fasta, "-o", 
+            rc1 = subprocess.Popen(["diamond", alignment_method, "--db", align_db, "-q", fasta, "-o", 
                                    diamond_out, "--outfmt", str(outfmt), "-k", str(k), "-e", 
-                                   str(e), '-b3.0'], stdout=subprocess.PIPE, stderr=subprocess.PIPE) #stdout = diamond_log, stderr = diamond_err).wait()
+                                   str(e), '-b3.0'], stdout = diamond_log, stderr = diamond_err).wait()
             # For debugging.
             #, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = p.communicate()
-            rc1 = p.returncode
-            print(stderr)
-            print(stdout)
+            #stdout, stderr = p.communicate()
+            #rc1 = p.returncode
+            #print(stderr)
+            #print(stdout)
             print("Diamond process exited.", flush = True)
-            #print(rc1,flush=True)
         if rc1 != 0:
             print("Diamond did not complete successfully.")
             os.system("rm -f " + diamond_out)
             return 1
         return diamond_out
     else:
-        blast_out = os.path.join(output_dir, mets_or_mags, "blast", sample_name + ".blast.txt")
+        blast_out = os.path.join(output_dir, mets_or_mags + "_" + core, "blast", sample_name + ".blast.txt")
+        os.system("mkdir -p " + os.path.join(output_dir, mets_or_mags + "_" + core, "blast"))
         if (os.path.isfile(blast_out)) & (not rerun_rules):
             print("BLAST alignment file already detected; will not re-run step.")
             return blast_out
         
         align_db = os.path.join(database_dir, "blast", ref_fasta.strip('.fa'), "database")
+        alignment_method = "blastp"
         if mets_or_mags == "mets":
-            fasta = os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext) 
-        else:
-            fasta = os.path.join(sample_dir, sample_name + "." + nt_ext)
+            if os.path.isfile(os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext)):
+                fasta = os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext) 
+            else:
+                fasta = os.path.join(sample_dir, sample_name + "." + nt_ext)
+                alignment_method = "blastx"
+        elif core == "full":
+            fasta = os.path.join(sample_dir, sample_name + "." + pep_ext)
+        elif core == "core":
+            # now concatenate the BUSCO output
+            fasta = os.path.join(output_dir, sample_name + "_busco" + "." + pep_ext)
+            os.system(" ".join(["concatenate_busco.sh", sample_name, fasta, output_dir]))
+            if not os.path.isfile(fasta):
+                print("No BUSCO matches found for sample: " + sample_name)
+                return ""
+            
         outfmt = 6 # tabular output format
         e = 1e-5
         os.system("export BLASTDB=" + align_db)
         blast_log = open(os.path.join("log","blast_align_" + sample_name + ".log"), "w+")
-        blast_err = open(os.path.join("log","black_align_" + sample_name + ".err"), "w+")
-        p1 = subprocess.Popen(["blastp", "-query", align_db, "-db", align_db, "-out", 
-                              blast_out, "-outfmt", str(outfmt), "-evalue" + str(e)],
-                             stdout = blast_log, stderr = blast_err)
+        blast_err = open(os.path.join("log","blast_align_" + sample_name + ".err"), "w+")
+        rc1 = subprocess.Popen([alignment_method, "-query", fasta, "-db", align_db, "-out", 
+                              blast_out,"-outfmt",str(outfmt),"-evalue", str(e)],
+                             stdout = blast_log, stderr = blast_err).wait()
         if rc1 != 0:
             print("BLAST did not complete successfully.")
             return 1
@@ -361,13 +390,18 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
     
 def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
                         prot_tab, use_salmon_counts, names_to_reads, alignment_res,
-                        rerun_rules, samples, sample_dir, pep_ext):
+                        rerun_rules, samples, sample_dir, pep_ext, nt_ext):
     print("Performing taxonomic estimation steps...", flush=True)
     os.system("mkdir -p " + os.path.join(output_dir, "taxonomy_estimation"))
     outfiles = [os.path.join(output_dir, "taxonomy_estimation", samp + "-estimated-taxonomy.out") for samp in samples]
     
     if mets_or_mags == "mets":
-        fastas = [os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext) for sample in samples]
+        fastas = []
+        for sample in samples:
+            if os.path.isfile(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext)):
+                fastas.append(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext))
+            else:
+                fastas.append(os.path.join(sample_dir, sample + "." + nt_ext))
     else:
         fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
         
@@ -379,8 +413,7 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
             sys.stderr = open(os.path.join("log", "tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".err"), "w")
             curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
                                                     prot_tab, use_salmon_counts, names_to_reads,\
-                                                    alignment_res[t], outfiles[t],\
-                                                    True, rerun_rules)
+                                                    alignment_res[t], outfiles[t], rerun_rules)
         except:
             print("Taxonomic estimation for core genes did not complete successfully. Check log file for details.")
         sys.stdout = sys.__stdout__
@@ -388,13 +421,18 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
         
 def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
                             prot_tab, use_salmon_counts, names_to_reads, alignment_res,
-                            rerun_rules, samples, sample_dir, pep_ext):
+                            rerun_rules, samples, sample_dir, pep_ext, nt_ext):
     print("Performing taxonomic estimation steps...", flush=True)
     os.system("mkdir -p " + os.path.join(output_dir, "core_taxonomy_estimation"))
     outfiles = [os.path.join(output_dir, "core_taxonomy_estimation", samp + "-estimated-taxonomy.out") for samp in samples]
     
     if mets_or_mags == "mets":
-        fastas = [os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext) for sample in samples]
+        fastas = []
+        for sample in samples:
+            if os.path.isfile(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext)):
+                fastas.append(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext))
+            else:
+                fastas.append(os.path.join(sample_dir, sample + "." + nt_ext))
     else:
         fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
         
@@ -402,12 +440,13 @@ def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, cons
     n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res), MAX_JOBS)
     for t in range(len(alignment_res)): 
         try:
-            sys.stdout = open(os.path.join("log", "core_tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".out"), "w")
-            sys.stderr = open(os.path.join("log", "core_tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".err"), "w")
+            sys.stdout = open(os.path.join("log", "core_tax_est_" + 
+                                           alignment_res[t].split("/")[-1].split(".")[0] + ".out"), "w")
+            sys.stderr = open(os.path.join("log", "core_tax_est_" + 
+                                           alignment_res[t].split("/")[-1].split(".")[0] + ".err"), "w")
             curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
                                                     prot_tab, use_salmon_counts, names_to_reads,\
-                                                    alignment_res[t], outfiles[t],\
-                                                    True, rerun_rules)
+                                                    alignment_res[t], outfiles[t], rerun_rules)
         except:
             print("Taxonomic estimation for core genes did not complete successfully. Check log file for details.")
         sys.stdout = sys.__stdout__
@@ -455,6 +494,7 @@ def manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir, pep_ext, 
                                                                            for samp in samples)
         except:
             print("Taxonomic assignment did not complete successfully. Check log files for details.")
+            sys.exit(1)
         
         if sum(assign_res) != 0:
             print("Taxonomic assignment did not complete successfully. Check log files for details.")
