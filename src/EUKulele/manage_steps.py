@@ -324,12 +324,18 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
         k = 100
         e = 1e-5
         bitscore = 50
+        pid_cutoff = 75
         diamond_log = open(os.path.join("log",core + "_diamond_align_" + sample_name + ".log"), "w+")
         diamond_err = open(os.path.join("log",core + "_diamond_align_" + sample_name + ".err"), "w+")
         if filter_metric == "bitscore":
             rc1 = subprocess.Popen(["diamond", alignment_method, "--db", align_db, "-q", fasta, "-o", 
                                    diamond_out, "--outfmt", str(outfmt), "-k", str(k), "--min-score", 
                                    str(bitscore), '-b3.0'], stdout = diamond_log, stderr = diamond_err).wait()
+            print("Diamond process exited.", flush = True)
+        elif filter_metric == "pid":
+            rc1 = subprocess.Popen(["diamond", alignment_method, "--db", align_db, "-q", fasta, "-o", 
+                                   diamond_out, "--outfmt", str(outfmt), "-k", str(k), "--id", 
+                                   str(pid_cutoff), '-b3.0'], stdout = diamond_log, stderr = diamond_err).wait()
             print("Diamond process exited.", flush = True)
         else:
             rc1 = subprocess.Popen(["diamond", alignment_method, "--db", align_db, "-q", fasta, "-o", 

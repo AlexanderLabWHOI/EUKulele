@@ -1,0 +1,10 @@
+[2020-08-12 10:07:40.740] [jointLog] [info] Fragment incompatibility prior below threshold.  Incompatible fragments will be ignored.
+[2020-08-12 10:07:40.740] [jointLog] [info] Usage of --validateMappings implies use of minScoreFraction. Since not explicitly specified, it is being set to 0.65
+[2020-08-12 10:07:40.740] [jointLog] [info] Usage of --validateMappings, without --hardFilter implies use of range factorization. rangeFactorizationBins is being set to 4
+[2020-08-12 10:07:40.740] [jointLog] [info] Usage of --validateMappings implies a default consensus slack of 0.2. Setting consensusSlack to 0.2.
+[2020-08-12 10:07:40.740] [jointLog] [info] parsing read library format
+[2020-08-12 10:07:40.740] [jointLog] [info] There is 1 library.
+[2020-08-12 10:07:40.780] [jointLog] [info] Loading Quasi index
+[2020-08-12 10:07:40.780] [jointLog] [info] Loading 32-bit quasi index
+[2020-08-12 10:07:40.972] [jointLog] [info] done
+[2020-08-12 10:07:40.972] [jointLog] [info] Index contained 9,322 targets

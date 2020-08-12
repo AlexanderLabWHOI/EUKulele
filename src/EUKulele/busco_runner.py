@@ -116,7 +116,7 @@ def run_busco(sample_name, output_dir_busco, output_dir, busco_db, mets_or_mags,
     return rc1 
 
 def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, pep_ext, nt_ext,
-                     sample_dir, organisms, organisms_taxonomy, tax_tab):
+                     sample_dir, organisms, organisms_taxonomy, tax_tab, busco_threshold):
     """
     Assess BUSCO completeness on the most prevalent members of the metatranscriptome at each taxonomic level.
     """
@@ -153,7 +153,8 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
             query_args = ["--organism_group",str(" ".join(organisms)),"--taxonomic_level",
                           str(" ".join(organisms_taxonomy)),"--output_dir",output_dir,"--fasta_file",
                           fasta,"--sample_name",sample_name,"--taxonomy_file_prefix",taxfile_stub,
-                          "--tax_table",tax_tab,"--busco_out",busco_table,"-i","individual"]
+                          "--tax_table",tax_tab,"--busco_out",busco_table,"-i","individual",
+                          "--busco_threshold",str(busco_threshold)]
             try:
                 rc = queryBusco(query_args)
             except:

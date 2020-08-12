@@ -247,7 +247,8 @@ def main(args_in):
         manageBuscoQuery(output_dir = OUTPUTDIR, individual_or_summary = individual_or_summary, 
                          samples = samples, mets_or_mags = mets_or_mags, pep_ext = PEP_EXT, 
                          nt_ext = NT_EXT, sample_dir = SAMPLE_DIR, organisms = ORGANISMS, 
-                         organisms_taxonomy = ORGANISMS_TAXONOMY, tax_tab = TAX_TAB)
+                         organisms_taxonomy = ORGANISMS_TAXONOMY, tax_tab = TAX_TAB, 
+                         busco_threshold = args.busco_threshold)
         
     if COREGENES:
         print("Investigating core genes...")

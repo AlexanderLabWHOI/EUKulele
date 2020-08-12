@@ -1,0 +1,9 @@
+{
+    "salmon_version": "0.14.1",
+    "index": "aux_data/mmetsp/samples_METs/salmon_quant/met_index",
+    "libType": "A",
+    "unmatedReads": "aux_data/mmetsp/samples_METs/met_sample_0.fasta",
+    "validateMappings": [],
+    "output": "aux_data/mmetsp/samples_METs/salmon_quant/quant_1",
+    "auxDir": "aux_info"
+}

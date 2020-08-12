@@ -22,7 +22,7 @@ reference: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../
 salmon_dir: 0
 samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/samples_MAGs
 scratch: scratch
-subroutine: setup
+subroutine: alignment
 tax_table: tax-table.txt
 taxonomy_organisms:
 - species

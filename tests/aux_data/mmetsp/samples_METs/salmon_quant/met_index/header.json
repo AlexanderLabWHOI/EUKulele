@@ -1,0 +1,14 @@
+{
+    "value0": {
+        "IndexType": 1,
+        "IndexVersion": "q6",
+        "UsesKmers": true,
+        "KmerLen": 31,
+        "BigSA": false,
+        "PerfectHash": false,
+        "SeqHash": "ab0c18c4c490333b7e242f6ebff6ea68363b1804081f4df29941220e00986f58",
+        "NameHash": "ef60d9893f163fc02afb4faa6dac193ee6ec2bc67020d6528f6d32f46af263d1",
+        "SeqHash512": "469f113a00942810d6e75b3f2af7a2fe0b37839958ed581c22413a3d2e0364cfa2db22c6e78f480297ccd498813562002a874214fdc496872f9e5128fbf0b202",
+        "NameHash512": "7c8188c34001c8c83c9b5909f3b9d8c92a8b574ffd9992e6e114bbdc82d683d09e5372a00cad331d1c58e3681ea9360e89124ff86636b40480c5634ee2483d89"
+    }
+}

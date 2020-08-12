@@ -228,7 +228,7 @@ def queryBusco(args=None):
                                                                                                 args.write_transcript_file, 
                                                                                                 args.busco_out, 
                                                                                                 args.taxonomy_file_prefix, 
-                                                                                                args.busco_threshold, 
+                                                                                                float(args.busco_threshold), 
                                                                                                 args.output_dir, 
                                                                                                 args.sample_name, 
                                                                                                 args.fasta_file) \
