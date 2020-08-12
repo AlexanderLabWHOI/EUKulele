@@ -138,8 +138,8 @@ def test_all_force_rerun():
     
     string_arguments = " ".join(["all", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--busco_threshold", str(30),
-                      "--individual_or_summary","individual",'--organisms', 'Chromera',
-                      '--taxonomy_organisms', 'genus',"--ref_fasta", "reference.pep.fa", 
+                      "--individual_or_summary","individual",'--organisms', 'Chromera', "--filter_metric",
+                      "bitscore", '--taxonomy_organisms', 'genus',"--ref_fasta", "reference.pep.fa", 
                       "--reference_dir", reference_dir, "-f"])
     
     eukulele(string_arguments=string_arguments)
@@ -162,8 +162,8 @@ def test_all_use_counts():
     
     string_arguments = " ".join(["all", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--busco_threshold", str(30),
-                      "--individual_or_summary","individual",'--organisms', 'Chromera',
-                      '--taxonomy_organisms', 'genus',"--ref_fasta", "reference.pep.fa", 
+                      "--individual_or_summary","individual",'--organisms', 'Chromera', "--filter_metric",
+                      "pid",'--taxonomy_organisms', 'genus', "--ref_fasta", "reference.pep.fa", 
                       "--reference_dir", reference_dir, "--use_salmon_counts", "--salmon_dir",
                       salmon_dir])
     
