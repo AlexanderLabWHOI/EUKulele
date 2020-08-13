@@ -193,7 +193,7 @@ def main(args_in):
         if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))) | \
            (not os.path.isfile(TAX_TAB)) | \
            (not os.path.isfile(PROT_TAB)):
-            REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), args.alignment_choice)
+            REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower())
         else:
             print("Found database folder for " + REFERENCE_DIR + " in current directory; will not re-download.")
 

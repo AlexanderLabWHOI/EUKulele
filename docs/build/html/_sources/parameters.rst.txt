@@ -6,7 +6,7 @@ A full list of parameters can be found in the table at the bottom of this page. 
 - mets_or_mags: Whether the user intends to run the analysis for metatranscriptomic samples ("mets") or metagenomic samples ("mags")
 
 
-.. list-table:: Title
+.. list-table:: Full list of ``EUKulele`` parameters
    :widths: 25 25 50
    :header-rows: 1
 
@@ -34,6 +34,9 @@ A full list of parameters can be found in the table at the bottom of this page. 
    * - ``--database`` 
      - database 
      - An optional additional argument for specifying the database name. If the database specified is one of the supported databases (currently, "mmetsp", "eukprot", or "phylodb", it will be downloaded automatically. Otherwise, MMETSP is used as a default. 
+   * - ``--run_transdecoder``
+     - run_transdecoder (set to 0 or 1)
+     - An argument for the user to specify whether or not TransDecoder should be used to translate input nucleotide sequences, prior to ``blastp`` being used (i.e., the equivalent protein-protein alignment with the tool of choice). If included in command line or set to 1 in configuration file, ``TransDecoder`` is run. Otherwise, ``blastp`` is run if protein files are found (according to files in the sample directory ending in ``--p_ext`` (below), or ``blastx`` is run if only nucleotide format files are found. 
    * - ``--nucleotide_extension/--n_ext`` 
      - nucleotide_extension 
      - The file extension for samples in nucleotide format (metatranscriptomes). Defaults to .fasta.

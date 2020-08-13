@@ -47,13 +47,6 @@ def read_in_protein_map(protjson):
         pout = ujson.load(f)
     return pout
 
-#def read_in_diamond_file(dfile, pdict):
-#    dfout =  pd.read_csv(dfile, sep = '\t', header = None)
-#    dfout.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 
-#                     'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore']
-#    dfout['ssqid_TAXID']=dfout.sseqid.map(pdict)
-#    return dfout
-
 def gen_dict(tax_table):
     classes = ['supergroup','division','class','order','family','genus','species']
     tax_table["Classification"] = ""

@@ -8,10 +8,20 @@ Welcome to EUKulele's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Contents
+   
    install
+   outputstructure
    tutorial
    community
+   
+.. toctree::
+   :maxdepth: 2
+   :caption: Documentation
+   
+   api
+   parameters
+   auxiliaryscripts
    
 Source Code
 -----------
@@ -34,3 +44,6 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. _GitHub: http://github.com/AlexanderLabWHOI/EUKulele
+.. _Git Issues: http://github.com/AlexanderLabWHOI/EUKulele/issues
