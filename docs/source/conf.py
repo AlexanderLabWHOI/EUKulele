@@ -43,6 +43,7 @@ templates_path = ['_templates']
 exclude_patterns = ['Thumbs.db', '.DS_Store']
 
 source_suffix = ['.rst', '.ipynb']
+master_doc = 'index'
 
 # -- Options for HTML output -------------------------------------------------
 
