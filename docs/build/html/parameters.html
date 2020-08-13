@@ -35,7 +35,9 @@
 
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Auxiliary Scripts" href="auxiliaryscripts.html" />
+    <link rel="prev" title="API" href="api.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,11 +82,20 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Parameters</a></li>
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation and Invocation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outputstructure.html">Expected Output of <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="community.html">Community guidelines</a></li>
 </ul>
-</div>
+<p class="caption"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxiliaryscripts.html">Auxiliary Scripts</a></li>
+</ul>
+
             
           
         </div>
@@ -155,7 +166,7 @@
 <li><p>mets_or_mags: Whether the user intends to run the analysis for metatranscriptomic samples (“mets”) or metagenomic samples (“mags”)</p></li>
 </ul>
 <table class="colwidths-given docutils align-default" id="id1">
-<caption><span class="caption-text">Title</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-text">Full list of <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code> parameters</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 25%" />
 <col style="width: 25%" />
@@ -196,75 +207,79 @@
 <td><p>database</p></td>
 <td><p>An optional additional argument for specifying the database name. If the database specified is one of the supported databases (currently, “mmetsp”, “eukprot”, or “phylodb”, it will be downloaded automatically. Otherwise, MMETSP is used as a default.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--nucleotide_extension/--n_ext</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--run_transdecoder</span></code></p></td>
+<td><p>run_transdecoder (set to 0 or 1)</p></td>
+<td><p>An argument for the user to specify whether or not TransDecoder should be used to translate input nucleotide sequences, prior to <code class="docutils literal notranslate"><span class="pre">blastp</span></code> being used (i.e., the equivalent protein-protein alignment with the tool of choice). If included in command line or set to 1 in configuration file, <code class="docutils literal notranslate"><span class="pre">TransDecoder</span></code> is run. Otherwise, <code class="docutils literal notranslate"><span class="pre">blastp</span></code> is run if protein files are found (according to files in the sample directory ending in <code class="docutils literal notranslate"><span class="pre">--p_ext</span></code> (below), or <code class="docutils literal notranslate"><span class="pre">blastx</span></code> is run if only nucleotide format files are found.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--nucleotide_extension/--n_ext</span></code></p></td>
 <td><p>nucleotide_extension</p></td>
 <td><p>The file extension for samples in nucleotide format (metatranscriptomes). Defaults to .fasta.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--protein_extension/--p_ext</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--protein_extension/--p_ext</span></code></p></td>
 <td><p>protein_extension</p></td>
 <td><p>The file extension for samples in protein format (metatranscriptomes). Defaults to .faa.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-f/--force_rerun</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-f/--force_rerun</span></code></p></td>
 <td><p>force_rerun</p></td>
 <td><p>If included in a command line argument or set to 1 in a configuration file, this argument forces all steps to be re-run, regardless of whether output is already present.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--use_salmon_counts</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--use_salmon_counts</span></code></p></td>
 <td><p>use_salmon_counts</p></td>
 <td><p>If included in a command line argument or set to 1 in a configuration file, this argument causes classifications to be made based both on number of classified transcripts and by counts.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--salmon_dir</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--salmon_dir</span></code></p></td>
 <td><p>salmon_dir</p></td>
 <td><p>If <code class="docutils literal notranslate"><span class="pre">--use_salmon_counts</span></code> is true, this must be specified, which is the directory location of the <code class="docutils literal notranslate"><span class="pre">salmon</span></code> output/quantification files.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--names_to_reads</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--names_to_reads</span></code></p></td>
 <td><p>names_to_reads</p></td>
 <td><p>A file that creates a correspondence between each transcript name and the number of <code class="docutils literal notranslate"><span class="pre">salmon</span></code>-quantified reads. Can be generated manually via the <code class="docutils literal notranslate"><span class="pre">names_to_reads.py</span></code> script, or will be generated automatically if it does not exist. </p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--transdecoder_orfsize</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--transdecoder_orfsize</span></code></p></td>
 <td><p>transdecoder_orfsize</p></td>
 <td><p>The minimum cutoff size for an open reading frame (ORF) detected by <code class="docutils literal notranslate"><span class="pre">TransDecoder</span></code>. Only relevant if <code class="docutils literal notranslate"><span class="pre">--use_transdecoder</span></code> is specified.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--alignment_choice</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--alignment_choice</span></code></p></td>
 <td><p>alignment_choice</p></td>
 <td><p>A choice of aligner to use, currently <code class="docutils literal notranslate"><span class="pre">BLAST</span></code> or <code class="docutils literal notranslate"><span class="pre">DIAMOND</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--cutoff_file</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--cutoff_file</span></code></p></td>
 <td><p>cutoff_file</p></td>
 <td><p>A <code class="docutils literal notranslate"><span class="pre">YAML</span></code> file, provided in <code class="docutils literal notranslate"><span class="pre">src/EUKulele/static/</span></code>, that contains the percent identity cutoffs for various taxonomic classifications. Any path may be provided here to a user-specified file.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--filter_metric</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--filter_metric</span></code></p></td>
 <td><p>filter_metric</p></td>
 <td><p>Either evalue, pid, or bitscore (default evalue) - the metric to be used to filter hits based on their quality prior to taxonomic estimation.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--consensus_cutoff</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--consensus_cutoff</span></code></p></td>
 <td><p>consensus_cutoff</p></td>
 <td><p>The value to be used to decide whether enough of the taxonomic matches are identical to overlook a discrepancy in classification based on hits associated with a contig. Defaults to 0.75 (75%).</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--busco_file</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--busco_file</span></code></p></td>
 <td><p>busco_file</p></td>
 <td><p>Overrides specific organism and taxonomy parameters (next two entries below) in favor of a tab-separated file containing each organism/group of interest and the taxonomic level of the query. </p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--organisms</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--organisms</span></code></p></td>
 <td><p>organisms</p></td>
 <td><p>A list of organisms/groups to test the BUSCO completeness of matching contigs for.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--taxonomy_organisms</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--taxonomy_organisms</span></code></p></td>
 <td><p>taxonomy_organisms</p></td>
 <td><p>The taxonomic level of the groupings indicated in the list of <code class="docutils literal notranslate"><span class="pre">--organisms</span></code>; also a list.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--individual_or_summary</span> <span class="pre">/</span> <span class="pre">-i</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--individual_or_summary</span> <span class="pre">/</span> <span class="pre">-i</span></code></p></td>
 <td><p>individual_or_summary</p></td>
 <td><p>Defaults to summary. Whether BUSCO assessment should just be performed for the top organism matches, or whether the list of organisms + their taxonomies or BUSCO file (above parameters) should be used (individual). When <code class="docutils literal notranslate"><span class="pre">-i</span></code> is specified, individual mode is chosen.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--busco_threshold</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--busco_threshold</span></code></p></td>
 <td><p>busco_threshold</p></td>
 <td><p>The threshold for BUSCO completeness for a set of contigs to be considered reasonably BUSCO-complete.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--tax_table</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--tax_table</span></code></p></td>
 <td><p>tax_table</p></td>
 <td><p>The name of the formatted taxonomy table; defaults to “tax-table.txt.”. If this file is not found, it can be generated from the reference FASTA and original taxonomy file using the provided script <code class="docutils literal notranslate"><span class="pre">create_protein_file.py</span></code>, or the database specified will be automatically downloaded, if it is one of the supported databases.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--protein_map</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--protein_map</span></code></p></td>
 <td><p>protein_map</p></td>
 <td><p>The name of the JSON file containing protein correspondences; defaults to “protein-map.json”. If this file is not found, it can be generated from the reference FASTA and original taxonomy file using the provided script <code class="docutils literal notranslate"><span class="pre">create_protein_file.py</span></code>, or the database specified will be automatically downloaded, if it is one of the supported databases.</p></td>
 </tr>
@@ -277,6 +292,15 @@
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="auxiliaryscripts.html" class="btn btn-neutral float-right" title="Auxiliary Scripts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="api.html" class="btn btn-neutral float-left" title="API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

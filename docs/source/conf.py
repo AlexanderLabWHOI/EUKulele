@@ -31,7 +31,8 @@ release = '1'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['recommonmark',"sphinx_rtd_theme"]#,"sphinxcontrib_markdown"]
+extensions = ["sphinx_rtd_theme"]#,"sphinxcontrib_markdown"]
+#'recommonmark',
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -39,12 +40,9 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['Thumbs.db', '.DS_Store']
 
-source_parsers = {
-   '.md': 'recommonmark.parser.CommonMarkParser',
-}
-source_suffix = ['.rst', '.md']
+source_suffix = ['.rst', '.ipynb']
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -52,7 +50,7 @@ source_suffix = ['.rst', '.md']
 # a list of builtin themes.
 #
 html_theme = "sphinx_rtd_theme"
-html_theme_path = ["_themes", ]
+html_theme_path = ["_themes"]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

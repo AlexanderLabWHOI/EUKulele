@@ -1,0 +1,361 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Expected Output of EUKulele &mdash; EUKulele 1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorial" href="tutorial.html" />
+    <link rel="prev" title="Installation and Invocation" href="install.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> EUKulele
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation and Invocation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Expected Output of <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#taxonomy-estimation-folders">Taxonomy Estimation Folders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#taxonomy-counts-folders">Taxonomy Counts Folders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#taxonomy-visualization-folders">Taxonomy Visualization Folders</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="community.html">Community guidelines</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxiliaryscripts.html">Auxiliary Scripts</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">EUKulele</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Expected Output of <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code></li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/outputstructure.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="expected-output-of-eukulele">
+<h1>Expected Output of <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code><a class="headerlink" href="#expected-output-of-eukulele" title="Permalink to this headline">¶</a></h1>
+<p>Below is what you should expect to see when you run <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code>. <code class="docutils literal notranslate"><span class="pre">output-folder-name</span></code> is the top level directory specified by the <code class="docutils literal notranslate"><span class="pre">-o/--out_dir</span></code> parameter, which defaults to a folder called “output” in the current working directory.</p>
+<div class="line-block">
+<div class="line">output-folder-name</div>
+<div class="line">├── busco</div>
+<div class="line">│   ├── build</div>
+<div class="line">│   ├── make.bat</div>
+<div class="line">│   ├── Makefile</div>
+<div class="line">│   └── source</div>
+<div class="line">├── busco_assessment</div>
+<div class="line">├── core_taxonomy_counts</div>
+<div class="line">├── core_taxonomy_estimation</div>
+<div class="line">├── core_taxonomy_visualization</div>
+<div class="line">├── mets (if running <code class="docutils literal notranslate"><span class="pre">TransDecoder</span></code>, or protein files provided)</div>
+<div class="line">│   ├── <em>.faa files</em></div>
+<div class="line">│   └── transdecoder</div>
+<div class="line">│   |   └── <em>other TransDecoder outputs</em></div>
+<div class="line">├── mets_full / mags_full (depending on <code class="docutils literal notranslate"><span class="pre">--mets_or_mags</span></code> parameter)</div>
+<div class="line">│   └── diamond (or blast)</div>
+<div class="line">├── mets_core / mags_core (depending on <code class="docutils literal notranslate"><span class="pre">--mets_or_mags</span></code> parameter)</div>
+<div class="line">│   └── diamond (or blast)</div>
+<div class="line">├── taxonomy_counts</div>
+<div class="line">├── taxonomy_estimation</div>
+<div class="line">└── taxonomy_visualization</div>
+<div class="line"><br /></div>
+</div>
+<div class="section" id="taxonomy-estimation-folders">
+<h2>Taxonomy Estimation Folders<a class="headerlink" href="#taxonomy-estimation-folders" title="Permalink to this headline">¶</a></h2>
+<p>Inside each of the taxonomy estimation folders (<code class="docutils literal notranslate"><span class="pre">core_taxonomy_estimation</span></code>, for exclusively transcripts annotated as core genes, and <code class="docutils literal notranslate"><span class="pre">taxonomy_estimation</span></code>), there are files labeled <a href="#id1"><span class="problematic" id="id2">*</span></a>sample_name*``-estimated-taxonomy.out``. Each of these files has the following columns:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>transcript_name</dt><dd><ul>
+<li><p>The name of the matched transcript/contig from this sample file</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>classification_level</dt><dd><ul>
+<li><p>The most specific taxonomic level that the transcript/contig was classified at</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>full_classification</dt><dd><ul>
+<li><p>The full taxonomic classification for the transcript/contig, up to and including the most specific classification</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>classification</dt><dd><ul>
+<li><p>Just the most specific classification obtained, at the taxonomic level specified by classification_level</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>max_pid</dt><dd><ul>
+<li><p>The maximum percentage identity reported by the alignment program for the match</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>counts</dt><dd><ul>
+<li><p>1 if not using <code class="docutils literal notranslate"><span class="pre">Salmon</span></code>, or the number of counts reported by the quantification program for that transcript/contig if using salmon</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>ambiguous</dt><dd><ul>
+<li><p>1 if there were multiple disagreeing matches for this transcript/contig, resolved by either consensus annotation using the user-provided cutoff (defaults to 75%) or by last common ancestor (LCA) approaches, otherwise 0</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="taxonomy-counts-folders">
+<h2>Taxonomy Counts Folders<a class="headerlink" href="#taxonomy-counts-folders" title="Permalink to this headline">¶</a></h2>
+<p>Inside each of the taxonomy counts folders (<code class="docutils literal notranslate"><span class="pre">core_taxonomy_counts</span></code> and <code class="docutils literal notranslate"><span class="pre">taxonomy_counts</span></code>), there is a file with the aggregated counts belonging to each annotation at the possible taxonomic levels. These files are derived diectly from the taxonomy estimation and used for the visualization steps. Inside this folder are comma-separated files with the following headings:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><em>Taxonomic Level</em></dt><dd><ul>
+<li><p>The taxonomic level specified by the file name</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>GroupedTranscripts</dt><dd><ul>
+<li><p>A semicolon-separated list of the identification names for transcripts that matched to this taxonomic label</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>NumTranscripts</dt><dd><ul>
+<li><p>The total number of transcripts (the length of the semicolon-separated list of transcripts)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Counts</dt><dd><ul>
+<li><p>Provided if <code class="docutils literal notranslate"><span class="pre">Salmon</span></code> counts are used - the matching summed number of counts for each label</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Sample</dt><dd><ul>
+<li><p>The original metagenomic/metatranscriptomic sample that this count is from (a separate row would be provided if the match is found in multiple samples)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>The taxonomic count files are named according to the convention <a href="#id3"><span class="problematic" id="id4">*</span></a>output-folder-name*``_all_``*taxonomic-level*``_counts.csv``.</p>
+</div>
+<div class="section" id="taxonomy-visualization-folders">
+<h2>Taxonomy Visualization Folders<a class="headerlink" href="#taxonomy-visualization-folders" title="Permalink to this headline">¶</a></h2>
+<p>Unside each of the taxonomy visualization folders (<code class="docutils literal notranslate"><span class="pre">core_taxonomy_visualization</span></code>, for exclusively transcripts annotated as core genes, and <code class="docutils literal notranslate"><span class="pre">taxonomy_visualization</span></code>), there are auto-generated barplots that show:</p>
+<ul class="simple">
+<li><p>x-axis: samples</p></li>
+<li><p>y-axis, left subplot (if using counts): relative number of transcripts</p></li>
+<li><p>bars, left subplot (if using counts): each of the top represented taxonomic groups (must represent &gt;= 5% of total number of transcripts)</p></li>
+<li><p>y-axis, right subplot (if using counts): relative number of counts</p></li>
+<li><p>bars, right subplot (if using counts): each of the top represented taxonomic groups (must represent &gt;= 5% of total counts)</p></li>
+</ul>
+<p>The right subplot is only generated if counts from a quantification tool (namely, <code class="docutils literal notranslate"><span class="pre">Salmon</span></code>) are provided.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="install.html" class="btn btn-neutral float-left" title="Installation and Invocation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Arianna Krinos, Sarah Hu, Harriet Alexander
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>&lt;no title&gt; &mdash; EUKulele 1 documentation</title>
+  <title>Installation and Invocation &mdash; EUKulele 1 documentation</title>
   
 
   
@@ -35,7 +35,9 @@
 
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Expected Output of EUKulele" href="outputstructure.html" />
+    <link rel="prev" title="Welcome to EUKulele’s documentation!" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,10 +82,26 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul class="simple">
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation and Invocation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installing-with-pip">Installing with Pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-with-conda">Installing with <code class="docutils literal notranslate"><span class="pre">conda</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cloning-the-development-code-from-github">Cloning the Development Code from GitHub</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#invoking-eukulele">Invoking <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code></a></li>
 </ul>
-</div>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="outputstructure.html">Expected Output of <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="community.html">Community guidelines</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxiliaryscripts.html">Auxiliary Scripts</a></li>
+</ul>
+
             
           
         </div>
@@ -128,7 +146,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>&lt;no title&gt;</li>
+      <li>Installation and Invocation</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -147,16 +165,26 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <p>There are few different ways to install <code class="code docutils literal notranslate"><span class="pre">EUKulele</span></code>, but the easiest is:</p>
+  <div class="section" id="installation-and-invocation">
+<h1>Installation and Invocation<a class="headerlink" href="#installation-and-invocation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="installing-with-pip">
+<h2>Installing with Pip<a class="headerlink" href="#installing-with-pip" title="Permalink to this headline">¶</a></h2>
+<p>There are few different ways to install <code class="code docutils literal notranslate"><span class="pre">EUKulele</span></code>, but the easiest is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">EUKulele</span>
 </pre></div>
 </div>
 <p>There may some dependencies that are not immediately downloaded when <code class="code docutils literal notranslate"><span class="pre">EUKulele</span></code> is pip-installed. If this is the case, the offending dependencies may be installed individually.</p>
+</div>
+<div class="section" id="installing-with-conda">
+<h2>Installing with <code class="docutils literal notranslate"><span class="pre">conda</span></code><a class="headerlink" href="#installing-with-conda" title="Permalink to this headline">¶</a></h2>
 <p><code class="code docutils literal notranslate"><span class="pre">EUKulele</span></code> may also be downloaded as a <code class="code docutils literal notranslate"><span class="pre">conda</span></code> package, which will eventually become the easiest option, as <cite>conda</cite> automatically installs all dependencies for the user. The package can currently be downloaded via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">akrinos</span> <span class="o">-</span><span class="n">c</span> <span class="n">bioconda</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">EUKulele</span>
 </pre></div>
 </div>
-<p>But eventually the <code class="code docutils literal notranslate"><span class="pre">-c</span> <span class="pre">akrinos</span></code> designation will no longer be required.</p>
+<p>Eventually, the <code class="code docutils literal notranslate"><span class="pre">-c</span> <span class="pre">akrinos</span></code> designation will be replaced, when <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code> becomes a <code class="docutils literal notranslate"><span class="pre">bioconda</span></code> package, at which point it may be installed from that channel (and this documentation will be updated).</p>
+</div>
+<div class="section" id="cloning-the-development-code-from-github">
+<h2>Cloning the Development Code from GitHub<a class="headerlink" href="#cloning-the-development-code-from-github" title="Permalink to this headline">¶</a></h2>
 <p>In addition, you can clone <code class="code docutils literal notranslate"><span class="pre">EUKulele</span></code> from GitHub using:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">AlexanderLabWHOI</span><span class="o">/</span><span class="n">EUKulele</span>
 </pre></div>
@@ -166,12 +194,35 @@
 <span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>  <span class="o">--</span><span class="n">user</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="invoking-eukulele">
+<h2>Invoking <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code><a class="headerlink" href="#invoking-eukulele" title="Permalink to this headline">¶</a></h2>
+<p>If installed either with pip or <code class="docutils literal notranslate"><span class="pre">conda</span></code>, <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code> can be invoked via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">EUKulele</span> <span class="o">&lt;</span><span class="n">arguments</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Where the minimal command would be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">EUKulele</span> <span class="o">--</span><span class="n">mets_or_mags</span> <span class="o">&lt;</span><span class="n">choice</span> <span class="n">of</span> <span class="n">data</span> <span class="nb">type</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">sample_dir</span> <span class="o">&lt;</span><span class="n">where</span> <span class="n">samples</span> <span class="n">are</span> <span class="n">located</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>In which case <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code> would be run with mostly parameter defaults and using the MMETSP database, by default.</p>
+</div>
+</div>
 
 
            </div>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="outputstructure.html" class="btn btn-neutral float-right" title="Expected Output of EUKulele" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to EUKulele’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

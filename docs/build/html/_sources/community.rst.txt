@@ -2,7 +2,7 @@ Community guidelines
 ====================================
 
 How to contribute to :code:`EUKulele`
--------------------------------
+-------------------------------------
 
 If you are interested in modifying :code:`EUKulele`, you may fork the project for your own use, as detailed in the `MIT License
 <https://github.com/AlexanderLabWHOI/EUKulele/blob/master/LICENSE>`_ we have adopted for the project. In order to contribute, please contact the developers via Arianna Krinos (akrinos (at) mit (dot) edu) after making the desired changes, after which a pull request may be submitted. 
