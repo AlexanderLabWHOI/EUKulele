@@ -35,7 +35,7 @@ Badging
    :target: https://coveralls.io/github/AlexanderLabWHOI/EUKulele?branch=remodeling
 
 .. image:: https://travis-ci.com/AlexanderLabWHOI/EUKulele.svg?branch=master
-       :target: https://travis-ci.com/AlexanderLabWHOI/EUKulele
+   :target: https://travis-ci.com/AlexanderLabWHOI/EUKulele
 
 
 Indices and tables
