@@ -7,7 +7,7 @@
 [![Read the Docs](https://img.shields.io/badge/read-the%20docs-green)](https://eukulele.readthedocs.io/en/latest/)
 
 <p align="center">
-![EUKulele-logo](/.infrastructure/eukulele-logo.png)
+![EUKulele-logo](.infrastructure/eukulele-logo.png)
 </p>
 
 ## Formalizing environmental eukaryotic taxonomic assignment
