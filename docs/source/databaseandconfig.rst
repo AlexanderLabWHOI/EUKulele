@@ -10,7 +10,7 @@ Three databases can be downloaded and formatted automatically when invoking ``EU
 - `EukProt <https://figshare.com/articles/EukProt_a_database_of_genome-scale_predicted_proteins_across_the_diversity_of_eukaryotic_life/12417881/2>`_
 - `MMETSP <https://zenodo.org/record/1212585#.Xw3PoJNKhTZ>`_
 
-To use these databases, all you need to do is specify ``--database phylodb``, ``--database eukprot``, or ``database mmetsp``, respectively, when invoking ``EUKulele``. 
+To use these databases, all you need to do is specify ``--database phylodb``, ``--database eukprot``, or ``--database mmetsp``, respectively, when invoking ``EUKulele``. 
 
 Using Other Databases
 ---------------------
@@ -31,7 +31,7 @@ The basic requirements for using a database with ``EUKulele`` are:
     - If you have a separate correspondence between transcript IDs and the organism each transcript ID came from, this prevents you from having to have the Source ID in the transcript header
     - Example: ``{"CAMPEP_0174983734": "MMETSP0004", "CAMPEP_0174982176": "MMETSP0004", "CAMPEP_0184404416": "MMETSP0007"}`` for a database of three transcripts coming from two different Source IDs (``MMETSP0004`` and ``MMETSP0007``)
     
-These files can be generated using the ``create_protein_file`` script provided with ``EUKulele``. This script is invoked via::
+These taxonomy table and JSON file can be generated using the ``create_protein_file`` script provided with ``EUKulele``. This script is invoked via::
 
     create-protein-table.py --infile_peptide <peptide fasta file> --infile_taxonomy <taxonomy file> --outfile_json <name of protein map JSON file> --output <name of taxonomy file> [--delim <delimiter> --column <column>] 
     
