@@ -24,7 +24,7 @@ def test_create_protein():
                                  os.path.join(reference_dir, "tax-table.txt"), "--outfile_json",
                                  os.path.join(reference_dir, "test_table.tsv", "test-protein-map.json"), 
                                  "--output", os.path.join(reference_dir, "test_table.txt"), "--delim", "/",
-                                 "--strain_col_id", "strain_name", "--taxonomy_col_id", "taxonomy", 
+                                 "--col_source_id", "Source_ID", "--taxonomy_col_id", "taxonomy", 
                                  "--column", "SOURCE_ID"]
     
     subprocess.Popen(string_arguments)
@@ -41,7 +41,7 @@ def test_create_protein_function():
                          os.path.join(reference_dir, "tax-table.txt"), "--outfile_json",
                          os.path.join(reference_dir, "test-protein-map.json"), 
                          "--output", os.path.join(reference_dir, "test_table.txt"), "--delim", "/",
-                         "--strain_col_id", "strain_name", "--taxonomy_col_id", "taxonomy", 
+                         "--col_source_id", "Source_ID", "--taxonomy_col_id", "taxonomy", 
                          "--column", "SOURCE_ID"]
     
     createProteinTable(args = string_arguments)
