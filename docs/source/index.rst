@@ -11,6 +11,7 @@ Welcome to EUKulele's documentation!
    :caption: Contents
    
    install
+   databaseandconfig
    outputstructure
    tutorial
    community

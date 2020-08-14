@@ -13,6 +13,7 @@
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
 
   
   
@@ -36,7 +37,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Expected Output of EUKulele" href="outputstructure.html" />
+    <link rel="next" title="Installing Databases and Creating Configuration Files" href="databaseandconfig.html" />
     <link rel="prev" title="Welcome to EUKulele’s documentation!" href="index.html" /> 
 </head>
 
@@ -91,9 +92,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#invoking-eukulele">Invoking <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="databaseandconfig.html">Installing Databases and Creating Configuration Files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="outputstructure.html">Expected Output of <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="community.html">Community guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="community.html">Community Guidelines</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Documentation</span></p>
 <ul>
@@ -173,7 +175,20 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">EUKulele</span>
 </pre></div>
 </div>
-<p>There may some dependencies that are not immediately downloaded when <code class="code docutils literal notranslate"><span class="pre">EUKulele</span></code> is pip-installed. If this is the case, the offending dependencies may be installed individually.</p>
+<p>There may some Python dependencies that are not immediately downloaded when <code class="code docutils literal notranslate"><span class="pre">EUKulele</span></code> is pip-installed. If this is the case, the offending dependencies may be installed individually.</p>
+<p>The external dependencies can be installed individual, or with conda using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">EUKulele</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">EUKulele</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">bioconda</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">blast</span> <span class="n">busco</span><span class="o">=</span><span class="mf">4.0</span><span class="o">.</span><span class="mi">6</span> <span class="n">diamond</span> <span class="n">transdecoder</span>
+</pre></div>
+</div>
+<p>As the dependencies external to PyPI are:</p>
+<ul class="simple">
+<li><p>BLAST</p></li>
+<li><p>BUSCO</p></li>
+<li><p>Diamond</p></li>
+<li><p>TransDecoder (if using metatranscriptome samples and the <code class="docutils literal notranslate"><span class="pre">--use_transdecoder</span></code> flag)</p></li>
+</ul>
 </div>
 <div class="section" id="installing-with-conda">
 <h2>Installing with <code class="docutils literal notranslate"><span class="pre">conda</span></code><a class="headerlink" href="#installing-with-conda" title="Permalink to this headline">¶</a></h2>
@@ -185,7 +200,7 @@
 </div>
 <div class="section" id="cloning-the-development-code-from-github">
 <h2>Cloning the Development Code from GitHub<a class="headerlink" href="#cloning-the-development-code-from-github" title="Permalink to this headline">¶</a></h2>
-<p>In addition, you can clone <code class="code docutils literal notranslate"><span class="pre">EUKulele</span></code> from GitHub using:</p>
+<p>In addition, you can clone <code class="code docutils literal notranslate"><span class="pre">EUKulele</span></code> from GitHub (the current development version) using:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">AlexanderLabWHOI</span><span class="o">/</span><span class="n">EUKulele</span>
 </pre></div>
 </div>
@@ -194,6 +209,13 @@
 <span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>  <span class="o">--</span><span class="n">user</span>
 </pre></div>
 </div>
+<p>Again, in this case, external dependencies may be installed via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">EUKulele</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">EUKulele</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">bioconda</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">blast</span> <span class="n">busco</span><span class="o">=</span><span class="mf">4.0</span><span class="o">.</span><span class="mi">6</span> <span class="n">diamond</span> <span class="n">transdecoder</span>
+</pre></div>
+</div>
+<p>Or individually for each software.</p>
 </div>
 <div class="section" id="invoking-eukulele">
 <h2>Invoking <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code><a class="headerlink" href="#invoking-eukulele" title="Permalink to this headline">¶</a></h2>
@@ -206,6 +228,15 @@
 </pre></div>
 </div>
 <p>In which case <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code> would be run with mostly parameter defaults and using the MMETSP database, by default.</p>
+<p><code class="docutils literal notranslate"><span class="pre">EUKulele</span></code> may also be run as a module within Python. Include the phrase <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">EUKulele</span></code> in the header of a Python file. Then, you may execute <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code> using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">EUKulele</span><span class="o">.</span><span class="n">eukulele</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config_file</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>in the case that you have a configuration file to specify (replace the <code class="docutils literal notranslate"><span class="pre">config_file</span></code> variable with this path), or with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">EUKulele</span><span class="o">.</span><span class="n">eukulele</span><span class="p">(</span><span class="n">string_arguments</span><span class="o">=</span><span class="n">string_of_arguments</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">string_of_arguments</span></code> is a string containing the non-default <cite>EUKulele</cite> options you wish to specify.</p>
 </div>
 </div>
 
@@ -217,7 +248,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="outputstructure.html" class="btn btn-neutral float-right" title="Expected Output of EUKulele" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="databaseandconfig.html" class="btn btn-neutral float-right" title="Installing Databases and Creating Configuration Files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral float-left" title="Welcome to EUKulele’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

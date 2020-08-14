@@ -7,19 +7,21 @@
 [![Read the Docs](https://img.shields.io/badge/read-the%20docs-green)](https://eukulele.readthedocs.io/en/latest/)
 
 <p align="center">
-![EUKulele-logo](/.infrastructure/eukulele-logo.png)
+  <img width = "500" src="/.infrastructure/eukulele-logo.png"/>
 </p>
 
 ## Formalizing environmental eukaryotic taxonomic assignment
 
 ### About EUKulele
-`EUKulele` is a Python program for taxonomic annotation of microbes in metatranscriptomic and metagenomic samples, with special emphasis on eukaryote discovery. `EUKulele` can be downloaded from [PyPI](https://pypi.org/), or it may be downloaded via `conda` and used as a command-line program. The software includes three major features:
+
+`EUKulele` is a Python program for taxonomic annotation of microbes in metatranscriptomic and metagenomic samples, with special emphasis on eukaryote discovery. `EUKulele` can be downloaded from [PyPI](https://pypi.org/), or it may be downloaded via `conda` and used as a command-line program. The software includes four major features:
 - Database setup and formatting
 - Database creation, alignment, and taxonomic estimation
 - Assessment of the BUSCO completeness of subsets of contigs at each taxonomic level
 - Assessment of taxonomic classification using only BUSCO-identified core eukaryotic genes
 
 ### Prerequisites for running EUKulele
+
 In principle, there are two prerequisites for running the software:
 1. Metagenomic or metatranscriptomic sample files (unless using the provided sample data)
 2. A database to align the contigs from the metagenome/metatranscriptome to
@@ -29,56 +31,21 @@ Three databases are supported by default from within `EUKulele`, and may be down
 - [EukProt](https://figshare.com/articles/EukProt_a_database_of_genome-scale_predicted_proteins_across_the_diversity_of_eukaryotic_life/12417881/2)
 - [MMETSP](https://zenodo.org/record/1212585#.Xw3PoJNKhTZ)
 
-### Downloading and configuring EUKulele
-
-You can download `EUKulele` as a Python package via:
-
-```
-pip install EUKulele
-```
-
-Or install the current version (in development) using:
-
-```
-git clone https://github.com/AlexanderLabWHOI/EUKulele
-cd EUKulele
-python setup.py install
-```
-
-When used as a Python package, it is recommended that you create and activate a `conda` environment for `EUKulele`, by running the command:
-
-```
-conda create -n EUKulele
-```
-
-from the base directory, and then typing `conda activate EUKulele`. Then, run: 
-
-```
-conda install -c bioconda -c conda-forge blast busco=4.0.6 diamond transdecoder ujson pandas yaml chardet pyyaml numpy joblib
-```
-
-When `EUKulele` is used as a `conda` package, all dependent software will be checked for automatically.
-
 ### Basic usage
 
-#### Python module
-
-Inside of a Python script, include `import EUKulele` in the header.
-
-Then, you may execute `EUKulele` as a Python package within `Python` using: 
+If installed either with pip or `conda`, `EUKulele` can be invoked via::
 
 ```
-EUKulele.eukulele(config=config_file)
+EUKulele <arguments>
+```
+    
+Where the minimal command would be
+
+```
+EUKulele --mets_or_mags <choice of data type> --sample_dir <where samples are located>
 ```
 
-if you have a configuration file to specify (replace the `config_file` variable with this path), or with:
-
-```
-EUKulele.eukulele(string_arguments=string_of_arguments)
-```
-
-where `string_of_arguments` is a string containing the non-default `EUKulele` options you wish to specify.
-
+See the [documentation](https://eukulele.readthedocs.io/en/latest/) for further details.
 
 ### Community guidelines 
 

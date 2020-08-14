@@ -22,10 +22,10 @@ def createProteinTable(args=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--infile_peptide', type = list, nargs='+', required=True) # this should be given as a list of the input files
     parser.add_argument('--infile_taxonomy',  default='') # the original taxonomy file
-    parser.add_argument('--outfile_json', default = 'protein-species-map.json') # the protein json file to be written
-    parser.add_argument('--output', default = 'output_table.txt') # the output taxonomy table (formatted) to be written
+    parser.add_argument('--outfile_json', default = 'prot-map.json') # the protein json file to be written
+    parser.add_argument('--output', default = 'tax-table.txt') # the output taxonomy table (formatted) to be written
     parser.add_argument('--delim',  type=str, default = '/')
-    parser.add_argument('--strain_col_id',  type=str, default = 'strain_name') # the column which indicates the name of the strain in the taxonomy file
+    parser.add_argument('--col_source_id',  type=str, default = 'Source_ID') # the column which indicates the name of the strain in the taxonomy file
     parser.add_argument('--taxonomy_col_id',  type=str, default = 'taxonomy') # the column which indicates the taxonomy of the strain in the taxonomy file
     parser.add_argument('--column', type=str, default = 'SOURCE_ID') # can be numeric, zero-indexed, if it's a delimited part of header
     # set to true if there is a column called "taxonomy" that we wish to split
@@ -70,7 +70,7 @@ def createProteinTable(args=None):
         tax_out = pd.DataFrame(columns=colnames_tax)
         for i in range(0,len(tax_file.index)):
             if not args.eukprot:
-                curr_row = [tax_file[args.strain_col_id][i]] + tax_file[args.taxonomy_col_id][i].split(";")
+                curr_row = [tax_file[args.col_source_id][i]] + tax_file[args.taxonomy_col_id][i].split(";")
                 if len(curr_row) < (len(colnames_tax)):
                     curr_row = curr_row + [""] * ((len(colnames_tax) + 1) - len(curr_row))
                 elif len(curr_row) > (len(colnames_tax)):
@@ -78,7 +78,7 @@ def createProteinTable(args=None):
                 add_series = pd.Series(curr_row, index = colnames_tax)
                 tax_out = tax_out.append(add_series, ignore_index=True)
             else:
-                curr_row = [tax_file[args.strain_col_id][i]] + [""] * 7
+                curr_row = [tax_file[args.col_source_id][i]] + [""] * 7
                 full_taxonomy = tax_file[args.taxonomy_col_id][i].split(";")
                 genus_and_species = tax_file["Name_to_Use"][i].replace("_", " ")
                 curr_row[1] = full_taxonomy[0] # this is generally the "supergroup" the way we have used it thus far.

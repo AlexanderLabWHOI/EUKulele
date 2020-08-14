@@ -1,0 +1,357 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installing Databases and Creating Configuration Files &mdash; EUKulele 1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Expected Output of EUKulele" href="outputstructure.html" />
+    <link rel="prev" title="Installation and Invocation" href="install.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> EUKulele
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation and Invocation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installing Databases and Creating Configuration Files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#default-databases">Default Databases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-other-databases">Using Other Databases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#customizing-the-taxonomic-identification-cutoffs">Customizing the Taxonomic Identification Cutoffs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="outputstructure.html">Expected Output of <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="community.html">Community Guidelines</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxiliaryscripts.html">Auxiliary Scripts</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">EUKulele</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Installing Databases and Creating Configuration Files</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/databaseandconfig.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installing-databases-and-creating-configuration-files">
+<h1>Installing Databases and Creating Configuration Files<a class="headerlink" href="#installing-databases-and-creating-configuration-files" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="default-databases">
+<h2>Default Databases<a class="headerlink" href="#default-databases" title="Permalink to this headline">¶</a></h2>
+<p>Three databases can be downloaded and formatted automatically when invoking <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code>. Currently the supported databases are:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://drive.google.com/drive/u/0/folders/0B-BsLZUMHrDQfldGeDRIUHNZMEREY0g3ekpEZFhrTDlQSjQtbm5heC1QX2V6TUxBeFlOejQ">PhyloDB</a></p></li>
+<li><p><a class="reference external" href="https://figshare.com/articles/EukProt_a_database_of_genome-scale_predicted_proteins_across_the_diversity_of_eukaryotic_life/12417881/2">EukProt</a></p></li>
+<li><p><a class="reference external" href="https://zenodo.org/record/1212585#.Xw3PoJNKhTZ">MMETSP</a></p></li>
+</ul>
+<p>To use these databases, all you need to do is specify <code class="docutils literal notranslate"><span class="pre">--database</span> <span class="pre">phylodb</span></code>, <code class="docutils literal notranslate"><span class="pre">--database</span> <span class="pre">eukprot</span></code>, or <code class="docutils literal notranslate"><span class="pre">database</span> <span class="pre">mmetsp</span></code>, respectively, when invoking <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code>.</p>
+</div>
+<div class="section" id="using-other-databases">
+<h2>Using Other Databases<a class="headerlink" href="#using-other-databases" title="Permalink to this headline">¶</a></h2>
+<p>The basic requirements for using a database with <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code> are:</p>
+<ul class="simple">
+<li><p>A singular protein FASTA file containing the sequences</p></li>
+<li><dl class="simple">
+<dt>A taxonomy table file which contains, for each transcriptome sample in the protein FASTA database:</dt><dd><ul>
+<li><p>Source_ID: what identifier/organism the transcript came from, which typically should be specified in the header within the FASTA file</p></li>
+<li><p>Supergroup</p></li>
+<li><p>Division</p></li>
+<li><p>Class</p></li>
+<li><p>Order</p></li>
+<li><p>Family</p></li>
+<li><p>Genus</p></li>
+<li><p>Species</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>A JSON file containing a list of dictionary correspondences between each Source ID and transcript ID</dt><dd><ul>
+<li><p>If you have a separate correspondence between transcript IDs and the organism each transcript ID came from, this prevents you from having to have the Source ID in the transcript header</p></li>
+<li><p>Example: <code class="docutils literal notranslate"><span class="pre">{&quot;CAMPEP_0174983734&quot;:</span> <span class="pre">&quot;MMETSP0004&quot;,</span> <span class="pre">&quot;CAMPEP_0174982176&quot;:</span> <span class="pre">&quot;MMETSP0004&quot;,</span> <span class="pre">&quot;CAMPEP_0184404416&quot;:</span> <span class="pre">&quot;MMETSP0007&quot;}</span></code> for a database of three transcripts coming from two different Source IDs (<code class="docutils literal notranslate"><span class="pre">MMETSP0004</span></code> and <code class="docutils literal notranslate"><span class="pre">MMETSP0007</span></code>)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>These files can be generated using the <code class="docutils literal notranslate"><span class="pre">create_protein_file</span></code> script provided with <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code>. This script is invoked via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">create</span><span class="o">-</span><span class="n">protein</span><span class="o">-</span><span class="n">table</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">infile_peptide</span> <span class="o">&lt;</span><span class="n">peptide</span> <span class="n">fasta</span> <span class="n">file</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">infile_taxonomy</span> <span class="o">&lt;</span><span class="n">taxonomy</span> <span class="n">file</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">outfile_json</span> <span class="o">&lt;</span><span class="n">name</span> <span class="n">of</span> <span class="n">protein</span> <span class="nb">map</span> <span class="n">JSON</span> <span class="n">file</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">output</span> <span class="o">&lt;</span><span class="n">name</span> <span class="n">of</span> <span class="n">taxonomy</span> <span class="n">file</span><span class="o">&gt;</span> <span class="p">[</span><span class="o">--</span><span class="n">delim</span> <span class="o">&lt;</span><span class="n">delimiter</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">column</span> <span class="o">&lt;</span><span class="n">column</span><span class="o">&gt;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>when <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code> is installed.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--infile_peptide</span></code></dt><dd><ul>
+<li><p>The peptide FASTA file for the database</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--infile_taxonomy</span></code></dt><dd><ul>
+<li><p>The original taxonomy file</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--col_source_id</span></code></dt><dd><ul>
+<li><p>Optional; defaults to “Source_ID”; the column in the taxonomy file that corresponds to the Source ID in the database</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--reformat_tax</span></code></dt><dd><ul>
+<li><p>If this tag is included, the taxonomy will be split according to the contents of the column labeled with the <code class="docutils literal notranslate"><span class="pre">taxonomy_col_id</span></code> that is specified by the tag below (instead of 7 different columns corresponding to each taxonomic level as in the listing above)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--taxonomy_col_id</span></code></dt><dd><ul>
+<li><p>Only relevant if <code class="docutils literal notranslate"><span class="pre">--reformat_tax</span></code> is specified. The column (e.g. “taxonomy” as in the default) that contains a semicolon-separated list of the taxonomic levels to be separated into columns</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--outfile_json</span></code></dt><dd><ul>
+<li><p>The name of the output protein map file to be created. To use the output most easily with <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code>, this file should be called <code class="docutils literal notranslate"><span class="pre">prot-map.json</span></code> (as is the default) and placed in the same reference directory with the reference protein FASTA file, which ideally would be named <code class="docutils literal notranslate"><span class="pre">reference.pep.fa</span></code> to facilitate working with the defaults. Then, just specify this output folder as <code class="docutils literal notranslate"><span class="pre">--reference_dir</span></code> when invoking <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--output</span></code></dt><dd><ul>
+<li><p>The name of the output taxonomy table file to be created. To use the output most easily with <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code>, this file should be called <code class="docutils literal notranslate"><span class="pre">tax-table.txt</span></code> (as is the default) and placed in the same reference directory with the reference protein FASTA file, which ideally would be named <code class="docutils literal notranslate"><span class="pre">reference.pep.fa</span></code> to facilitate working with the defaults. Then, just specify this output folder as <code class="docutils literal notranslate"><span class="pre">--reference_dir</span></code> when invoking <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--delim</span></code></dt><dd><ul>
+<li><p>What to split the FASTA headers on in the protein database file, typically <code class="docutils literal notranslate"><span class="pre">\t</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--column</span></code></dt><dd><ul>
+<li><p>The label to be used for the Source_ID parsed from the reference peptide FASTA headers. This is such that the protein map JSON file can be created from the transcript IDs. So if your transcripts include a tab-separated list of entries that includes <code class="docutils literal notranslate"><span class="pre">SOURCE_ID=XXXXX</span></code>, as in the MMETSP, include a string here for the label before the equals sign. If instead the Source ID occurs at a predictable position in the parsed FASTA headers, a number can be included for this parameter</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--euk-prot</span></code></dt><dd><ul>
+<li><p>Should only be used if you are specifically creating a table and protein map for the EukProt database, which has a few particular features to take into account</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="customizing-the-taxonomic-identification-cutoffs">
+<h2>Customizing the Taxonomic Identification Cutoffs<a class="headerlink" href="#customizing-the-taxonomic-identification-cutoffs" title="Permalink to this headline">¶</a></h2>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code> uses the following percent identity cutoffs to determine taxonomic matches:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">species</span><span class="p">:</span> <span class="mi">95</span>
+<span class="n">genus</span><span class="p">:</span> <span class="mi">80</span>
+<span class="n">family</span><span class="p">:</span> <span class="mi">65</span>
+<span class="n">order</span><span class="p">:</span> <span class="mi">50</span>
+<span class="n">class</span><span class="p">:</span> <span class="mi">30</span>
+</pre></div>
+</div>
+<p>To change these cutoffs, simply create a YAML file containing these entries exactly as written above, and provide this cutoff file as input to <code class="docutils literal notranslate"><span class="pre">EUKulele</span></code> via <code class="docutils literal notranslate"><span class="pre">--cutoff_file</span> <span class="pre">&lt;name</span> <span class="pre">of</span> <span class="pre">YAML</span> <span class="pre">file</span> <span class="pre">you</span> <span class="pre">created&gt;</span></code>.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="outputstructure.html" class="btn btn-neutral float-right" title="Expected Output of EUKulele" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="install.html" class="btn btn-neutral float-left" title="Installation and Invocation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Arianna Krinos, Sarah Hu, Harriet Alexander
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,4 +1,4 @@
-Community guidelines 
+Community Guidelines 
 ====================================
 
 How to contribute to :code:`EUKulele`
