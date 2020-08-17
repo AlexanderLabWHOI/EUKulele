@@ -153,7 +153,6 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
 
     ### READ IN RESULTS FILES FROM MET DIR THAT FIT SAMPLE SPEC FROM CONFIG ###
     samples = os.listdir(samples_dir)
-    print(samples, flush=True)
     good_samples = 0
     for s in samples:
         file_name = ".".join(s.split(".")[0:-1]) + "-estimated-taxonomy.out"
@@ -176,7 +175,6 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
     # characterizing by major classes 
     for curr in results_frame.keys():
         list_results[curr], frame_results[curr] = stripClassifData(results_frame[curr], use_counts)
-        print(frame_results[curr]["species"].head())
 
     counts_all = dict()
     level_hierarchy = ['supergroup','division','class','order','family','genus','species']
@@ -252,6 +250,8 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
             fig.set_facecolor('white')
             pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05, transcript_or_counts="NumTranscripts")
             pivoted.plot(kind='bar', stacked=True, color = sns_palette)
+            locs, labels = plt.xticks()
+            plt.xticks(ticks = locs, labels = [label.get_text()[0:20] for label in labels])
             plt.tight_layout()
             os.system("mkdir -p " + results_viz_dir)
             plt.savefig(os.path.join(results_viz_dir, l + '_transcripts.png'),dpi=100)
@@ -263,8 +263,12 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
             ax2.set_facecolor('white')
             pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05, transcript_or_counts="NumTranscripts")
             pivoted.plot(kind='bar', stacked=True, width=1, color = sns_palette, title="Transcripts", ax = ax1)
+            locs, labels = ax1.xticks()
+            ax1.xticks(ticks = locs, labels = [label.get_text()[0:20] for label in labels])
             pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05, transcript_or_counts="Counts")
             pivoted.plot(kind='bar', stacked=True, width=1, color = sns_palette, title="Counts", ax = ax2)
+            locs, labels = ax2.xticks()
+            ax2.xticks(ticks = locs, labels = [label.get_text()[0:20] for label in labels])
             plt.tight_layout()
             os.system("mkdir -p " + results_viz_dir)
             plt.savefig(os.path.join(results_viz_dir, l + '_counts_and_transcripts.png'),dpi=100)

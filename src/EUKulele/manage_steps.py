@@ -98,7 +98,9 @@ def getSamples(mets_or_mags, sample_dir, nt_ext, pep_ext):
     """
     
     if (mets_or_mags == "mets"):
-        samples = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(sample_dir) if curr.split(".")[-1] == nt_ext]
+        samples_nt = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(sample_dir) if curr.split(".")[-1] == nt_ext]
+        samples_pep = [".".join(curr.split(".")[0:-1]) for curr in os.listdir(sample_dir) if curr.split(".")[-1] == pep_ext]
+        samples = list(set(samples_nt + samples_pep))
         if len(samples) == 0:
             print("No samples found in sample directory with specified nucleotide extension.")
             sys.exit(1)
