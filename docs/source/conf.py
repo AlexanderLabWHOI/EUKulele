@@ -19,8 +19,8 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'EUKulele'
-copyright = '2020, Arianna Krinos, Sarah Hu, Harriet Alexander'
-author = 'Arianna Krinos, Sarah Hu, Harriet Alexander'
+copyright = '2020, Arianna Krinos, Sarah Hu, Natalie Cohen, Harriet Alexander'
+author = 'Arianna Krinos, Sarah Hu, Natalie Cohen, Harriet Alexander'
 
 # The full version, including alpha/beta/rc tags
 release = '1'

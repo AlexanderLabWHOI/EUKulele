@@ -68,7 +68,7 @@ def lca(full_classifications):
     full_classifications_split = [[str(subtax).strip() for subtax in curr.split(";")] for curr in full_classifications]
     length_classes = [len(curr) for curr in full_classifications_split]
     if len(set(length_classes)) != 1:
-        print("Error: not all classifications at at the same taxonomic level.")
+        print("Error: not all classifications at at the same taxonomic level.", flush = True)
         sys.exit(1)
     for l in reversed(range(length_classes[0])):
         set_classifications = [curr[l] for curr in full_classifications_split]
@@ -81,7 +81,7 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts, tax_cutoffs):
     md = dd.pident.max()
     transcript_name = set(list(dd["qseqid"]))
     if len(transcript_name) > 1:
-        print("More than 1 transcript name included in the group.")
+        print("More than 1 transcript name included in the group.", flush = True)
     transcript_name = list(transcript_name)[0]
     ds = list(set(dd[dd.pident==md]['ssqid_TAXID']))
     counts = list(set(dd[dd.pident==md]['counts']))
@@ -147,6 +147,19 @@ def apply_parallel(grouped_data, match_maker, consensus_cutoff, tax_dict, use_co
 def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cutoff, tax_cutoffs):
     chunksize = 10 ** 6
     counter = 0
+    
+    ## Return an empty dataframe if no matches made ##
+    if os.stat(str(df)).st_size == 0:
+        if namestoreads != 0:
+            return pd.DataFrame([[transcript_name, assignment, full_classification, best_classification, 
+                                  md, chosen_count, ambiguous]],\
+                       columns=['transcript_name','classification_level', 'full_classification', 
+                                'classification', 'max_pid', 'counts', 'ambiguous'])
+        else:
+            return pd.DataFrame([[transcript_name, assignment, full_classification, best_classification, md, ambiguous]],\
+                       columns=['transcript_name', 'classification_level', 'full_classification', 
+                                'classification', 'max_pid', 'ambiguous'])
+        
     for chunk in pd.read_csv(str(df), sep = '\t', header = None, chunksize=chunksize):
         chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 'qstart', 
                          'qend', 'sstart', 'send', 'evalue', 'bitscore']
@@ -158,7 +171,6 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cuto
             chunk['counts'] = [0] * len(chunk.qseqid) # if no reads dict, each count is just assumed to be 0 and isn't recorded later
             use_counts = 0
             
-        print(chunk, flush=True)
         if counter == 0:
             outdf = apply_parallel(chunk.groupby('qseqid'), match_maker, 
                                    consensus_cutoff, tax_dict, use_counts, tax_cutoffs)

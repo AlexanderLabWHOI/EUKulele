@@ -9,6 +9,8 @@ Generates table useable for taxonomic placment with EUKulele. If no delimiter is
 
 python EUKulele/scripts/create_protein_table.py --infile_peptide EUKulele/tests/aux_data/mmetsp/reference-pep-trunc.pep.faa --infile_taxonomy  EUKulele/tests/aux_data/mmetsp/taxonomy-table.txt --outfile_json EUKulele/tests/aux_data/mmetsp/protein-map.json --output EUKulele/tests/aux_data/mmetsp/tax-table.txt --delim "/" --strain_col_id strain_name --taxonomy_col_id taxonomy --column SOURCE_ID
 
+create_protein_table.py --infile_peptide reference.pep.fa --infile_taxonomy  taxonomy-table.txt --outfile_json prot-map.json --output tax-table.txt --delim "/" --col_source_id strain_name --taxonomy_col_id taxonomy --column 2
+
         python /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/scripts/create_protein_table.py --infile_peptide /vortexfs1/omics/alexander/akrinos/EUKulele-Reference/phylodb_db/reference.pep.fa --infile_taxonomy  /vortexfs1/omics/alexander/akrinos/EUKulele-Reference/phylodb_db/tax-table.txt --outfile_json /vortexfs1/omics/alexander/akrinos/EUKulele-Reference/phylodb_db/prot-map.json --output /vortexfs1/omics/alexander/akrinos/EUKulele-Reference/phylodb_db/taxonomy_table.txt --delim "\t" --strain_col_id strain_name --taxonomy_col_id taxonomy --column 2
 """
 

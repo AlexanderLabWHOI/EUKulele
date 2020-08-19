@@ -23,16 +23,16 @@ while MEM_AVAIL_GB == 0:
         pass
     
 # 25 GB memory per GB file size
-def calc_max_jobs(size_in_bytes = 2147483648):
+def calc_max_jobs(num_files, size_in_bytes = 2147483648):
     size_in_gb = size_in_bytes / (1024*1024*1024)
     if size_in_gb == 0:
         size_in_gb = 0.01
-    MAX_JOBS = math.floor(MEM_AVAIL_GB / (25 * size_in_gb)) #48)
+    MAX_JOBS = math.floor(MEM_AVAIL_GB / (25 * size_in_gb * num_files)) #48)
     if MAX_JOBS == 0:
         MAX_JOBS = 1
     return MAX_JOBS
         
-MAX_JOBS = calc_max_jobs()
+MAX_JOBS = max(1, calc_max_jobs(1))
 
 # For DIAMOND: The program can be expected to use roughly six times this number of memory (in GB). 
 # So for the default value of -b2.0, the memory usage will be about 12 GB.
@@ -189,9 +189,11 @@ def manageTrandecode(met_samples, output_dir, rerun_rules, sample_dir,
     """
     
     print("Running TransDecoder for MET samples...", flush = True)
-    MAX_JOBS = max([calc_max_jobs(pathlib.Path(os.path.join(sample_dir, sample + nt_ext)).stat().st_size) 
-                    for sample in met_samples])
-    n_jobs_align = min(multiprocessing.cpu_count(), len(met_samples), MAX_JOBS)
+    
+    MAX_JOBS = min([calc_max_jobs(len(met_samples), pathlib.Path(os.path.join(sample_dir, sample + nt_ext)).stat().st_size) \
+                    for sample in met_samples  \
+                    if os.path.isfile(os.path.join(sample_dir, sample + nt_ext))])
+    n_jobs_align = min(multiprocessing.cpu_count(), len(met_samples), max(1,MAX_JOBS))
     transdecoder_res = Parallel(n_jobs=n_jobs_align)(delayed(transdecodeToPeptide)(sample_name, output_dir, 
                                                                                    rerun_rules, sample_dir, 
                          mets_or_mags = "mets", transdecoder_orf_size = 100,
@@ -235,9 +237,8 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
     else:
         fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
         
-    MAX_JOBS = max([calc_max_jobs(pathlib.Path(sample).stat().st_size) for sample in fastas])
-    n_jobs_align = min(multiprocessing.cpu_count(), len(samples), MAX_JOBS)
-    print(MAX_JOBS)
+    MAX_JOBS = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size) for sample in fastas])
+    n_jobs_align = min(multiprocessing.cpu_count(), len(samples), max(1,MAX_JOBS))
     alignment_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(alignToDatabase)(alignment_choice,
                                                                                                sample_name, filter_metric, 
                                                                                                output_dir, ref_fasta, 
@@ -333,12 +334,12 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
             rc1 = subprocess.Popen(["diamond", alignment_method, "--db", align_db, "-q", fasta, "-o", 
                                    diamond_out, "--outfmt", str(outfmt), "-k", str(k), "--min-score", 
                                    str(bitscore), '-b3.0'], stdout = diamond_log, stderr = diamond_err).wait()
-            print("Diamond process exited.", flush = True)
+            print("Diamond process exited for sample " + str(sample_name) + ".", flush = True)
         elif filter_metric == "pid":
             rc1 = subprocess.Popen(["diamond", alignment_method, "--db", align_db, "-q", fasta, "-o", 
                                    diamond_out, "--outfmt", str(outfmt), "-k", str(k), "--id", 
                                    str(pid_cutoff), '-b3.0'], stdout = diamond_log, stderr = diamond_err).wait()
-            print("Diamond process exited.", flush = True)
+            print("Diamond process exited for sample " + str(sample_name) + ".", flush = True)
         else:
             rc1 = subprocess.Popen(["diamond", alignment_method, "--db", align_db, "-q", fasta, "-o", 
                                    diamond_out, "--outfmt", str(outfmt), "-k", str(k), "-e", 
@@ -349,7 +350,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
             #rc1 = p.returncode
             #print(stderr)
             #print(stdout)
-            print("Diamond process exited.", flush = True)
+            print("Diamond process exited for sample " + str(sample_name) + ".", flush = True)
         if rc1 != 0:
             print("Diamond did not complete successfully.")
             os.system("rm -f " + diamond_out)
@@ -411,9 +412,12 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
     else:
         fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
         
-    MAX_JOBS = max([calc_max_jobs(pathlib.Path(sample).stat().st_size) for sample in fastas])
-    n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res), MAX_JOBS)
+    MAX_JOBS = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size) for sample in fastas])
+    n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res), max(1, MAX_JOBS))
     for t in range(len(alignment_res)): 
+        curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
+                                                prot_tab, use_salmon_counts, names_to_reads,\
+                                                alignment_res[t], outfiles[t], rerun_rules)
         try:
             sys.stdout = open(os.path.join("log", "tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".out"), "w")
             sys.stderr = open(os.path.join("log", "tax_est_" + alignment_res[t].split("/")[-1].split(".")[0] + ".err"), "w")
@@ -421,7 +425,7 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
                                                     prot_tab, use_salmon_counts, names_to_reads,\
                                                     alignment_res[t], outfiles[t], rerun_rules)
         except:
-            print("Taxonomic estimation for core genes did not complete successfully. Check log file for details.")
+            print("Taxonomic estimation did not complete successfully. Check log file for details.")
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
         
@@ -442,7 +446,7 @@ def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, cons
     else:
         fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
         
-    MAX_JOBS = max([calc_max_jobs(pathlib.Path(sample).stat().st_size) for sample in fastas])
+    MAX_JOBS = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size) for sample in fastas])
     n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res), MAX_JOBS)
     for t in range(len(alignment_res)): 
         try:
@@ -484,9 +488,10 @@ def manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt
 def manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir, pep_ext, core = False):
     if mets_or_mags == "mags":
         print("Performing taxonomic assignment steps...", flush=True)
-        MAX_JOBS = max([calc_max_jobs(pathlib.Path(os.path.join(sample_dir, sample + "." + pep_ext)).stat().st_size) 
+        MAX_JOBS = min([calc_max_jobs(len(samples), 
+                                      pathlib.Path(os.path.join(sample_dir, sample + "." + pep_ext)).stat().st_size) 
                         for sample in samples])
-        n_jobs_viz = min(multiprocessing.cpu_count(), len(samples), MAX_JOBS)
+        n_jobs_viz = min(multiprocessing.cpu_count(), len(samples), max(1,MAX_JOBS))
         try:
             if core:
                 assign_res = Parallel(n_jobs=n_jobs_viz, prefer="threads")(delayed(assignTaxonomy)(samp, output_dir, 

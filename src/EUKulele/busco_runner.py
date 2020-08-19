@@ -13,7 +13,7 @@ while MEM_AVAIL_GB == 0:
         MEM_AVAIL_GB = pd.read_csv("free.csv", sep = "\s+").free[0] / 10**3
     except:
         pass
-MAX_JOBS = math.floor(MEM_AVAIL_GB / 80)
+MAX_JOBS = math.floor(MEM_AVAIL_GB / 40) #80
 if MAX_JOBS == 0:
     MAX_JOBS = 1
 
@@ -45,7 +45,7 @@ def configRunBusco(output_dir, mets_or_mags, pep_ext, nt_ext, sample_dir, sample
     ## Run BUSCO on the full dataset ##
     busco_db = "eukaryota_odb10"
     busco_config_res = configure_busco(busco_db)
-    n_jobs_busco = min(multiprocessing.cpu_count(), len(samples), MAX_JOBS)
+    n_jobs_busco = min(multiprocessing.cpu_count(), len(samples), max(1, int(MAX_JOBS / len(samples))))
     print("Running busco...", flush=True)
     busco_res = Parallel(n_jobs=n_jobs_busco, prefer="threads")(delayed(run_busco)(sample_name, 
                                                                                                   os.path.join(output_dir, 

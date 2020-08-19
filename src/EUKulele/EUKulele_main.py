@@ -94,7 +94,6 @@ def main(args_in):
     parser.add_argument('--test', action='store_true', default=False)
 
     ## OTHER USER CHOICES ## 
-    #cutoff_file = pkgutil.get_data(__name__, "tax-cutoffs.yaml")
     cutoff_file = "tax-cutoffs.yaml"
     parser.add_argument('--cutoff_file', default = cutoff_file)
     parser.add_argument('--filter_metric', default = "evalue", choices = ["pid", "evalue", "bitscore"])

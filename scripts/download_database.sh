@@ -48,11 +48,13 @@ elif [[ $DATABASE == "eukprot" ]]; then
     echo "All reference files for EukProt downloaded to ${PWD}/$DATABASE"
 elif [[ $DATABASE == "phylodb" ]]; then
     # Download PhyloDB reference FASTA
-    wget -O ${PWD}/$DATABASE/$REF_FASTA $REF_FASTA_URL
+    wget -O ${PWD}/$DATABASE/$REF_FASTA.gz $REF_FASTA_URL
+    gunzip -f ${PWD}/$DATABASE/$REF_FASTA.gz
     ALLEXITS=$(($ALLEXITS + $?))
     
     # Download PhyloDB reference taxonomy table
-    wget -O ${PWD}/$DATABASE/$REF_TABLE $REF_TABLE_URL
+    wget -O ${PWD}/$DATABASE/$REF_TABLE.gz $REF_TABLE_URL
+    gunzip -f ${PWD}/$DATABASE/$REF_TABLE.gz
     ALLEXITS=$(($ALLEXITS + $?))
     
     # Download PhyloDB files from Google Drive

@@ -22,13 +22,16 @@ def downloadDatabase(database_name, alignment_choice):
     if database_name == "mmetsp":
         column_id = "SOURCE_ID"
         delimiter = "/"
+        sourceID = "Source_ID"
     elif (database_name == "eukprot"):
         column_id = 0
         delimiter = "\t"
         create_protein_table_args.append("--euk-prot")
+        sourceID = "EukProt_ID"
     elif (database_name == "phylodb"):
-        column_id = 0
+        column_id = 2
         delimiter = "\t"
+        sourceID = "strain_name"
         create_protein_table_args.append("--reformat_tax")
     else:
         print("Specified reference database, " + database_name + " is not supported.")
@@ -55,8 +58,8 @@ def downloadDatabase(database_name, alignment_choice):
     
     create_protein_table_args.extend(["--infile_peptide",os.path.join(database_name,fasta_name),
                                       "--infile_taxonomy",orig_tax_name,"--output",tax_table,"--outfile_json",
-                                      protein_json,"--delim",str(delimiter),"--strain_col_id",
-                                      "strain_name","--taxonomy_col_id", "taxonomy","--column",
+                                      protein_json,"--delim",str(delimiter),"--col_source_id",
+                                      sourceID,"--taxonomy_col_id", "taxonomy","--column",
                                       str(column_id)])
     
     ## Run function to create protein table file from scripts/create_protein_table.py ##
