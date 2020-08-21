@@ -60,7 +60,7 @@ A full list of parameters can be found in the table at the bottom of this page. 
      - The minimum cutoff size for an open reading frame (ORF) detected by ``TransDecoder``. Only relevant if ``--use_transdecoder`` is specified.
    * - ``--alignment_choice`` 
      - alignment_choice 
-     - A choice of aligner to use, currently ``BLAST`` or ``DIAMOND``.
+     - A choice of aligner to use, currently ``blast`` or ``diamond``.
    * - ``--cutoff_file`` 
      - cutoff_file 
      - A ``YAML`` file, provided in ``src/EUKulele/static/``, that contains the percent identity cutoffs for various taxonomic classifications. Any path may be provided here to a user-specified file.
