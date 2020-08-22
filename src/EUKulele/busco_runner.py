@@ -13,9 +13,17 @@ while MEM_AVAIL_GB == 0:
         MEM_AVAIL_GB = pd.read_csv("free.csv", sep = "\s+").free[0] / 10**3
     except:
         pass
-MAX_JOBS = math.floor(MEM_AVAIL_GB / 40) #80
-if MAX_JOBS == 0:
-    MAX_JOBS = 1
+
+def calc_max_jobs(num_files, size_in_bytes = 2147483648, max_mem_per_proc = 40, perc_mem = 0.75):
+    size_in_gb = size_in_bytes / (1024*1024*1024)
+    if size_in_gb == 0:
+        size_in_gb = 0.01
+    MAX_JOBS = math.floor(MEM_AVAIL_GB * perc_mem / (max_mem_per_proc * size_in_gb * num_files)) #48)
+    if MAX_JOBS == 0:
+        MAX_JOBS = 1
+    return MAX_JOBS
+
+MAX_JOBS = calc_max_jobs(10)
 
 from scripts.query_busco import queryBusco
 
@@ -116,11 +124,11 @@ def run_busco(sample_name, output_dir_busco, output_dir, busco_db, mets_or_mags,
     return rc1 
 
 def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, pep_ext, nt_ext,
-                     sample_dir, organisms, organisms_taxonomy, tax_tab, busco_threshold):
+                     sample_dir, organisms, organisms_taxonomy, tax_tab, busco_threshold, perc_mem):
     """
     Assess BUSCO completeness on the most prevalent members of the metatranscriptome at each taxonomic level.
     """
-    
+    MAX_JOBS = calc_max_jobs(len(samples), perc_mem = perc_mem)
     if individual_or_summary == "individual":
         if (len(organisms) != len(organisms_taxonomy)):
             print("A different number of organisms was specified than the taxonomic levels given in " + 

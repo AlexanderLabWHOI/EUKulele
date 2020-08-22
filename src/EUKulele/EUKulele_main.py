@@ -50,6 +50,8 @@ def main(args_in):
     parser.add_argument('--scratch', default = '../scratch', 
                         help = "The scratch location to store intermediate files.")
     parser.add_argument('--config_file', default = '')
+    parser.add_argument('--perc_mem', dest = "perc_mem", default = 0.75,
+                        help = "The percentage of the total available memory which should be targeted for use by processes.")
 
     ## SALMON OPTIONS ##
     parser.add_argument('--use_salmon_counts', action='store_true', default=False)
@@ -91,7 +93,6 @@ def main(args_in):
                         help = "List of organisms to check BUSCO completeness on.")
     parser.add_argument('--taxonomy_organisms', default = "", nargs = "+", 
                         help = "Taxonomic level of organisms specified in organisms tag.")
-    parser.add_argument('--test', action='store_true', default=False)
 
     ## OTHER USER CHOICES ## 
     cutoff_file = "tax-cutoffs.yaml"
@@ -122,6 +123,7 @@ def main(args_in):
     OUTPUTDIR = args.out_dir
     SAMPLE_DIR = args.sample_dir
     REF_FASTA = args.ref_fasta
+    PERC_MEM = args.perc_mem
 
     ALIGNMENT_CHOICE = args.alignment_choice
     OUTPUT_EXTENSION = "txt"
@@ -214,14 +216,14 @@ def main(args_in):
         ## First, we need to perform TransDecoder if needed
         manageEukulele(piece = "transdecode", mets_or_mags = mets_or_mags, samples = samples, output_dir = OUTPUTDIR, 
                        rerun_rules = RERUN_RULES, sample_dir = SAMPLE_DIR, transdecoder_orf_size = TRANSDECODERORFSIZE, 
-                       nt_ext = NT_EXT, pep_ext = PEP_EXT, run_transdecoder = RUN_TRANSDECODER)
+                       nt_ext = NT_EXT, pep_ext = PEP_EXT, run_transdecoder = RUN_TRANSDECODER, perc_mem = PERC_MEM)
         
         ## Next to align against our database of choice ##
         alignment_res = manageEukulele(piece = "align_to_db", alignment_choice = ALIGNMENT_CHOICE, samples = samples, 
                                         filter_metric = args.filter_metric, output_dir = OUTPUTDIR, 
                                         ref_fasta = REF_FASTA, mets_or_mags = mets_or_mags, database_dir = REFERENCE_DIR,
                                         sample_dir = SAMPLE_DIR, rerun_rules = RERUN_RULES, 
-                                        nt_ext = NT_EXT, pep_ext = PEP_EXT)
+                                        nt_ext = NT_EXT, pep_ext = PEP_EXT, perc_mem = PERC_MEM)
 
         ## Next to do salmon counts estimation. ##
         if (USE_SALMON_COUNTS == 1):
@@ -237,7 +239,7 @@ def main(args_in):
                        consensus_cutoff = CONSENSUS_CUTOFF, prot_tab = PROT_TAB, use_salmon_counts = USE_SALMON_COUNTS, 
                        names_to_reads = NAMES_TO_READS, alignment_res = alignment_res, 
                        rerun_rules = RERUN_RULES, samples = samples, sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT,
-                       nt_ext = NT_EXT)
+                       nt_ext = NT_EXT, perc_mem = PERC_MEM)
 
         ## Now to visualize the taxonomy ##
         manageEukulele(piece = "visualize_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
@@ -257,7 +259,7 @@ def main(args_in):
                          samples = samples, mets_or_mags = mets_or_mags, pep_ext = PEP_EXT, 
                          nt_ext = NT_EXT, sample_dir = SAMPLE_DIR, organisms = ORGANISMS, 
                          organisms_taxonomy = ORGANISMS_TAXONOMY, tax_tab = TAX_TAB, 
-                         busco_threshold = args.busco_threshold)
+                         busco_threshold = args.busco_threshold, perc_mem = PERC_MEM)
         
     if COREGENES:
         print("Investigating core genes...")

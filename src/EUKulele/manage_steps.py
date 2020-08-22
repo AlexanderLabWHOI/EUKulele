@@ -26,11 +26,11 @@ while MEM_AVAIL_GB == 0:
 # add a parameter that chaanges between the requirement per file size (reducing to 10 GB for now)
 # also add a parameter to EUKulele that decides whether you use 100% of available memory and scales
 # MEM_AVAIL_GB by that amount (default to 75%)
-def calc_max_jobs(num_files, size_in_bytes = 2147483648):
+def calc_max_jobs(num_files, size_in_bytes = 2147483648, max_mem_per_proc = 10, perc_mem = 0.75):
     size_in_gb = size_in_bytes / (1024*1024*1024)
     if size_in_gb == 0:
         size_in_gb = 0.01
-    MAX_JOBS = math.floor(MEM_AVAIL_GB / (10 * size_in_gb * num_files)) #48)
+    MAX_JOBS = math.floor(MEM_AVAIL_GB * perc_mem / (max_mem_per_proc * size_in_gb * num_files)) #48)
     if MAX_JOBS == 0:
         MAX_JOBS = 1
     return MAX_JOBS
@@ -46,7 +46,7 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
                    rerun_rules = False, cutoff_file = "", sample_dir = "", nt_ext = "", pep_ext = "",
                    consensus_cutoff = 0.75, tax_tab = "", prot_tab = "", use_salmon_counts = False,
                    names_to_reads = "", alignment_res = "", filter_metric = "evalue", 
-                   run_transdecoder = False, transdecoder_orf_size = 100):
+                   run_transdecoder = False, transdecoder_orf_size = 100, perc_mem = 0.75):
     
     """
     This function diverts management tasks to the below helper functions.
@@ -63,14 +63,15 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
             manageTrandecode(samples, output_dir, rerun_rules, sample_dir,
                      mets_or_mags = "mets", transdecoder_orf_size = 100,
                      nt_ext = "." + nt_ext.strip('.'), pep_ext = "." + pep_ext.strip('.'),
-                     run_transdecoder = run_transdecoder)
+                     run_transdecoder = run_transdecoder, perc_mem = perc_mem)
     elif piece == "align_to_db":
         return manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fasta, 
-                        mets_or_mags, database_dir, sample_dir, rerun_rules, nt_ext, pep_ext, core = "full")
+                        mets_or_mags, database_dir, sample_dir, rerun_rules, nt_ext, pep_ext, core = "full",
+                              perc_mem = perc_mem)
     elif piece == "estimate_taxonomy":
         manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
                             prot_tab, use_salmon_counts, names_to_reads, alignment_res,
-                            rerun_rules, samples, sample_dir, pep_ext, nt_ext)
+                            rerun_rules, samples, sample_dir, pep_ext, nt_ext, perc_mem)
     elif piece == "visualize_taxonomy":
         manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, 
                                use_salmon_counts, rerun_rules)
@@ -78,13 +79,14 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
         manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir, pep_ext, core = False)
     elif piece == "core_align_to_db":
         alignment_res = manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fasta, 
-                        mets_or_mags, database_dir, sample_dir, rerun_rules, nt_ext, pep_ext, core = "core")
+                        mets_or_mags, database_dir, sample_dir, rerun_rules, nt_ext, pep_ext, core = "core",
+                                       perc_mem = perc_mem)
         alignment_res = [curr for curr in alignment_res if curr != ""]
         return alignment_res
     elif piece == "core_estimate_taxonomy":
         manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
                             prot_tab, use_salmon_counts, names_to_reads, alignment_res,
-                            rerun_rules, samples, sample_dir, pep_ext, nt_ext)
+                            rerun_rules, samples, sample_dir, pep_ext, nt_ext, perc_mem)
     elif piece == "core_visualize_taxonomy":
         manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, 
                                use_salmon_counts, rerun_rules, core = True)
@@ -186,14 +188,15 @@ def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir,
     
 def manageTrandecode(met_samples, output_dir, rerun_rules, sample_dir, 
                      mets_or_mags = "mets", transdecoder_orf_size = 100,
-                     nt_ext = "fasta", pep_ext = ".faa", run_transdecoder = False):
+                     nt_ext = "fasta", pep_ext = ".faa", run_transdecoder = False, perc_mem = 0.75):
     """
     Now for some TransDecoding - a manager for TransDecoder steps.
     """
     
     print("Running TransDecoder for MET samples...", flush = True)
     
-    MAX_JOBS = min([calc_max_jobs(len(met_samples), pathlib.Path(os.path.join(sample_dir, sample + nt_ext)).stat().st_size) \
+    MAX_JOBS = min([calc_max_jobs(len(met_samples), pathlib.Path(os.path.join(sample_dir, sample + nt_ext)).stat().st_size,
+                                 max_mem_per_proc = 48, perc_mem = perc_mem) \
                     for sample in met_samples  \
                     if os.path.isfile(os.path.join(sample_dir, sample + nt_ext))])
     n_jobs_align = min(multiprocessing.cpu_count(), len(met_samples), max(1,MAX_JOBS))
@@ -226,7 +229,8 @@ def setupEukulele(output_dir):
     return 0
 
 def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fasta,
-                    mets_or_mags, database_dir, sample_dir, rerun_rules, nt_ext, pep_ext, core = "full"):
+                    mets_or_mags, database_dir, sample_dir, rerun_rules, nt_ext, pep_ext, core = "full",
+                    perc_mem = 0.75):
     """
     Manage the multithreaded management of aligning to either BLAST or DIAMOND database.
     """
@@ -240,7 +244,8 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
     else:
         fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
         
-    MAX_JOBS = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size) for sample in fastas])
+    MAX_JOBS = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size,
+                                 max_mem_per_proc = 10, perc_mem = perc_mem) for sample in fastas])
     n_jobs_align = min(multiprocessing.cpu_count(), len(samples), max(1,MAX_JOBS))
     alignment_res = Parallel(n_jobs=n_jobs_align, prefer="threads")(delayed(alignToDatabase)(alignment_choice,
                                                                                                sample_name, filter_metric, 
@@ -400,7 +405,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
     
 def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
                         prot_tab, use_salmon_counts, names_to_reads, alignment_res,
-                        rerun_rules, samples, sample_dir, pep_ext, nt_ext):
+                        rerun_rules, samples, sample_dir, pep_ext, nt_ext, perc_mem):
     print("Performing taxonomic estimation steps...", flush=True)
     os.system("mkdir -p " + os.path.join(output_dir, "taxonomy_estimation"))
     outfiles = [os.path.join(output_dir, "taxonomy_estimation", samp + "-estimated-taxonomy.out") for samp in samples]
@@ -415,7 +420,8 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
     else:
         fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
         
-    MAX_JOBS = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size) for sample in fastas])
+    MAX_JOBS = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size,
+                                 max_mem_per_proc = 10, perc_mem = perc_mem) for sample in fastas])
     n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res), max(1, MAX_JOBS))
     for t in range(len(alignment_res)): 
         curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
@@ -434,7 +440,7 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
         
 def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
                             prot_tab, use_salmon_counts, names_to_reads, alignment_res,
-                            rerun_rules, samples, sample_dir, pep_ext, nt_ext):
+                            rerun_rules, samples, sample_dir, pep_ext, nt_ext, perc_mem):
     print("Performing taxonomic estimation steps...", flush=True)
     os.system("mkdir -p " + os.path.join(output_dir, "core_taxonomy_estimation"))
     outfiles = [os.path.join(output_dir, "core_taxonomy_estimation", samp + "-estimated-taxonomy.out") for samp in samples]
@@ -449,7 +455,8 @@ def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, cons
     else:
         fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
         
-    MAX_JOBS = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size) for sample in fastas])
+    MAX_JOBS = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size,
+                                 max_mem_per_proc = 10, perc_mem = perc_mem) for sample in fastas])
     n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res), MAX_JOBS)
     for t in range(len(alignment_res)): 
         try:
@@ -488,11 +495,12 @@ def manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt
     sys.stdout = sys.__stdout__
     sys.stderr = sys.__stderr__
 
-def manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir, pep_ext, core = False):
+def manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir, pep_ext, core = False, perc_mem = 0.75):
     if mets_or_mags == "mags":
         print("Performing taxonomic assignment steps...", flush=True)
         MAX_JOBS = min([calc_max_jobs(len(samples), 
-                                      pathlib.Path(os.path.join(sample_dir, sample + "." + pep_ext)).stat().st_size) 
+                                      pathlib.Path(os.path.join(sample_dir, sample + "." + pep_ext)).stat().st_size,
+                                     max_mem_per_proc = 10, perc_mem = perc_mem) 
                         for sample in samples])
         n_jobs_viz = min(multiprocessing.cpu_count(), len(samples), max(1,MAX_JOBS))
         try:

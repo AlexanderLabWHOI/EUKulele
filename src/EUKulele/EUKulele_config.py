@@ -109,6 +109,9 @@ def parseConfig(config_file):
         args = args + " --taxonomy_organisms " + str(" ".join(config["taxonomy_organisms"]))
     if "busco_threshold" in config:
         args = args + " --busco_threshold " + str(config["busco_threshold"])
+    if "test" in config:
+        if config["test"] == 1:
+            args = args + " --test"
 
     if ("tax_table" in config): # unique, non-default name for formatted taxonomy table
         tax_table = config["tax_table"]
