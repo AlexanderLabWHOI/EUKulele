@@ -67,7 +67,7 @@ def main(args_in):
                         help = "Folder where the input data is located (the protein or peptide files to be assessed).")
     
     ## ONLY SPECIFY THESE ARGUMENTS IF YOU HAVE ALREADY PROVIDED AND FORMATTED YOUR OWN DATABASE ##
-    parser.add_argument('--reference_dir', default="", 
+    parser.add_argument('--reference_dir', default=".", 
                         help = "Folder containing the reference files for the chosen database.")
     parser.add_argument('--ref_fasta', default = "reference.pep.fa", 
                         help = "Either a file in the reference directory where the fasta file for the database " + 
@@ -108,6 +108,10 @@ def main(args_in):
                        help = "Whether TransDecoder should be run on metatranscriptomic samples. Otherwise, " +
                        "BLASTp is run if protein translated samples are provided, otherwise BLASTx is run " + 
                        "on nucleotide samples.")
+    
+    
+    parser.add_argument('--test', action='store_true', default=False, 
+                       help = "Whether we're just running a test and should not execute downloads.")
                
     args = parser.parse_args(list(filter(None, args_in.split(" "))))
     
@@ -151,10 +155,14 @@ def main(args_in):
     ORGANISMS, ORGANISMS_TAXONOMY = readBuscoFile(individual_or_summary, BUSCO_FILE, 
                                                   ORGANISMS, ORGANISMS_TAXONOMY)
 
+    DOWNLOAD = False
     SETUP = False
     ALIGNMENT = False
     BUSCO = False
     COREGENES = False
+    
+    if (args.subroutine == "download"):
+        DOWNLOAD = True
     if (args.subroutine == "all") | (args.subroutine == "setup"):
         SETUP = True
     if (args.subroutine == "all") | (args.subroutine == "alignment"):
@@ -178,17 +186,19 @@ def main(args_in):
         TAX_TAB = os.path.join(REFERENCE_DIR, args.tax_table)
         PROT_TAB = os.path.join(REFERENCE_DIR, args.protein_map)
 
-        ## Download the reference database if specified.
+        ## Download the reference database if specified. ##
+        ## First, check if files are in originally specified reference directory ##
         if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))) | \
            (not os.path.isfile(TAX_TAB)) | \
            (not os.path.isfile(PROT_TAB)):
-            REFERENCE_DIR = args.database.lower()
+            REFERENCE_DIR = os.path.join(REFERENCE_DIR, args.database.lower())
             print("Specified reference directory, reference FASTA, and protein map/taxonomy table not found. " +
-                  "Using database: " + REFERENCE_DIR + ".")
+                  "Using database in location: " + REFERENCE_DIR + ".")
             os.system("mkdir -p " + REFERENCE_DIR)
             TAX_TAB = os.path.join(REFERENCE_DIR, "tax-table.txt")
             PROT_TAB = os.path.join(REFERENCE_DIR, "prot-map.json")
 
+        ## Next, see whether there is a subdirectory of reference directory containing folder for our DB name ##
         if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))) | \
            (not os.path.isfile(TAX_TAB)) | \
            (not os.path.isfile(PROT_TAB)):

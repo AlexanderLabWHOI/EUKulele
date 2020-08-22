@@ -156,8 +156,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cuto
                        columns=['transcript_name','classification_level', 'full_classification', 
                                 'classification', 'max_pid', 'counts', 'ambiguous'])
         else:
-            return pd.DataFrame([[transcript_name, assignment, full_classification, best_classification, md, ambiguous]],\
-                       columns=['transcript_name', 'classification_level', 'full_classification', 
+            return pd.DataFrame(columns=['transcript_name', 'classification_level', 'full_classification', 
                                 'classification', 'max_pid', 'ambiguous'])
         
     for chunk in pd.read_csv(str(df), sep = '\t', header = None, chunksize=chunksize):

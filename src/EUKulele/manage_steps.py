@@ -23,11 +23,14 @@ while MEM_AVAIL_GB == 0:
         pass
     
 # 25 GB memory per GB file size
+# add a parameter that chaanges between the requirement per file size (reducing to 10 GB for now)
+# also add a parameter to EUKulele that decides whether you use 100% of available memory and scales
+# MEM_AVAIL_GB by that amount (default to 75%)
 def calc_max_jobs(num_files, size_in_bytes = 2147483648):
     size_in_gb = size_in_bytes / (1024*1024*1024)
     if size_in_gb == 0:
         size_in_gb = 0.01
-    MAX_JOBS = math.floor(MEM_AVAIL_GB / (25 * size_in_gb * num_files)) #48)
+    MAX_JOBS = math.floor(MEM_AVAIL_GB / (10 * size_in_gb * num_files)) #48)
     if MAX_JOBS == 0:
         MAX_JOBS = 1
     return MAX_JOBS
