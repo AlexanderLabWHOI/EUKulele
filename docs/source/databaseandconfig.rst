@@ -12,6 +12,12 @@ Three databases can be downloaded and formatted automatically when invoking ``EU
 
 To use these databases, all you need to do is specify ``--database phylodb``, ``--database eukprot``, or ``--database mmetsp``, respectively, when invoking ``EUKulele``. 
 
+A database (for example ``phylodb``) can be setup prior to running by using::
+
+EUKulele setup --database phylodb
+
+If a database is not found automatically by ``EUKuele`` it will automatically download the database specified by the flag. If you downloaded a database previously you can specify the ``--reference_dir`` flag indicating the path to the previously downloaded database. 
+
 Using Other Databases
 ---------------------
 
@@ -48,7 +54,7 @@ when ``EUKulele`` is installed.
 - ``--taxonomy_col_id``
     - Only relevant if ``--reformat_tax`` is specified. The column (e.g. "taxonomy" as in the default) that contains a semicolon-separated list of the taxonomic levels to be separated into columns
 - ``--outfile_json``
-    - The name of the output protein map file to be created. To use the output most easily with ``EUKulele``, this file should be called ``prot-map.json`` (as is the default) and placed in the same reference directory with the reference protein FASTA file, which ideally would be named ``reference.pep.fa`` to facilitate working with the defaults. Then, just specify this output folder as ``--reference_dir`` when invoking ``EUKulele``
+    - The name of the output protein map file to be created. To use the output most easily with ``EUKulele``, this file should be called ``prot-map.json`` (as is the default) and placed in the same )nce directory with the reference protein FASTA file, which ideally would be named ``reference.pep.fa`` to facilitate working with the defaults. Then, just specify this output folder as ``--reference_dir`` when invoking ``EUKulele``
 - ``--output``
     - The name of the output taxonomy table file to be created. To use the output most easily with ``EUKulele``, this file should be called ``tax-table.txt`` (as is the default) and placed in the same reference directory with the reference protein FASTA file, which ideally would be named ``reference.pep.fa`` to facilitate working with the defaults. Then, just specify this output folder as ``--reference_dir`` when invoking ``EUKulele``
 - ``--delim``
