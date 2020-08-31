@@ -60,6 +60,6 @@ If you have questions about how to use `EUKulele`, or would like to seek out col
 
 ### Acknowledgments
 
-Authors: Arianna Krinos, Sarah Hu, and Harriet Alexander.
+Authors: Arianna Krinos, Sarah Hu, Natalie Cohen, and Harriet Alexander.
 
 We gratefully acknowledge Natalie Cohen, who contributed significantly to project development and testing. 

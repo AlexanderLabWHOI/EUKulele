@@ -104,7 +104,7 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts, tax_cutoffs):
             if d not in tax_dict:
                 return(pd.DataFrame(columns=['transcript_name','classification_level', 'full_classification', 
                                              'classification', 'max_pid', 'counts', 'ambiguous']))
-            d_full_class = str(tax_dict[d]).split(";")[0:(level + 1)]
+            d_full_class = str(tax_dict[d]).split(";")[0:level]
             classification_0.append(d_full_class[len(d_full_class) - 1]) # the most specific taxonomic level we can classify by
             full_classification_0.append('; '.join(d_full_class)) # the actual assignments based on that
         entries = list(set(full_classification_0))
@@ -129,7 +129,8 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts, tax_cutoffs):
                 assignment, best_classification, full_classification = lca(full_classification_0)
 
     if use_counts == 1:
-        return pd.DataFrame([[transcript_name, assignment, full_classification, best_classification, md, chosen_count, ambiguous]],\
+        return pd.DataFrame([[transcript_name, assignment, full_classification, best_classification, md,\
+                              chosen_count, ambiguous]],\
                        columns=['transcript_name','classification_level', 'full_classification', 
                                 'classification', 'max_pid', 'counts', 'ambiguous'])
     else:
@@ -145,7 +146,7 @@ def apply_parallel(grouped_data, match_maker, consensus_cutoff, tax_dict, use_co
     return pd.concat(resultdf)
 
 def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cutoff, tax_cutoffs):
-    chunksize = 10 ** 6
+    chunksize = 2 * 10 ** 6
     counter = 0
     
     ## Return an empty dataframe if no matches made ##
@@ -163,8 +164,10 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cuto
         chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 'qstart', 
                          'qend', 'sstart', 'send', 'evalue', 'bitscore']
         chunk['ssqid_TAXID']=chunk.sseqid.map(pdict)
+        chunk = chunk[['qseqid','pident', 'evalue', 'bitscore', 'ssqid_TAXID']]
         if namestoreads != 0:
-            chunk['counts']=[namestoreads[curr.split(".")[0]] if curr.split(".")[0] in namestoreads else 0 for curr in chunk.qseqid]
+            chunk['counts']=[namestoreads[curr.split(".")[0].split(":")[0]] if curr.split(".")[0].split(":")[0] in 
+                             namestoreads else 0 for curr in chunk.qseqid]
             use_counts = 1
         else:
             chunk['counts'] = [0] * len(chunk.qseqid) # if no reads dict, each count is just assumed to be 0 and isn't recorded later

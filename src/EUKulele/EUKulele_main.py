@@ -41,9 +41,10 @@ def main(args_in):
               '--reference_dir [reference_database_location] [all other options]')
     
     parser.add_argument('subroutine', metavar="subroutine", nargs='?', type=str, default="all", 
-                        choices = ["","all","setup","alignment","busco","coregenes"], 
+                        choices = ["","all","download","setup","alignment","busco","coregenes"], 
                         help='Choice of subroutine to run.')
-    parser.add_argument('-m', '--mets_or_mags', dest = "mets_or_mags", required = True) 
+    
+    parser.add_argument('-m', '--mets_or_mags', dest = "mets_or_mags", required = False, default = "") 
     parser.add_argument('--n_ext', '--nucleotide_extension', dest = "nucleotide_extension", default = ".fasta") 
     parser.add_argument('--p_ext', '--protein_extension', dest = "protein_extension", default = ".faa") 
     parser.add_argument('-f', '--force_rerun', action='store_true', default=False)
@@ -63,9 +64,9 @@ def main(args_in):
     ## WHERE FILES ARE LOCATED ##
     parser.add_argument('-d', '--database', default="mmetsp", 
                         help = "The name of the database to be used to assess the reads.")
-    parser.add_argument('-o', '--out_dir', dest = "out_dir", default = "output", 
+    parser.add_argument('-o', '--out_dir', '--output_dir', dest = "out_dir", default = "output", 
                         help = "Folder where the output will be written.")
-    parser.add_argument('-s', '--sample_dir', required = True, dest = "sample_dir",
+    parser.add_argument('-s', '--sample_dir', required = False, dest = "sample_dir", default = "nan",
                         help = "Folder where the input data is located (the protein or peptide files to be assessed).")
     
     ## ONLY SPECIFY THESE ARGUMENTS IF YOU HAVE ALREADY PROVIDED AND FORMATTED YOUR OWN DATABASE ##
@@ -115,6 +116,12 @@ def main(args_in):
                        help = "Whether we're just running a test and should not execute downloads.")
                
     args = parser.parse_args(list(filter(None, args_in.split(" "))))
+    if (args.mets_or_mags == "") & (args.subroutine != "download"):
+        print("METs or MAGs argument (-m/--mets_or_mags) is required with one of 'mets' or 'mags'.")
+        sys.exit(1)
+    if (args.sample_dir == "nan") & (args.subroutine != "download"):
+        print("A sample directory must be specified (-s/--sample_dir).")
+        sys.exit(1)
     
     ## VARIABLES ##
     TEST = args.test
@@ -139,7 +146,7 @@ def main(args_in):
     if args.individual_tag:
         individual_or_summary = "individual"
     
-    if (mets_or_mags != "mets") & (mets_or_mags != "mags"):
+    if (mets_or_mags != "mets") & (mets_or_mags != "mags") & (args.subroutine != "download"):
         print("Only METs or MAGs are supported as input data types. Please update the 'mets_or_mags' flag accordingly.")
         sys.exit(1)
 
@@ -181,9 +188,10 @@ def main(args_in):
         COREGENES = False
     else: 
         ## SETUP STEPS / DOWNLOAD DEPENDENCIES ##
-        manageEukulele(piece = "setup_eukulele", output_dir = OUTPUTDIR)
-        samples = manageEukulele(piece = "get_samples", mets_or_mags = mets_or_mags,
-                                 sample_dir = SAMPLE_DIR, nt_ext = NT_EXT, pep_ext = PEP_EXT)
+        if not DOWNLOAD:
+            manageEukulele(piece = "setup_eukulele", output_dir = OUTPUTDIR)
+            samples = manageEukulele(piece = "get_samples", mets_or_mags = mets_or_mags,
+                                     sample_dir = SAMPLE_DIR, nt_ext = NT_EXT, pep_ext = PEP_EXT)
 
         TAX_TAB = os.path.join(REFERENCE_DIR, args.tax_table)
         PROT_TAB = os.path.join(REFERENCE_DIR, args.protein_map)
@@ -204,12 +212,19 @@ def main(args_in):
         if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))) | \
            (not os.path.isfile(TAX_TAB)) | \
            (not os.path.isfile(PROT_TAB)):
-            REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), ALIGNMENT_CHOICE)
+            REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), ALIGNMENT_CHOICE, 
+                                                            "/".join(REFERENCE_DIR.split("/")[0:-1]))
+            if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))) | \
+               (not os.path.isfile(TAX_TAB)) | \
+               (not os.path.isfile(PROT_TAB)):
+                print("Download and formatting did not complete successfully. Check log files for details.")
+                sys.exit(1)
         else:
             print("Found database folder for " + REFERENCE_DIR + " in current directory; will not re-download.")
 
     if SETUP:
-        manageEukulele(piece = "setup_databases", ref_fasta = REF_FASTA, rerun_rules = RERUN_RULES, 
+        print("Creating a DIAMOND reference from database files...")
+        manageEukulele(piece = "setup_databases", ref_fasta = REF_FASTA, rerun_rules = RERUN_RULES, output_dir = OUTPUTDIR,
                        alignment_choice = ALIGNMENT_CHOICE, database_dir = REFERENCE_DIR)
 
     if ALIGNMENT:
@@ -228,10 +243,10 @@ def main(args_in):
         ## Next to do salmon counts estimation. ##
         if (USE_SALMON_COUNTS == 1):
             try:
-                NAMES_TO_READS = namesToReads(args.config_file)
+                NAMES_TO_READS = namesToReads(REFERENCE_DIR, NAMES_TO_READS, SALMON_DIR)
             except:
                 print("The salmon directory provided could not be converted to a salmon file. Check " +
-                      "above error messages. EUKulele will continue running without counts.")
+                      "above error messages, and",sys.exc_info()[0],"EUKulele will continue running without counts.")
                 USE_SALMON_COUNTS = 0
 
         manageEukulele(piece = "estimate_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
@@ -251,17 +266,19 @@ def main(args_in):
                        sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT,
                        output_dir = OUTPUTDIR)
 
+    busco_matched = True
     if BUSCO:
         configRunBusco(output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, pep_ext = PEP_EXT, 
                        nt_ext = NT_EXT, sample_dir = SAMPLE_DIR, samples = samples)
 
-        manageBuscoQuery(output_dir = OUTPUTDIR, individual_or_summary = individual_or_summary, 
+        busco_matched = manageBuscoQuery(output_dir = OUTPUTDIR, individual_or_summary = individual_or_summary, 
                          samples = samples, mets_or_mags = mets_or_mags, pep_ext = PEP_EXT, 
                          nt_ext = NT_EXT, sample_dir = SAMPLE_DIR, organisms = ORGANISMS, 
                          organisms_taxonomy = ORGANISMS_TAXONOMY, tax_tab = TAX_TAB, 
                          busco_threshold = args.busco_threshold, perc_mem = PERC_MEM)
-        
-    if COREGENES:
+    print(busco_matched)
+    
+    if COREGENES & busco_matched:
         print("Investigating core genes...")
         ## Next to align against our database of choice ##
         alignment_res = manageEukulele(piece = "core_align_to_db", alignment_choice = ALIGNMENT_CHOICE, samples = samples, 

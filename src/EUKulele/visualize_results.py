@@ -8,6 +8,8 @@ import sys
 import yaml
 import argparse
 
+#.loc[[name == curr for name in final_frame.loc[name_level]],["Sum"]] 
+
 def countClassifs(level, level_hierarchy, name_level, df):
     set_list = set()
     
@@ -21,7 +23,7 @@ def countClassifs(level, level_hierarchy, name_level, df):
         correct_index = list(np.where([len(str(cr).split(";")) >= abs(-1-(curr-match_loc)) for cr in classification_curr])[0])
         
         classification_curr = [classification_curr[cr2] for cr2 in correct_index]
-        classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() for cr in classification_curr]
+        classifs_curr = [str(cr).split(";")[match_loc].strip() for cr in classification_curr]
         transcripts_curr = [transcripts_curr[cr2] for cr2 in correct_index]
         counts_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["counts"])
         counts_curr = [counts_curr[cr2] for cr2 in correct_index]
@@ -37,13 +39,23 @@ def countClassifs(level, level_hierarchy, name_level, df):
     
     transcripts_classes = pd.DataFrame({"classifications": classifications, "transcript_names": transcript_names})
     transcripts_classes = transcripts_classes.groupby("classifications").agg({"transcript_names": lambda x: ';'.join(x)})
-    transcripts_classes = transcripts_classes.set_index('classifications')
-    transcripts_classes = transcripts_classes.loc[list(set_list)]
+    
+    # Apparently now when you groupby, the grouping becomes the index.
+    if transcripts_classes.index.name != "classifications":
+        transcripts_classes = transcripts_classes.set_index('classifications')
+    transcripts_classes = transcripts_classes.loc[sorted(list(set_list))]
     
     full_frame = pd.DataFrame({name_level: classifications, "Counts": counts})
-    final_frame = full_frame.groupby(name_level)['Counts'].agg(Sum='sum', Count='count')
+    final_frame = full_frame.groupby(name_level)['Counts'].agg(Sum='sum', Count='count') 
+    # gives both the sum of cts & # transcripts
     final_frame["GroupedTranscripts"] = list(transcripts_classes.transcript_names)
-    return classifications, final_frame
+    
+    end_frame = pd.DataFrame({name_level: sorted(list(set_list)), 
+                                "Counts": tuple([float(final_frame[final_frame.index == curr].Sum) \
+                                           for curr in sorted(list(set_list))]),
+                                "NumTranscripts": [full_list.count(curr) for curr in sorted(list(set_list))], 
+                                "GroupedTranscripts": list(transcripts_classes.transcript_names)})
+    return classifications, end_frame
     
 def countClassifsNoCounts(level, level_hierarchy, name_level, df):
     set_list = set()
@@ -53,6 +65,7 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
     match_loc = int(np.where([curr == level.lower() for curr in level_hierarchy])[0])
     
     for curr in range(match_loc + 1,len(level_hierarchy)):
+        ## MAKE THE TWO CHANGES FROM ABOVE HERE!!
         classification_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["full_classification"])
         transcripts_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["transcript_name"])
         correct_index = list(np.where([len(str(cr).split(";")) >= abs(-1-(curr-match_loc)) for cr in classification_curr])[0])
@@ -64,6 +77,7 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
         transcript_names.extend(transcripts_curr)
         classifications.extend(classifs_curr)
         
+    # a vector containing all of the classifications given at the current taxonomic level
     classifications = [str(cr).strip().strip(""''"]['") for cr in classifications]
     full_list = classifications
     set_list.update(set(classifications))
@@ -134,6 +148,8 @@ def makeConcatFrame(curr_df, new_df, level, sample_name, use_counts):
         return curr_df
     if use_counts == 1:
         new_df = pd.DataFrame(new_df.reset_index())
+        new_df = new_df.drop(columns = "index")
+        print(new_df.head())
         new_df.columns = [level,"Counts","NumTranscripts","GroupedTranscripts"]
     else:
         new_df = pd.DataFrame(new_df)
@@ -263,12 +279,16 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
             ax2.set_facecolor('white')
             pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05, transcript_or_counts="NumTranscripts")
             pivoted.plot(kind='bar', stacked=True, width=1, color = sns_palette, title="Transcripts", ax = ax1)
-            locs, labels = ax1.xticks()
-            ax1.xticks(ticks = locs, labels = [label.get_text()[0:20] for label in labels])
+            locs = ax1.get_xticks()
+            labels = ax1.get_xticklabels()
+            ax1.set_xticks(locs)
+            ax1.set_xticklabels([label.get_text()[0:20] for label in labels])
             pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05, transcript_or_counts="Counts")
             pivoted.plot(kind='bar', stacked=True, width=1, color = sns_palette, title="Counts", ax = ax2)
-            locs, labels = ax2.xticks()
-            ax2.xticks(ticks = locs, labels = [label.get_text()[0:20] for label in labels])
+            locs = ax2.get_xticks()
+            labels = ax2.get_xticklabels()
+            ax2.set_xticks(ticks = locs)
+            ax2.set_xticklabels(labels = [label.get_text()[0:20] for label in labels])
             plt.tight_layout()
             os.system("mkdir -p " + results_viz_dir)
             plt.savefig(os.path.join(results_viz_dir, l + '_counts_and_transcripts.png'),dpi=100)

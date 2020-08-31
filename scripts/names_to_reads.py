@@ -29,6 +29,6 @@ def namesToReads(reference_dir, names_to_reads, salmon_dir):
         names_to_reads.to_csv(path_or_buf = os.path.join(reference_dir,names_to_reads), sep = "\t")
     else:
         names_to_reads.to_csv(path_or_buf = os.path.join(reference_dir,"namestoreads.csv"), sep = "\t")
-        names_to_reads = "namestoreads.csv"
+        names_to_reads = os.path.join(reference_dir,"namestoreads.csv")
     
     return names_to_reads

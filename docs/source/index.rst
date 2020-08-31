@@ -37,6 +37,13 @@ Badging
 
 .. image:: https://travis-ci.com/AlexanderLabWHOI/EUKulele.svg?branch=master
    :target: https://travis-ci.com/AlexanderLabWHOI/EUKulele
+   
+Flowchart
+---------
+
+.. image:: eukulele_flowchart.png
+  :width: 400
+  :alt: Flowchart of EUKulele overview
 
 
 Indices and tables

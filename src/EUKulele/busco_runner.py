@@ -95,16 +95,22 @@ def run_busco(sample_name, output_dir_busco, output_dir, busco_db, mets_or_mags,
     if mets_or_mags == "mets":
         if os.path.isfile(os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext)):
             fastaname = os.path.join(output_dir, mets_or_mags, sample_name + "." + pep_ext) 
+            busco_mode = "proteins"
+        elif os.path.isfile(os.path.join(sample_dir, sample_name + "." + pep_ext)):
+            fastaname = os.path.join(sample_dir, sample_name + "." + pep_ext) 
+            busco_mode = "proteins"
         else:
             fastaname = os.path.join(sample_dir, sample_name + "." + nt_ext)
+            busco_mode = "transcriptome"
     else:
         fastaname = os.path.join(sample_dir, sample_name + "." + pep_ext)
+        busco_mode = "proteins"
         
     busco_run_log = open(os.path.join("log","busco_run.out"), "w+")
     busco_run_err = open(os.path.join("log","busco_run.err"), "w+")
     p1 = subprocess.Popen(["run_busco.sh", str(sample_name), str(output_dir_busco), 
                               os.path.join(output_dir_busco, "config_" + sample_name + ".ini"), 
-                              fastaname, str(CPUS), busco_db], stdout = busco_run_log, stderr = busco_run_err)
+                              fastaname, str(CPUS), busco_db, busco_mode], stdout = busco_run_log, stderr = busco_run_err)
     
     ## TRAVIS DEBUGGING!! ##
     
@@ -129,6 +135,7 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
     Assess BUSCO completeness on the most prevalent members of the metatranscriptome at each taxonomic level.
     """
     MAX_JOBS = calc_max_jobs(len(samples), perc_mem = perc_mem)
+    samples_complete = []
     if individual_or_summary == "individual":
         if (len(organisms) != len(organisms_taxonomy)):
             print("A different number of organisms was specified than the taxonomic levels given in " + 
@@ -142,7 +149,23 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
             
         for sample_name in samples:
             # the BUSCO table that we're interested in using that contains the BUSCO matches and their level of completeness
-            busco_table = os.path.join(output_dir, "busco", sample_name, "full_table.tsv") 
+            if not os.path.isfile(os.path.join(output_dir, "busco", sample_name, "run_eukaryota_odb10", "full_table.tsv")):
+                print("BUSCO run either did not complete successfully, or returned no matches for sample",
+                      sample_name,". Check busco_run log for details.")
+                continue
+            samples_complete.append(sample_name)
+            
+            busco_table = os.path.join(output_dir, "busco", sample_name, "run_eukaryota_odb10", "full_table.tsv") 
+            missing_buscos = pd.read_csv(os.path.join(output_dir, "busco", sample_name, 
+                                                      "run_eukaryota_odb10", "missing_busco_list.tsv"), 
+                                         sep = "\t", comment = "#", header = None)
+            if len(missing_buscos.index) < 255:
+                print("At least one BUSCO present in sample",sample_name,"but",len(missing_buscos.index),
+                      "missing.",flush=True)
+                samples_complete.append(sample_name)
+            else:
+                print("No matches returned for sample",sample_name,
+                      ". Assessment files will be empty.",flush=True)
             # the prefix to specify where the taxonomy estimation output files are located
             taxfile_stub = os.path.join(output_dir, "taxonomy_counts", output_dir.split("/")[-1]) 
 
@@ -177,7 +200,21 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
     else:
         for sample_name in samples:
             # the BUSCO table that we're interested in using that contains the BUSCO matches and their level of completeness
-            busco_table = os.path.join(output_dir, "busco", sample_name, "full_table.tsv") 
+            if not os.path.isfile(os.path.join(output_dir, "busco", sample_name, "run_eukaryota_odb10", "full_table.tsv")):
+                print("BUSCO run either did not complete successfully, or returned no matches for sample",
+                      sample_name,". Check busco_run log for details.", flush=True)
+                continue
+            busco_table = os.path.join(output_dir, "busco", sample_name, "run_eukaryota_odb10", "full_table.tsv") 
+            missing_buscos = pd.read_csv(os.path.join(output_dir, "busco", sample_name, 
+                                                      "run_eukaryota_odb10", "missing_busco_list.tsv"), 
+                                         sep = "\t", comment = "#", header = None)
+            if len(missing_buscos.index) < 255:
+                print("At least one BUSCO present in sample",sample_name,"but",len(missing_buscos.index),
+                      "missing.",flush=True)
+                samples_complete.append(sample_name)
+            else:
+                print("No matches returned for sample",sample_name,
+                      ". Assessment files will be empty.",flush=True)
             # the prefix to specify where the taxonomy estimation output files are located
             taxfile_stub = os.path.join(output_dir, "taxonomy_counts", output_dir.split("/")[-1])
 
@@ -197,7 +234,8 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
             try:
                 rc = queryBusco(query_args)
             except OSError as e:
-                print("Not all files needed to run BUSCO query (output of BUSCO run) found; check log file for details.")
+                print("Not all files needed to run BUSCO query (output of BUSCO run) found;",\
+                      "check log file for details. Here is the error:",e)
                 rc = 1
             except:
                 print("Unexpected error:", sys.exc_info()[0])
@@ -211,3 +249,8 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
                 sys.exit(1)
             else:
                 print("BUSCO query complete.")
+                
+    if len(samples_complete) == 0:
+        print("No BUSCO matches found for any sample. Check BUSCO run log for details. Exiting...")
+        return False
+    return True

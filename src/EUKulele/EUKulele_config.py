@@ -111,7 +111,7 @@ def parseConfig(config_file):
         args = args + " --busco_threshold " + str(config["busco_threshold"])
     if "test" in config:
         if config["test"] == 1:
-            args = args + " --test"
+            args = args + " logs/cdhit/mega_merge_err.log"
 
     if ("tax_table" in config): # unique, non-default name for formatted taxonomy table
         tax_table = config["tax_table"]

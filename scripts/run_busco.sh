@@ -14,6 +14,7 @@ CONFIG_LOC=$3
 INPUT_FASTA=$4
 CPUS=$5
 BUSCO_DB=$6
+BUSCO_MODE=$7 # proteins vs. transcriptome
 
 mkdir -p $OUTPUTDIR
        
@@ -24,12 +25,16 @@ BUSCO_CONFIG_FILE="$BUSCO_DIR"/../config/config.ini
 CONFIG_DIR="$(dirname $CONFIG_LOC)"
 busco_configurator.py $BUSCO_CONFIG_FILE $CONFIG_LOC
 echo "python3 busco_configurator.py $BUSCO_CONFIG_FILE $CONFIG_LOC"
-cat $CONFIG_LOC
 sed -i '/out = /c\out = '$SAMPLENAME $CONFIG_LOC # the name of the output files
 sed -i '/out_path = /c\out_path = '$OUTPUTDIR $CONFIG_LOC # what directory the output will be stored in
 sed -i '/download_path = /c\download_path = ./busco_downloads/' $CONFIG_LOC
 # ./references_bins/busco/bin/busco
 
 mkdir -p $OUTPUTDIR/$SAMPLENAME
-busco -i $INPUT_FASTA -l $BUSCO_DB -m proteins --cpu $CPUS --config $CONFIG_LOC -o $SAMPLENAME -f --offline
-mv $OUTPUTDIR/$SAMPLENAME/*/* $OUTPUTDIR/$SAMPLENAME
+busco -i $INPUT_FASTA -l $BUSCO_DB -m $BUSCO_MODE --cpu $CPUS --config $CONFIG_LOC -o $SAMPLENAME -f --offline
+
+if [ -f "$OUTPUTDIR/$SAMPLENAME/*/*" ]; then
+    mv $OUTPUTDIR/$SAMPLENAME/*/* $OUTPUTDIR/$SAMPLENAME
+else
+    echo "BUSCO did not complete successfully."
+fi

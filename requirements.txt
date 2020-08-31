@@ -15,4 +15,5 @@ python-coveralls
 pyyaml
 matplotlib
 pytest-cov
+zenodo_get
 #pkgutil

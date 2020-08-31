@@ -9,7 +9,7 @@ from EUKulele.manage_steps import createAlignmentDatabase
 
 from scripts.create_protein_table import createProteinTable
 
-def downloadDatabase(database_name, alignment_choice):
+def downloadDatabase(database_name, alignment_choice, reference_dir = "."):
     """
     Automatically downloads a peptide database for use with EUKulele and stores the name of
     the resulting FASTA file and taxonomy table.
@@ -33,6 +33,10 @@ def downloadDatabase(database_name, alignment_choice):
         delimiter = "\t"
         sourceID = "strain_name"
         create_protein_table_args.append("--reformat_tax")
+    elif (database_name == "eukzoo"):
+        column_id = 0
+        delimiter = "_"
+        sourceID = "Source_ID"
     else:
         print("Specified reference database, " + database_name + " is not supported.")
         sys.exit(1)
@@ -45,33 +49,38 @@ def downloadDatabase(database_name, alignment_choice):
     database_ref_url = config[database_name + "_ref"]
     database_tab_url = config[database_name + "_tab"]
     rc = os.system(" ".join(["download_database.sh", database_name, database_ref_url, 
-                          database_tab_url]))
+                          database_tab_url, reference_dir]))
     if rc != 0:
         print("Download of database " + database_name + " did not complete correctly.")
         sys.exit(1)
         
     fasta_name = "reference.pep.fa" #os.path.join(database_name,"reference.pep.fa")
-    orig_tax_name = os.path.join(database_name,"taxonomy-table.txt")
+    orig_tax_name = os.path.join(reference_dir, database_name,"taxonomy-table.txt")
     
-    tax_table = os.path.join(database_name,"tax-table.txt")
-    protein_json = os.path.join(database_name,"prot-map.json")
+    tax_table = os.path.join(reference_dir, database_name,"tax-table.txt")
+    protein_json = os.path.join(reference_dir, database_name,"prot-map.json")
     
-    create_protein_table_args.extend(["--infile_peptide",os.path.join(database_name,fasta_name),
+    create_protein_table_args.extend(["--infile_peptide",os.path.join(reference_dir,database_name,fasta_name),
                                       "--infile_taxonomy",orig_tax_name,"--output",tax_table,"--outfile_json",
                                       protein_json,"--delim",str(delimiter),"--col_source_id",
                                       sourceID,"--taxonomy_col_id", "taxonomy","--column",
                                       str(column_id)])
     
     ## Run function to create protein table file from scripts/create_protein_table.py ##
+    createProteinTable_log = open(os.path.join("log","proteintab.log"), "w+")
+    createProteinTable_err = open(os.path.join("log","proteintab.err"), "w+")
+    sys.stdout = createProteinTable_log
+    sys.stderr = createProteinTable_err
     rc1 = createProteinTable(create_protein_table_args)
     if rc1 != 0:
         print("Taxonomy table and protein JSON file creation step did not complete successfully.")
         sys.exit(1)
         
-    rc2 = createAlignmentDatabase(fasta_name.split("/")[-1], True, alignment_choice, database_name)
+    rc2 = createAlignmentDatabase(fasta_name.split("/")[-1], True, alignment_choice, os.path.join(reference_dir,database_name))
     if rc2 != 0:
-        print("Alignment database for " + alignment_choice + " did not complete successfully; " +
-              "check log for details.")
-        sys.exit(1)
+        print("Alignment database for " + alignment_choice + " did not initially complete successfully; " +
+              "check log (proteintab.err) for details. Trying again...")
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__ 
     
     return fasta_name, tax_table, protein_json
