@@ -28,7 +28,7 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
                       taxonomy_file_prefix, busco_threshold, output_dir, sample_name, fasta_file):
     organism_format = organism
     if organism == "":
-        print("No organism found")
+        print("No organism found", flush=True)
         return pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness","NumberCovered",
                                        "CtTwoCopies","CtThreeCopies","CtFourCopies","CtFivePlusCopies",
                                        "PercentageDuplicated"])
@@ -36,7 +36,8 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
         organism_format = " ".join(str(organism).split(";"))
     full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in list(tax_table[taxonomy])],:]
     if len(full_taxonomy.index) < 1:
-        print("No taxonomy found for that organism " + str(organism) + " and taxonomic level " + str(taxonomy) + ".")
+        print("No taxonomy found for that organism " + str(organism) + " and taxonomic level " + str(taxonomy) + ".", 
+              flush=True)
         return pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness","NumberCovered",
                                        "CtTwoCopies","CtThreeCopies","CtFourCopies","CtFivePlusCopies",
                                        "PercentageDuplicated"])
@@ -61,7 +62,7 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
     good_buscos = busco_out_file.loc[select_inds,:]
     good_busco_sequences = [curr.split(".")[0] for curr in list(good_buscos.Sequence)]
     if len(good_busco_sequences) == 0:
-        print("No BUSCO matches were made")
+        print("No BUSCO matches were made",flush=True)
         return pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness","NumberCovered",
                                        "CtTwoCopies","CtThreeCopies","CtFourCopies","CtFivePlusCopies",
                                        "PercentageDuplicated"])
@@ -74,10 +75,10 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
         #### GET THE CURRENT LEVEL OF TAXONOMY FROM THE TAX TABLE FILE ####
         curr_tax_list = set(list(full_taxonomy[level_hierarchy[curr_level]]))
         if len(curr_tax_list) > 1:
-            print("More than 1 unique match found; using all matches: " + str(", ".join(curr_tax_list)))
+            print("More than 1 unique match found; using all matches: " + str(", ".join(curr_tax_list)), flush=True)
         curr_taxonomy = ";".join(curr_tax_list)
         if (curr_taxonomy == "") | (curr_taxonomy.lower() == "nan"):
-            print("No taxonomy found at level " + level_hierarchy[curr_level])
+            print("No taxonomy found at level " + level_hierarchy[curr_level], flush=True)
             continue
 
         #### CREATE A "MOCK TRANSCRIPTOME" BY PULLING BY TAXONOMIC LEVEL ####
@@ -119,7 +120,7 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
         curr_level = curr_level - 1
 
     report_dir = os.path.join(output_dir, "busco_assessment", "output_by_level", taxonomy,
-                              "_".join(organism_format.replace("(", "_").replace(")", "_").split(" ")))
+                              "_".join(organism_format.replace("(", "_").replace(")", "_").replace("'","").split(" ")))
     os.system("mkdir -p " + report_dir)
 
     report_file = os.path.join(report_dir, sample_name + "_report.txt")
@@ -213,12 +214,13 @@ def queryBusco(args=None):
     tax_table = read_in_taxonomy(args.tax_table)
 
     if (args.individual_or_summary == "individual") & ((len(args.organism_group) == 0) | (len(args.taxonomic_level) == 0)):
-        print("You specified individual mode, but then did not provide a taxonomic group and/or accompanying taxonomic level.")
+        print("You specified individual mode, but then did not provide a taxonomic group and/or accompanying taxonomic level.",
+             flush=True)
         sys.exit(1)
     if (len(args.organism_group) == 0) != (len(args.taxonomic_level) == 0):
         print("The number of organisms you specified is not equal to the number of taxonomic levels you specified. " +
               str(len(args.organism_group)) + " organisms were specified, while " + str(args.taxonomic_level) + 
-              " taxonomic levels were specified.")
+              " taxonomic levels were specified.",flush=True)
         sys.exit(1)
 
     if (args.individual_or_summary == "individual"):

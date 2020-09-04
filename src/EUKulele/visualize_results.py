@@ -32,6 +32,10 @@ def countClassifs(level, level_hierarchy, name_level, df):
         classifications.extend(classifs_curr)
         transcript_names.extend(transcripts_curr)
         counts.extend(counts_curr)
+    lostducklings = df[-df['transcript_name'].isin(transcript_names)]
+    counts.extend(list(lostducklings.counts))
+    transcript_names.extend(list(lostducklings.transcript_name))
+    classifications.extend(["NoClassification"] * len(lostducklings.index))
         
     classifications = [str(cr).strip().strip(""''"]['") for cr in classifications]
     full_list = classifications
@@ -98,7 +102,7 @@ def stripClassifData(df, use_counts):
     return_dict_list = dict()
     return_dict_frame = dict()
     for curr_level in level_hierarchy:
-        if use_counts == 1:
+        if use_counts == True:
             curr_list, curr_counts = countClassifs(curr_level, level_hierarchy, curr_level.capitalize(), df)
             return_dict_list[curr_level] = curr_list
             return_dict_frame[curr_level] = curr_counts
@@ -146,10 +150,9 @@ def makeConcatFrame(curr_df, new_df, level, sample_name, use_counts):
     new_df = pd.DataFrame(new_df)
     if new_df.empty:
         return curr_df
-    if use_counts == 1:
+    if use_counts == True:
         new_df = pd.DataFrame(new_df.reset_index())
         new_df = new_df.drop(columns = "index")
-        print(new_df.head())
         new_df.columns = [level,"Counts","NumTranscripts","GroupedTranscripts"]
     else:
         new_df = pd.DataFrame(new_df)
@@ -261,7 +264,7 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
         sns_palette = sns.palplot(sns.color_palette("Set1", n_colors=len(set(curr_df_start["OfInterest"]))))
 
         ### CREATE PLOTS ###
-        if use_counts == 0:
+        if use_counts == False:
             fig = plt.figure(figsize=(15,7.5))
             fig.set_facecolor('white')
             pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05, transcript_or_counts="NumTranscripts")

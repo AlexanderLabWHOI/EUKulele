@@ -21,14 +21,14 @@ if [[ $DATABASE == "mmetsp" ]]; then
     wget -O $REFERENCE_DIR/$DATABASE/$REF_TABLE $REF_TABLE_URL
     ALLEXITS=$(($ALLEXITS + $?))
     
-    echo "All reference files for MMETSP downloaded to ${PWD}/$DATABASE"
+    echo "All reference files for MMETSP downloaded to $REFERENCE_DIR/$DATABASE"
 elif [[ $DATABASE == "eukprot" ]]; then
     # Download tar of all EukProt files 
-    wget -O $REFERENCE_DIR/$DATABASE.tgz $REF_FASTA_URL
+    wget -O $REFERENCE_DIR/$DATABASE/$DATABASE.tgz $REF_FASTA_URL
     ALLEXITS=$(($ALLEXITS + $?))
     
     # Unzip to proteins folder
-    tar zxvf $REFERENCE_DIR/$DATABASE/$DATABASE.tgz -C ${PWD}/$DATABASE
+    tar zxvf $REFERENCE_DIR/$DATABASE/$DATABASE.tgz -C $REFERENCE_DIR/$DATABASE
     ALLEXITS=$(($ALLEXITS + $?))
     
     # Download EukProt taxonomy file
@@ -36,7 +36,7 @@ elif [[ $DATABASE == "eukprot" ]]; then
     ALLEXITS=$(($ALLEXITS + $?))
     
     ALLFILES=""
-    for entry in "${PWD}/$DATABASE/$DATABASE/proteins"/*
+    for entry in "$REFERENCE_DIR/$DATABASE/proteins"/*
     do
       ALLFILES=$ALLFILES" "$entry
     done
@@ -52,6 +52,8 @@ elif [[ $DATABASE == "phylodb" ]]; then
     # Download PhyloDB reference FASTA
     wget -O $REFERENCE_DIR/$DATABASE/$REF_FASTA.gz $REF_FASTA_URL
     gunzip -f $REFERENCE_DIR/$DATABASE/$REF_FASTA.gz
+    #sed -i -e 's/>* .*$//' $REFERENCE_DIR/$DATABASE/$REF_FASTA
+    #sed -i $'s/\t/    /g' $REFERENCE_DIR/$DATABASE/$REF_FASTA
     ALLEXITS=$(($ALLEXITS + $?))
     
     # Download PhyloDB reference taxonomy table

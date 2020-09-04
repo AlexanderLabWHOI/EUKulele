@@ -9,7 +9,7 @@ from EUKulele.manage_steps import createAlignmentDatabase
 
 from scripts.create_protein_table import createProteinTable
 
-def downloadDatabase(database_name, alignment_choice, reference_dir = "."):
+def downloadDatabase(database_name, alignment_choice, output_dir, reference_dir = "."):
     """
     Automatically downloads a peptide database for use with EUKulele and stores the name of
     the resulting FASTA file and taxonomy table.
@@ -67,8 +67,8 @@ def downloadDatabase(database_name, alignment_choice, reference_dir = "."):
                                       str(column_id)])
     
     ## Run function to create protein table file from scripts/create_protein_table.py ##
-    createProteinTable_log = open(os.path.join("log","proteintab.log"), "w+")
-    createProteinTable_err = open(os.path.join("log","proteintab.err"), "w+")
+    createProteinTable_log = open(os.path.join(output_dir,"log","proteintab.log"), "w+")
+    createProteinTable_err = open(os.path.join(output_dir,"log","proteintab.err"), "w+")
     sys.stdout = createProteinTable_log
     sys.stderr = createProteinTable_err
     rc1 = createProteinTable(create_protein_table_args)
@@ -76,7 +76,8 @@ def downloadDatabase(database_name, alignment_choice, reference_dir = "."):
         print("Taxonomy table and protein JSON file creation step did not complete successfully.")
         sys.exit(1)
         
-    rc2 = createAlignmentDatabase(fasta_name.split("/")[-1], True, alignment_choice, os.path.join(reference_dir,database_name))
+    rc2 = createAlignmentDatabase(fasta_name.split("/")[-1], True, output_dir, alignment_choice, 
+                                  os.path.join(reference_dir,database_name))
     if rc2 != 0:
         print("Alignment database for " + alignment_choice + " did not initially complete successfully; " +
               "check log (proteintab.err) for details. Trying again...")

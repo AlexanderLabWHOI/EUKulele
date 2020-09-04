@@ -186,7 +186,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cuto
 def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,
                    use_counts,names_to_reads,diamond_file,outfile,rerun):
     if (os.path.isfile(outfile)) & (not rerun):
-        print("Taxonomic placement already complete; will not re-run step.")
+        print("Taxonomic placement already complete at", outfile + "; will not re-run step.")
         return pd.read_csv(outfile, sep = "\t")
     
     tax_table = read_in_taxonomy(tax_file)

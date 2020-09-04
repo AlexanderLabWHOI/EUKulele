@@ -192,6 +192,9 @@ def main(args_in):
             manageEukulele(piece = "setup_eukulele", output_dir = OUTPUTDIR)
             samples = manageEukulele(piece = "get_samples", mets_or_mags = mets_or_mags,
                                      sample_dir = SAMPLE_DIR, nt_ext = NT_EXT, pep_ext = PEP_EXT)
+        else:
+            os.system("mkdir -p " + OUTPUTDIR)
+            os.system("mkdir -p " + os.path.join(OUTPUTDIR, "log"))
 
         TAX_TAB = os.path.join(REFERENCE_DIR, args.tax_table)
         PROT_TAB = os.path.join(REFERENCE_DIR, args.protein_map)
@@ -212,7 +215,7 @@ def main(args_in):
         if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))) | \
            (not os.path.isfile(TAX_TAB)) | \
            (not os.path.isfile(PROT_TAB)):
-            REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), ALIGNMENT_CHOICE, 
+            REF_FASTA, TAX_TAB, PROT_TAB = downloadDatabase(args.database.lower(), ALIGNMENT_CHOICE, OUTPUTDIR,
                                                             "/".join(REFERENCE_DIR.split("/")[0:-1]))
             if (not os.path.isfile(os.path.join(REFERENCE_DIR, REF_FASTA))) | \
                (not os.path.isfile(TAX_TAB)) | \
@@ -223,7 +226,7 @@ def main(args_in):
             print("Found database folder for " + REFERENCE_DIR + " in current directory; will not re-download.")
 
     if SETUP:
-        print("Creating a DIAMOND reference from database files...")
+        print("Creating a",ALIGNMENT_CHOICE,"reference from database files...")
         manageEukulele(piece = "setup_databases", ref_fasta = REF_FASTA, rerun_rules = RERUN_RULES, output_dir = OUTPUTDIR,
                        alignment_choice = ALIGNMENT_CHOICE, database_dir = REFERENCE_DIR)
 
@@ -241,7 +244,7 @@ def main(args_in):
                                         nt_ext = NT_EXT, pep_ext = PEP_EXT, perc_mem = PERC_MEM)
 
         ## Next to do salmon counts estimation. ##
-        if (USE_SALMON_COUNTS == 1):
+        if (USE_SALMON_COUNTS == True):
             try:
                 NAMES_TO_READS = namesToReads(REFERENCE_DIR, NAMES_TO_READS, SALMON_DIR)
             except:
@@ -276,7 +279,6 @@ def main(args_in):
                          nt_ext = NT_EXT, sample_dir = SAMPLE_DIR, organisms = ORGANISMS, 
                          organisms_taxonomy = ORGANISMS_TAXONOMY, tax_tab = TAX_TAB, 
                          busco_threshold = args.busco_threshold, perc_mem = PERC_MEM)
-    print(busco_matched)
     
     if COREGENES & busco_matched:
         print("Investigating core genes...")
@@ -286,24 +288,23 @@ def main(args_in):
                                         ref_fasta = REF_FASTA, mets_or_mags = mets_or_mags, database_dir = REFERENCE_DIR,
                                         sample_dir = SAMPLE_DIR, rerun_rules = RERUN_RULES, 
                                         nt_ext = NT_EXT, pep_ext = PEP_EXT)
-        
-        manageEukulele(piece = "core_estimate_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
-                       tax_tab = TAX_TAB, cutoff_file = args.cutoff_file, 
-                       consensus_cutoff = CONSENSUS_CUTOFF, prot_tab = PROT_TAB, use_salmon_counts = USE_SALMON_COUNTS, 
-                       names_to_reads = NAMES_TO_READS, alignment_res = alignment_res, 
-                       rerun_rules = RERUN_RULES, samples = samples, sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT,
-                       nt_ext = NT_EXT)
+        if len(alignment_res) > 0:
+            manageEukulele(piece = "core_estimate_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
+                           tax_tab = TAX_TAB, cutoff_file = args.cutoff_file, 
+                           consensus_cutoff = CONSENSUS_CUTOFF, prot_tab = PROT_TAB, use_salmon_counts = USE_SALMON_COUNTS, 
+                           names_to_reads = NAMES_TO_READS, alignment_res = alignment_res, 
+                           rerun_rules = RERUN_RULES, samples = samples, sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT,
+                           nt_ext = NT_EXT)
 
-        ## Now to visualize the taxonomy ##
-        manageEukulele(piece = "core_visualize_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
-                       sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT, nt_ext = NT_EXT, 
-                       use_salmon_counts = USE_SALMON_COUNTS, rerun_rules = RERUN_RULES)
+            ## Now to visualize the taxonomy ##
+            manageEukulele(piece = "core_visualize_taxonomy", output_dir = OUTPUTDIR, mets_or_mags = mets_or_mags, 
+                           sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT, nt_ext = NT_EXT, 
+                           use_salmon_counts = USE_SALMON_COUNTS, rerun_rules = RERUN_RULES)
 
-        ## Next to assign taxonomy ##
-        manageEukulele(piece = "core_assign_taxonomy", samples = samples, mets_or_mags = mets_or_mags, 
-                       sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT,
-                       output_dir = OUTPUTDIR)
-        
+            ## Next to assign taxonomy ##
+            manageEukulele(piece = "core_assign_taxonomy", samples = samples, mets_or_mags = mets_or_mags, 
+                           sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT,
+                           output_dir = OUTPUTDIR)
         
     print("EUKulele run complete!", flush = True)
                    

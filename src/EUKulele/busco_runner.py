@@ -52,9 +52,9 @@ def configRunBusco(output_dir, mets_or_mags, pep_ext, nt_ext, sample_dir, sample
     
     ## Run BUSCO on the full dataset ##
     busco_db = "eukaryota_odb10"
-    busco_config_res = configure_busco(busco_db)
-    n_jobs_busco = min(multiprocessing.cpu_count(), len(samples), max(1, int(MAX_JOBS / len(samples))))
-    print("Running busco...", flush=True)
+    busco_config_res = configure_busco(busco_db,output_dir)
+    n_jobs_busco = min(multiprocessing.cpu_count(), len(samples), max(1, calc_max_jobs(len(samples))))
+    print("Running busco with",n_jobs_busco,"simultaneous jobs...", flush=True)
     busco_res = Parallel(n_jobs=n_jobs_busco, prefer="threads")(delayed(run_busco)(sample_name, 
                                                                                                   os.path.join(output_dir, 
                                                                                                                "busco"), 
@@ -73,9 +73,9 @@ def configRunBusco(output_dir, mets_or_mags, pep_ext, nt_ext, sample_dir, sample
               "Please check the BUSCO configuration log files in the log/ folder.", flush = True)
         sys.exit(1)
                 
-def configure_busco(busco_db):
-    busco_config_log = open(os.path.join("log","busco_config.out"), "w+")
-    busco_config_err = open(os.path.join("log","busco_config.err"), "w+")
+def configure_busco(busco_db,output_dir):
+    busco_config_log = open(os.path.join(output_dir,"log","busco_config.out"), "w+")
+    busco_config_err = open(os.path.join(output_dir,"log","busco_config.err"), "w+")
     rc1 = 0
     
     if not os.path.isdir(os.path.join("busco_downloads","lineages","eukaryota_odb10")):
@@ -106,8 +106,8 @@ def run_busco(sample_name, output_dir_busco, output_dir, busco_db, mets_or_mags,
         fastaname = os.path.join(sample_dir, sample_name + "." + pep_ext)
         busco_mode = "proteins"
         
-    busco_run_log = open(os.path.join("log","busco_run.out"), "w+")
-    busco_run_err = open(os.path.join("log","busco_run.err"), "w+")
+    busco_run_log = open(os.path.join(output_dir,"log","busco_run.out"), "w+")
+    busco_run_err = open(os.path.join(output_dir,"log","busco_run.err"), "w+")
     p1 = subprocess.Popen(["run_busco.sh", str(sample_name), str(output_dir_busco), 
                               os.path.join(output_dir_busco, "config_" + sample_name + ".ini"), 
                               fastaname, str(CPUS), busco_db, busco_mode], stdout = busco_run_log, stderr = busco_run_err)
@@ -121,7 +121,7 @@ def run_busco(sample_name, output_dir_busco, output_dir, busco_db, mets_or_mags,
     busco_run_err.close()
     
     
-    a_file = open(os.path.join("log","busco_run.err"))
+    a_file = open(os.path.join(output_dir,"log","busco_run.err"))
 
     lines = a_file.readlines()
     for line in lines:
@@ -177,8 +177,8 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
             else:
                 fasta = os.path.join(sample_dir, sample_name + "." + pep_ext)
 
-            query_busco_log = open(os.path.join("log","busco_query_" + sample_name + ".log"), "w+")
-            query_busco_err = open(os.path.join("log","busco_query_" + sample_name + ".err"), "w+")
+            query_busco_log = open(os.path.join(output_dir,"log","busco_query_" + sample_name + ".log"), "w+")
+            query_busco_err = open(os.path.join(output_dir,"log","busco_query_" + sample_name + ".err"), "w+")
             sys.stdout = query_busco_log
             sys.stderr = query_busco_err
             query_args = ["--organism_group",str(" ".join(organisms)),"--taxonomic_level",
@@ -223,8 +223,8 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
             else:
                 fasta = os.path.join(sample_dir, sample_name + "." + nt_ext)
 
-            query_busco_log = open(os.path.join("log","busco_query_" + sample_name + ".log"), "w+")
-            query_busco_err = open(os.path.join("log","busco_query_" + sample_name + ".err"), "w+")
+            query_busco_log = open(os.path.join(output_dir,"log","busco_query_" + sample_name + ".log"), "w+")
+            query_busco_err = open(os.path.join(output_dir,"log","busco_query_" + sample_name + ".err"), "w+")
             sys.stdout = query_busco_log
             sys.stderr = query_busco_err
             query_args = ["--output_dir",output_dir,"--fasta_file",fasta,"--sample_name",
@@ -244,7 +244,7 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples, mets_or_mags, p
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__ 
 
-            if (rc != 0) | (os.stat(os.path.join("log","busco_query_" + sample_name + ".err")).st_size != 0):
+            if (rc != 0) | (os.stat(os.path.join(output_dir,"log","busco_query_" + sample_name + ".err")).st_size != 0):
                 print("BUSCO query did not run successfully for sample " + sample_name + "; check log file for details.")
                 sys.exit(1)
             else:

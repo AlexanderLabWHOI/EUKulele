@@ -33,8 +33,8 @@ sed -i '/download_path = /c\download_path = ./busco_downloads/' $CONFIG_LOC
 mkdir -p $OUTPUTDIR/$SAMPLENAME
 busco -i $INPUT_FASTA -l $BUSCO_DB -m $BUSCO_MODE --cpu $CPUS --config $CONFIG_LOC -o $SAMPLENAME -f --offline
 
-if [ -f "$OUTPUTDIR/$SAMPLENAME/*/*" ]; then
-    mv $OUTPUTDIR/$SAMPLENAME/*/* $OUTPUTDIR/$SAMPLENAME
-else
-    echo "BUSCO did not complete successfully."
-fi
+# need to change back to putting everything back into the base directory to avoid conflicts w new DB names...?
+
+#if [ -f "$OUTPUTDIR/$SAMPLENAME/*/*" ]; then
+#    mv $OUTPUTDIR/$SAMPLENAME/*/* $OUTPUTDIR/$SAMPLENAME
+#for dir in *; do if [ -d $dir ]; then echo $dir/*; fi; done

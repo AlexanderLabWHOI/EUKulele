@@ -224,7 +224,6 @@ def setupEukulele(output_dir):
     print("Setting things up...")
     os.system("mkdir -p " + output_dir)
     os.system("mkdir -p " + os.path.join(output_dir, "log"))
-    os.system("mkdir -p log")
 
     ## Download software dependencies
     rc1 = os.system("install_dependencies.sh references_bins/ " + 
@@ -249,8 +248,6 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
     if mets_or_mags == "mets":
         fastas = []
         for sample in samples:
-            print(sample)
-            print(os.path.join(sample_dir, sample + "." + pep_ext))
             if os.path.isfile(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext)):
                 fastas.append(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext))
             elif os.path.isfile(os.path.join(sample_dir, sample + "." + pep_ext)):
@@ -261,7 +258,6 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
         fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
         
     MAX_JOBS = 1
-    print(fastas)
     if len(fastas) > 0:
         MAX_JOBS = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size,
                                      max_mem_per_proc = 10, perc_mem = perc_mem) for sample in fastas])
@@ -310,8 +306,14 @@ def createAlignmentDatabase(ref_fasta, rerun_rules, output_dir, alignment_choice
         db_type = "prot"
         blast_version = 5
         database = ref_fasta.strip('.')
+        #os.system("cut -f 1 -d' ' " + os.path.join(database_dir, ref_fasta) + " > " + 
+        #          os.path.join(database_dir, ref_fasta + "decoy.pep.fa"))
+        #os.system("perl -i -pe 's/$/_$seen{$_}/ if ++$seen{$_}>1 and /^>/; ' " + 
+        #          os.path.join(database_dir, ref_fasta + "decoy.pep.fa"))
+        # os.system("sed -i $'s/ //g' " + os.path.join(database_dir, ref_fasta))
         # makeblastdb -in tests/aux_data/mmetsp/sample_ref_MAG/reference.pep.fa -parse_seqids -title referencefa -dbtype prot -out tests/aux_data/mmetsp/sample_ref_MAG/blast/reference.pep/database
-        rc2 = os.system("makeblastdb -in " + os.path.join(database_dir, ref_fasta) + " -parse_seqids -title " + database + 
+        rc2 = os.system("makeblastdb -in " + os.path.join(database_dir, ref_fasta) + 
+                        " -parse_seqids -title " + database + 
                         " -dbtype " + db_type + " -out " + db + " 1> " + output_log + " 2> " + 
                         error_log)
     return rc2
@@ -449,9 +451,9 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
                                  max_mem_per_proc = 5, perc_mem = perc_mem) for sample in fastas])
     n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res), max(1, MAX_JOBS))
     for t in range(len(alignment_res)): 
-        curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
-                                                prot_tab, use_salmon_counts, names_to_reads,\
-                                                alignment_res[t], outfiles[t], rerun_rules)
+        #curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
+        #                                        prot_tab, use_salmon_counts, names_to_reads,\
+        #                                        alignment_res[t], outfiles[t], rerun_rules)
         try:
             sys.stdout = open(os.path.join(output_dir, "log", "tax_est_" + 
                                            alignment_res[t].split("/")[-1].split(".")[0] + ".out"), "w")
@@ -517,8 +519,11 @@ def manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt
     out_prefix = output_dir.split("/")[-1]
     sys.stdout = open(os.path.join(output_dir, "log", "core_tax_vis.out"), "w")
     sys.stderr = open(os.path.join(output_dir, "log", "core_tax_vis.err"), "w")
-    visualize_all_results(out_prefix, output_dir, os.path.join(output_dir, "core_taxonomy_estimation"), 
-                          sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules, core)
+    visualize_all_results(out_prefix = out_prefix, out_dir = output_dir, 
+                          est_dir = os.path.join(output_dir, "core_taxonomy_estimation"), 
+                          samples_dir = sample_dir, prot_extension = pep_ext, 
+                          nucle_extension = nt_ext, use_counts = use_salmon_counts, rerun = rerun_rules, 
+                          core = core)
     #except:
     #    print("Taxonomic visualization of core genes did not complete successfully. Check log files for details.")
     sys.stdout = sys.__stdout__

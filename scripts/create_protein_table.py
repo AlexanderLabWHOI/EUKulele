@@ -19,6 +19,7 @@ import sys
 import argparse
 import json
 import pandas as pd
+import os
 
 def createProteinTable(args=None):
     parser = argparse.ArgumentParser()
@@ -42,11 +43,17 @@ def createProteinTable(args=None):
     # one - ultimately we want to know which MMETSP or whatever it came from
     odict = {}
     for curr_pepfile in list(args.infile_peptide):
-        print("".join(curr_pepfile))
         pepfile = "".join(curr_pepfile)
         for record in SeqIO.parse(pepfile, "fasta"):
             header = record.description
             rid = record.id.replace(".","N") #record.id.split(".")[0] #record.id.replace(".","N")
+            counter = 2
+            while rid in odict:
+                if "_" in rid:
+                    rid = "_".join(rid.split("_")[0:-1]) + "_" + str(counter)
+                else:
+                    rid = rid + "_" + str(counter)
+                counter = counter + 1
             if 't' in args.delim: # why is this tab thing not working otherwise?? even the equality
                 tester = "".join(list(str(header))).replace('\t', '    ')
                 hlist = tester.split("    ")
@@ -65,6 +72,11 @@ def createProteinTable(args=None):
                         sid = h.split('=')[1].strip()    
                         odict[rid] = sid
                         break
+                        
+        print("Modifying...",pepfile,flush=True)
+        os.system("cut -f 1 " + str(pepfile) + " > " + str(pepfile) + ".tester.pep.fa")
+        os.system("perl -i -pe 's/$/_$seen{$_}/ if ++$seen{$_}>1 and /^>/; ' " + str(pepfile) + ".tester.pep.fa")
+        os.system("mv " + str(pepfile) + ".tester.pep.fa " + str(pepfile))
     tax_file = pd.read_csv(args.infile_taxonomy, sep = "\t", encoding='latin-1')
 
     if args.reformat:
