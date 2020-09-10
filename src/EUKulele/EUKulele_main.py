@@ -44,6 +44,7 @@ def main(args_in):
                         choices = ["","all","download","setup","alignment","busco","coregenes"], 
                         help='Choice of subroutine to run.')
     
+    parser.add_argument('-v', '--version', dest = "version", default=False, action='store_true')
     parser.add_argument('-m', '--mets_or_mags', dest = "mets_or_mags", required = False, default = "") 
     parser.add_argument('--n_ext', '--nucleotide_extension', dest = "nucleotide_extension", default = ".fasta") 
     parser.add_argument('--p_ext', '--protein_extension', dest = "protein_extension", default = ".faa") 
@@ -116,10 +117,10 @@ def main(args_in):
                        help = "Whether we're just running a test and should not execute downloads.")
                
     args = parser.parse_args(list(filter(None, args_in.split(" "))))
-    if (args.mets_or_mags == "") & (args.subroutine != "download"):
+    if (args.mets_or_mags == "") & (args.subroutine != "download") & (not args.version):
         print("METs or MAGs argument (-m/--mets_or_mags) is required with one of 'mets' or 'mags'.")
         sys.exit(1)
-    if (args.sample_dir == "nan") & (args.subroutine != "download"):
+    if (args.sample_dir == "nan") & (args.subroutine != "download") & (not args.version):
         print("A sample directory must be specified (-s/--sample_dir).")
         sys.exit(1)
     
@@ -146,7 +147,7 @@ def main(args_in):
     if args.individual_tag:
         individual_or_summary = "individual"
     
-    if (mets_or_mags != "mets") & (mets_or_mags != "mags") & (args.subroutine != "download"):
+    if (mets_or_mags != "mets") & (mets_or_mags != "mags") & (args.subroutine != "download") & (not args.version):
         print("Only METs or MAGs are supported as input data types. Please update the 'mets_or_mags' flag accordingly.")
         sys.exit(1)
 
@@ -169,6 +170,12 @@ def main(args_in):
     ALIGNMENT = False
     BUSCO = False
     COREGENES = False
+    
+    if args.version:
+        TEST = True
+        filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), "static", "VERSION")
+        f = open(filename, "r")
+        print("The current EUKulele version is",f.read())
     
     if (args.subroutine == "download"):
         DOWNLOAD = True
@@ -305,8 +312,8 @@ def main(args_in):
             manageEukulele(piece = "core_assign_taxonomy", samples = samples, mets_or_mags = mets_or_mags, 
                            sample_dir = SAMPLE_DIR, pep_ext = PEP_EXT,
                            output_dir = OUTPUTDIR)
-        
-    print("EUKulele run complete!", flush = True)
+    if not args.version:
+        print("EUKulele run complete!", flush = True)
                    
 if __name__ == "__main__": 
     main(args_in = " ".join(sys.argv[1:]))

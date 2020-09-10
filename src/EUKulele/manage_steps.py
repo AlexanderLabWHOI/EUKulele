@@ -383,7 +383,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
             #print(stdout)
             print("Diamond process exited for sample " + str(sample_name) + ".", flush = True)
         if rc1 != 0:
-            print("Diamond did not complete successfully.")
+            print("Diamond did not complete successfully for sample",str(sample_name),"with rc code",str(rc1))
             os.system("rm -f " + diamond_out)
             return 1
         return diamond_out

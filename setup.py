@@ -4,6 +4,7 @@ import numpy.random
 from glob import glob
 
 os.system("export PY_IGNORE_IMPORTMISMATCH=1")
+os.system("cp VERSION src/EUKulele/static")
 version = open('VERSION').read().strip()
 
 with open('requirements.txt') as f:
