@@ -63,7 +63,9 @@ Where the minimal command would be::
 
     EUKulele --mets_or_mags <choice of data type> --sample_dir <where samples are located>
     
-In which case ``EUKulele`` would be run with mostly parameter defaults and using the MMETSP database, by default.
+In which case ``EUKulele`` would be run with mostly parameter defaults and using the MMETSP database, by default. Following execution of this command, ``EUKulele`` will automatically download the default MMETSP database, assign taxonomy to specific contigs using an LCA approach, run transdecoder, and BUSCO.
+
+# SKH: This would be a good spot for a figure describing the default workflow.
 
 ``EUKulele`` may also be run as a module within Python. Include the phrase ``import EUKulele`` in the header of a Python file. Then, you may execute ``EUKulele`` using::
 
