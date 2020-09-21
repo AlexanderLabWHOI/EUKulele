@@ -18,6 +18,14 @@ EUKulele setup --database phylodb
 
 If a database is not found automatically by ``EUKuele`` it will automatically download the database specified by the flag. If you downloaded a database previously you can specify the ``--reference_dir`` flag indicating the path to the previously downloaded database. 
 
+# SKH - what about ```EUKulele download --reference_dir eukzoo```?
+# SKH- suggestion to include contents of available databases
+
+Available Databases
+---------------------
+# Insert mmetsp, phylodb, and eukprot summary figures
+
+
 Using Other Databases
 ---------------------
 
@@ -77,3 +85,4 @@ By default, ``EUKulele`` uses the following percent identity cutoffs to determin
     
 To change these cutoffs, simply create a YAML file containing these entries exactly as written above, and provide this cutoff file as input to ``EUKulele`` via ``--cutoff_file <name of YAML file you created>``.
 
+## SKH - i have included a tutorial where I show the contents of my config file, can link to there from here?
