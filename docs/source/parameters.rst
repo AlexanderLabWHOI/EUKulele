@@ -33,7 +33,7 @@ A full list of parameters can be found in the table at the bottom of this page. 
      - The name of the reference FASTA file in ``reference_dir``; defaults to reference.pep.fa if not specified, or is set according to the downloaded file if using a keyword argument.
    * - ``--database`` 
      - database 
-     - An optional additional argument for specifying the database name. If the database specified is one of the supported databases (currently, "mmetsp", "eukprot", or "phylodb", it will be downloaded automatically. Otherwise, MMETSP is used as a default. 
+     - An optional additional argument for specifying the database name. If the database specified is one of the supported databases (currently, "mmetsp", "eukprot", or "phylodb", it will be downloaded automatically. Otherwise, MMETSP is used as a default. Specify database name and ``download`` to only download database. 
    * - ``--run_transdecoder``
      - run_transdecoder (set to 0 or 1)
      - An argument for the user to specify whether or not TransDecoder should be used to translate input nucleotide sequences, prior to ``blastp`` being used (i.e., the equivalent protein-protein alignment with the tool of choice). If included in command line or set to 1 in configuration file, ``TransDecoder`` is run. Otherwise, ``blastp`` is run if protein files are found (according to files in the sample directory ending in ``--p_ext`` (below), or ``blastx`` is run if only nucleotide format files are found. 
@@ -90,5 +90,4 @@ A full list of parameters can be found in the table at the bottom of this page. 
      - The name of the formatted taxonomy table; defaults to "tax-table.txt.". If this file is not found, it can be generated from the reference FASTA and original taxonomy file using the provided script ``create_protein_file.py``, or the database specified will be automatically downloaded, if it is one of the supported databases.
    * - ``--protein_map``
      - protein_map 
-     - The name of the JSON file containing protein correspondences; defaults to "protein-map.json". If this file is not found, it can be generated from the reference FASTA and original taxonomy file using the provided script ``create_protein_file.py``, or the database specified will be automatically downloaded, if it is one of the supported databases.
-     
+     - The name of the JSON file containing protein correspondences; defaults to "protein-map.json". If this file is not found, it can be generated from the reference FASTA and original taxonomy file using the provided script ``create_protein_file.py``, or the database specified will be automatically downloaded, if it is one of the supported databases.     
