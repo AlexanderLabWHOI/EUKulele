@@ -6,7 +6,7 @@ create_tax_table: 1
 cutoff: tax-cutoffs.yaml
 database: mmetsp
 download_reference: 0
-individual_or_summary: summary
+individual_or_summary: individual
 jobname: test
 mets_or_mags: mags
 names_to_reads: 0
@@ -20,9 +20,9 @@ protein_map: prot-map.json
 ref_fasta: reference.pep.fa
 reference: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/sample_ref
 salmon_dir: 0
-samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/real-world-samples/MAGs
+samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/samples_MAGs
 scratch: scratch
-subroutine: all
+subroutine: busco
 tax_table: tax-table.txt
 taxonomy_organisms:
 - genus

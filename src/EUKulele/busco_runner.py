@@ -63,6 +63,7 @@ def configRunBusco(output_dir, mets_or_mags, pep_ext, nt_ext, sample_dir, sample
                                                                                                   pep_ext, nt_ext,
                                                                                                   sample_dir) \
                                                                                for sample_name in samples)
+    print(os.listdir(os.path.join(output_dir, "busco", samples[0])), "is what is in BUSCO directory")
     all_codes = sum(busco_res) + busco_config_res
     if sum(busco_res) > 0:
         print("BUSCO initial run did not complete successfully.\n" + 

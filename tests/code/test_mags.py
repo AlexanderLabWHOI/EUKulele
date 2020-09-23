@@ -151,13 +151,18 @@ def test_busco():
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
     config_file = os.path.join(config_path, 'curr_config_busco.yaml')
+        
+    config["subroutine"] = "alignment"
+    
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
         
-    config["subroutine"] = "alignment"
     eukulele(config=config_file)
         
     config["subroutine"] = "busco"
+    
+    with open(config_file, 'w') as f:
+        yaml.dump(config, f)
     eukulele(config=config_file)
     samplenames = [curr.split(".")[0] for curr in os.listdir(config["samples"])]
     busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "individual", 
