@@ -29,6 +29,7 @@ install:
   - configure_busco.sh "eukaryota_odb10"
 script:
   - pip install coverage #==4.5.4 
+  - pip install biopython==1.77
   - py.test --doctest-modules -v --cov EUKulele --cov-report term-missing
   #- travis_wait 25 py.test tests/code/test_mags_2.py --doctest-modules -v --cov EUKulele --cov-report term-missing
   #- py.test tests/code/test_mets.py --doctest-modules -v --cov EUKulele --cov-report term-missing
