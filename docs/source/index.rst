@@ -24,6 +24,12 @@ Welcome to EUKulele's documentation!
    parameters
    auxiliaryscripts
    
+.. toctree::
+   :maxdepth: 2
+   :caption: Example Analyses  
+   
+   EUKulele_read_breakdown
+   
 Source Code
 -----------
 

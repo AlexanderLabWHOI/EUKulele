@@ -249,8 +249,32 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
         fastas = []
         for sample in samples:
             if os.path.isfile(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext)):
-                fastas.append(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext))
+                fp = open(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext))
+                for i, line in enumerate(fp):
+                    if i == 2:
+                        chars = set(list(line))
+                        if len(chars) <= 5:
+                            print("Peptide extension used, but this file, " +
+                                  str(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext)) + 
+                                  ", does not appear to be a peptide file.")
+                            break
+                    elif i > 2:
+                        fastas.append(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext))
+                        break
+                fp.close()
             elif os.path.isfile(os.path.join(sample_dir, sample + "." + pep_ext)):
+                fp = open(os.path.join(sample_dir, sample + "." + pep_ext))
+                for i, line in enumerate(fp):
+                    if i == 2:
+                        chars = set(list(line))
+                        if len(chars) <= 5:
+                            print("Peptide extension used, but this file, " + 
+                                  str(os.path.join(sample_dir, sample + "." + pep_ext)) + 
+                                  ", does not appear to be a peptide file.")
+                            break
+                    elif i > 2:
+                        fastas.append(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext))
+                        break
                 fastas.append(os.path.join(sample_dir, sample + "." + pep_ext))
             else:
                 fastas.append(os.path.join(sample_dir, sample + "." + nt_ext))

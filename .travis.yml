@@ -23,7 +23,7 @@ install:
   - conda config --add channels conda-forge
   - conda create -n test
   - conda activate test
-  - conda install blast busco=4.0.6 diamond transdecoder ujson pandas yaml chardet pyyaml numpy joblib
+  - conda install blast busco=4.0.5 diamond transdecoder ujson pandas yaml chardet pyyaml numpy joblib
   - python3 -m pip install -e . --user
   - python setup.py install
   - configure_busco.sh "eukaryota_odb10"
