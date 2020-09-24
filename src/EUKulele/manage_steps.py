@@ -273,7 +273,7 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
                                   ", does not appear to be a peptide file.")
                             break
                     elif i > 2:
-                        fastas.append(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext))
+                        fastas.append(os.path.join(sample_dir, sample + "." + pep_ext))
                         break
                 fastas.append(os.path.join(sample_dir, sample + "." + pep_ext))
             else:
@@ -281,6 +281,7 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
     else:
         fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
         
+    print(fastas)
     MAX_JOBS = 1
     if len(fastas) > 0:
         MAX_JOBS = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size,
