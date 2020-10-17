@@ -10,6 +10,8 @@ Welcome to EUKulele's documentation!
    :maxdepth: 2
    :caption: Contents
    
+   quickstart
+   running-eukulele
    install
    databaseandconfig
    outputstructure
@@ -29,6 +31,7 @@ Welcome to EUKulele's documentation!
    :caption: Example Analyses  
    
    EUKulele_read_breakdown
+   available-databases-R
    
 Source Code
 -----------

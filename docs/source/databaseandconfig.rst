@@ -8,7 +8,8 @@ Three databases can be downloaded and formatted automatically when invoking ``EU
 
 - `PhyloDB <https://drive.google.com/drive/u/0/folders/0B-BsLZUMHrDQfldGeDRIUHNZMEREY0g3ekpEZFhrTDlQSjQtbm5heC1QX2V6TUxBeFlOejQ>`_
 - `EukProt <https://figshare.com/articles/EukProt_a_database_of_genome-scale_predicted_proteins_across_the_diversity_of_eukaryotic_life/12417881/2>`_
-- `MMETSP <https://zenodo.org/record/1212585#.Xw3PoJNKhTZ>`_
+- `MMETSP <https://zenodo.org/record/1212585#.Xw3PoJNKhTZ>`_ *Default*
+- `EukZoo <https://github.com/zxl124/EukZoo-database>`_
 
 To use these databases, all you need to do is specify ``--database phylodb``, ``--database eukprot``, or ``--database mmetsp``, respectively, when invoking ``EUKulele``. 
 
@@ -16,7 +17,56 @@ A database (for example ``phylodb``) can be setup prior to running by using::
 
 EUKulele setup --database phylodb
 
-If a database is not found automatically by ``EUKuele`` it will automatically download the database specified by the flag. If you downloaded a database previously you can specify the ``--reference_dir`` flag indicating the path to the previously downloaded database. 
+If a database is not found automatically by ``EUKuele`` it will automatically download the database specified by the flag. If you downloaded a database previously you can specify the ``--reference_dir`` flag indicating the path to the previously downloaded database. If no reference database is specified with ```--reference_dir```, EUKulele will automatically download and use the MMETSP database. You can also (1) download the other databases and use the flag ```reference_dir``` to point EUKulele to the location of already downloaded databases or (2) use your own databases.
+
+Composition of Default Databases
+--------------------------------
+
+Several databases are automatically provided and formatted for ``EUKulele`` in order to let the user make the best decision. Often database choice depends on the relevant research question. Therefore, we also provide information on the contents of each database below.
+
+Note that databases provided through ``EUKulele`` include the taxonomic structure used for the creation of the database. Therefore, the structure of the taxonomic assignment varies database to database. For instance, PhyloDB includes other microbial domains classified under "Supergroup", while the other databases only include eukaryotic references. Users should take note when they compiled downstream results from different databases. 
+
+.. list-table:: Broad overview of each database.
+   :widths: 25 12 25 13 25
+   :header-rows: 1
+
+   * - Database
+     - Total entries
+     - Domains
+     - Unique species (strains) [*Note: not all databases have both species and strain level*]
+     - Taxonomy Assignment Structure
+   * - MMETSP
+     - PhyloDB
+     - EukZoo
+     - EukProt
+   * - 678
+     - 25,992
+     - 739
+     - 742
+   * - Eukaryote
+     - Eukaryote, bacteria, archaea, virus
+     - Eukaryote
+     - Eukaryote
+   * - 316 (405)
+     - 25,992
+     - 361 (441)
+     - (621)
+   * - Supergroup, Division, Class, Order, Family, Genus, Species, Strain
+     - Supergroup, Division, Class, Order, Family, Genus_Species
+     - Supergroup, Phylum, Class, Order, Family, Genus, Species
+     - Supergroup_UniEuk, Taxogroup_UniEuk, Epithet_UniEuk, Genus_UniEuk, Strain
+     
+.. image:: mmetsp-breakdown.png
+  :width: 400
+  :alt: MMETSP breakdown
+  
+Recommendations for Database Usage
+----------------------------------
+
+``EUKulele`` was initially designed for use with the MMETSP database. As this is the most complete resource for reference transcriptomes of eukaryotic species, it is the recommended database. 
+
+A highly recommended approach is to run EUKulele with both MMETSP and PhyloDB. Since PhyloDB includes non-eukaryotic domains, a best hit eukaryotic reference from both MMETSP and PhyloDB will provide higher confidence. 
+
 
 Using Other Databases
 ---------------------
