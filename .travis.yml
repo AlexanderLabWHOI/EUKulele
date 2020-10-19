@@ -27,6 +27,9 @@ install:
   - python3 -m pip install -e . --user
   - python setup.py install
   - configure_busco.sh "eukaryota_odb10"
+branches:
+  except:
+  - remodeling
 script:
   - pip install coverage #==4.5.4 
   - pip install biopython==1.77
