@@ -6,13 +6,15 @@ We recommend consulting the full documentation to explore all of the ``EUKulele`
 Installation
 =========================
 
-The conda installation is the most straightforward approach and the environment will contain all dependencies needed to run ``EUKulele``. If you do not already have conda installed on your machine, see the conda installation documentation `here <https://docs.conda.io/projects/conda/en/latest/user-guide/install/>`_. Other installation options are included under Installation and Invocation.
+The conda installation is the most straightforward approach and the environment will contain all dependencies needed to run ``EUKulele``. If you do not already have conda installed on your machine, see the conda installation documentation `here <https://docs.conda.io/projects/conda/en/latest/user-guide/install/>`_. Other installation options are included under Installation and Invocation::
 
-``conda create -n EUKulele``
-``conda install -c akrinos -c bioconda -c conda-forge EUKulele``
-``conda activate EUKulele``
+    conda create -n EUKulele
+    conda install -c akrinos -c bioconda -c conda-forge EUKulele
+    conda activate EUKulele
 
 Metagenome-assembled genome (MAG) annotation
+============================================
+
 ``EUKulele`` can determine the taxonomic identity of binned MAGs using their consensus contig annotations. It run using the following command::
 
     EUKulele --sample_dir/output_directory -m mags
@@ -27,6 +29,8 @@ Useful output is located in:
 ``output/busco_assessment`` -  BUSCO assessment for the most abundant taxonomic annotation at each classification level. Provides information on estimated MAG completion based on conserved eukaryotic genes expected to be present in a full genome.
 
 Metatranscriptomic (MET) annotation
+============================================
+
 ``EUKulele`` can be run on metatranscriptomic assemblies using the following command:
 
 ``EUKulele --sample_dir /output_directory -m mets``
