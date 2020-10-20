@@ -24,7 +24,7 @@ author = 'Arianna Krinos, Sarah Hu, Natalie Cohen, Harriet Alexander'
 
 # The full version, including alpha/beta/rc tags
 release = '1'
-master_doc = 'source/index'
+master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------
 
