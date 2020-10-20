@@ -20,7 +20,6 @@ First, let's create an environment to run ``EUKulele`` in.  Create a ``conda`` e
     conda activate EUKulele
 
 This must also be done inside the directory you installed via Dropbox, which contains a ``conda`` configuration file that will make sure that every dependency of ``EUKulele`` that cannot be installed via pip is available on your system.
-Once everything is setup and all dependencies satisfied, from within the ``sample_EUKulele`` directory, run::
 
 You should now download ``EUKulele`` via ``pip`` using::
 
@@ -28,8 +27,10 @@ You should now download ``EUKulele`` via ``pip`` using::
 
 If any dependency is not satisfied, you can install it manually using ``pip install <requirement> --user``. If you install ``EUKulele`` via ``conda`` instead of via ``pip``, all of the dependencies are installed for you automatically.
 
-
+Once everything is setup and all dependencies satisfied, from within the ``sample_EUKulele`` directory, run::
+    
     EUKulele --config curr_config.yaml
+
     
 Where ``curr_config.yaml`` is a configuration file in the directory you downloaded which contains all of the flags needed for a basic ``EUKulele`` run. Feel free to open this file if you're curious, and compare it to the full list of parameters available to customize ``EUKulele``. 
 
