@@ -14,7 +14,7 @@ authors:
   - name: Natalie R. Cohen
     affiliation: "3"
     orcid: 0000-0001-6156-9186
-  - name: Harriet Alexander^[halexander@whoi.edu]
+  - name: Harriet Alexander^[Corresponding author]
     orcid: 0000-0003-1308-8008
     affiliation: "1" # (Multiple affiliations must be quoted)
 affiliations:
@@ -24,7 +24,7 @@ affiliations:
    index: 2
  - name: Marine Chemistry and Geochemistry, Woods Hole Oceanographic Institution
    index: 3
-date: 20 August 2020
+date: 25 October 2020
 bibliography: paper.bib
 
 ---
