@@ -36,24 +36,24 @@ Note that databases provided through ``EUKulele`` include the taxonomic structur
      - Unique species (strains) [*Note: not all databases have both species and strain level*]
      - Taxonomy Assignment Structure
    * - MMETSP
-     - PhyloDB
-     - EukZoo
-     - EukProt
-   * - 678
+     - 678
+     - Eukaryote
+     - 316 (405)
+     - Supergroup, Division, Class, Order, Family, Genus, Species, Strain
+   * - PhyloDB
      - 25,992
-     - 739
-     - 742
-   * - Eukaryote
      - Eukaryote, bacteria, archaea, virus
-     - Eukaryote
-     - Eukaryote
-   * - 316 (405)
      - 25,992
-     - 361 (441)
-     - (621)
-   * - Supergroup, Division, Class, Order, Family, Genus, Species, Strain
      - Supergroup, Division, Class, Order, Family, Genus_Species
+   * - EukZoo
+     - 739
+     - Eukaryote
+     - 361 (441)
      - Supergroup, Phylum, Class, Order, Family, Genus, Species
+   * - EukProt
+     - 742
+     - Eukaryote
+     - (621)
      - Supergroup_UniEuk, Taxogroup_UniEuk, Epithet_UniEuk, Genus_UniEuk, Strain
      
 .. image:: mmetsp-breakdown.png
