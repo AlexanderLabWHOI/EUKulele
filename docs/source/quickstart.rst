@@ -26,6 +26,7 @@ Useful output is located in:
 ``output/levels_mags`` - consensus annotations based on the majority of annotated contigs at each classification level
 
 ``output/core_taxonomy_estimation`` - contains contig annotations for core (shared) genes among MAGs as determined by BUSCO. Useful for identifying core genes among strains/variants during pangenomic analyses
+
 ``output/busco_assessment`` -  BUSCO assessment for the most abundant taxonomic annotation at each classification level. Provides information on estimated MAG completion based on conserved eukaryotic genes expected to be present in a full genome.
 
 Metatranscriptomic (MET) annotation
