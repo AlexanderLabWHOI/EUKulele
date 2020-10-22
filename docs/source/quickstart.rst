@@ -4,7 +4,7 @@
 We recommend consulting the full documentation to explore all of the ``EUKulele`` features, capabilities, and intended usage. A quick start approach for annotating eukaryotic metagenome-assembled genomes and metatranscriptomes are outlined below using ``EUKulele``-provided databases and default parameters. 
 
 Installation
-=========================
+------------
 
 The conda installation is the most straightforward approach and the environment will contain all dependencies needed to run ``EUKulele``. If you do not already have conda installed on your machine, see the conda installation documentation `here <https://docs.conda.io/projects/conda/en/latest/user-guide/install/>`_. Other installation options are included under Installation and Invocation::
 
@@ -13,7 +13,7 @@ The conda installation is the most straightforward approach and the environment 
     conda activate EUKulele
 
 Metagenome-assembled genome (MAG) annotation
-============================================
+--------------------------------------------
 
 ``EUKulele`` can determine the taxonomic identity of binned MAGs using their consensus contig annotations. It run using the following command::
 
@@ -30,7 +30,7 @@ Useful output is located in:
 ``output/busco_assessment`` -  BUSCO assessment for the most abundant taxonomic annotation at each classification level. Provides information on estimated MAG completion based on conserved eukaryotic genes expected to be present in a full genome.
 
 Metatranscriptomic (MET) annotation
-============================================
+-----------------------------------
 
 ``EUKulele`` can be run on metatranscriptomic assemblies using the following command:
 
