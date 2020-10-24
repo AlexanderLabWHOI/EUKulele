@@ -1,3 +1,5 @@
+.. _databases:
+=====================================================
 Installing Databases and Creating Configuration Files
 =====================================================
 

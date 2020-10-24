@@ -43,7 +43,7 @@ Inside each of the taxonomy estimation folders (``core_taxonomy_estimation``, fo
 - max_pid
     - The maximum percentage identity reported by the alignment program for the match
 - counts
-    - 1 if not using ``Salmon``, or the number of counts reported by the quantification program for that transcript/contig if using salmon
+    - 1 if not using ``Salmon``, or the number of counts reported by the quantification program for that transcript/contig if using ``Salmon``
 - ambiguous
     - 1 if there were multiple disagreeing matches for this transcript/contig, resolved by either consensus annotation using the user-provided cutoff (defaults to 75%) or by last common ancestor (LCA) approaches, otherwise 0
 
@@ -68,7 +68,7 @@ The taxonomic count files are named according to the convention *output-folder-n
 Taxonomy Visualization Folders
 ------------------------------
 
-Unside each of the taxonomy visualization folders (``core_taxonomy_visualization``, for exclusively transcripts annotated as core genes, and ``taxonomy_visualization``), there are auto-generated barplots that show:
+Inside each of the taxonomy visualization folders (``core_taxonomy_visualization``, for exclusively transcripts annotated as core genes, and ``taxonomy_visualization``), there are auto-generated barplots that show:
 
 - x-axis: samples
 - y-axis, left subplot (if using counts): relative number of transcripts
