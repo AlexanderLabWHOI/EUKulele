@@ -15,7 +15,7 @@ authors:
   - name: Natalie R. Cohen
     affiliation: "3"
     orcid: 0000-0001-6156-9186
-  - name: Harriet Alexander^[Corresponding author, halexander@whoi.edu]
+  - name: Harriet Alexander^[Corresponding author]
     orcid: 0000-0003-1308-8008
     affiliation: "1" # (Multiple affiliations must be quoted)
 affiliations:
