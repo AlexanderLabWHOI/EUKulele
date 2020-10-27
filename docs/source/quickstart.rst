@@ -12,6 +12,14 @@ The conda installation is the most straightforward approach and the environment 
     conda install -c akrinos -c bioconda -c conda-forge EUKulele
     conda activate EUKulele
 
+Generalized flow of EUKulele annotation
+---------------------------------------
+
+.. image:: eukulele_diagram_simplified.jpg
+  :width: 400
+  :alt: Flowchart of EUKulele overview
+  
+ 
 Metagenome-assembled genome (MAG) annotation
 --------------------------------------------
 
@@ -22,6 +30,8 @@ Metagenome-assembled genome (MAG) annotation
 where ``output_directory`` contains one or more assembly fasta files with the extension ``.fasta``. See Parameters for other file extension accommodations. This will annotate the assemblies using the MMETSP database (default) and DIAMOND aligner (default). 
 
 Useful output is located in:
+
+``output/max-level-mag`` - the majority level annotation by level (supergroup - species) for each mag and the proportion of proteins that share that same annotation
 
 ``output/levels_mags`` - consensus annotations based on the majority of annotated contigs at each classification level
 
@@ -44,8 +54,5 @@ Useful output files will be located in:
 
 ``output/taxonomy_visualization`` - shows the breakdown of contig annotations at the seven classification levels (Supergroup, Division, Class, Order, Family, Genus, Species) for the mixed community. 
 
-.. image:: eukulele_diagram_simplified.jpg
-  :width: 400
-  :alt: Flowchart of EUKulele overview
 
 If you have any issues using ``EUKulele`` or suggestions to improve the software, please submit an `issue on GitHub <https://github.com/AlexanderLabWHOI/EUKulele/issues>`_.
