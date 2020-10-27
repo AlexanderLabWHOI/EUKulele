@@ -13,6 +13,8 @@ Three databases can be downloaded and formatted automatically when invoking ``EU
 - `MMETSP <https://zenodo.org/record/1212585#.Xw3PoJNKhTZ>`_ *Default*
 - `EukZoo <https://github.com/zxl124/EukZoo-database>`_
 
+Note that the MMETSP database is generated using cleaned MMETSP assemblies originally derived from, but not identical to, the assemblies stored in full at the link above. In order to download the cleaned assemblies used to create the ``EUKulele`` MMETSP database, please follow the instructions recorded in `this Github repository <https://github.com/shu251/download-mmetsp>`_.
+
 To use these databases, all you need to do is specify ``--database phylodb``, ``--database eukprot``, or ``--database mmetsp``, respectively, when invoking ``EUKulele``. 
 
 A database (for example ``phylodb``) can be setup prior to running by using::

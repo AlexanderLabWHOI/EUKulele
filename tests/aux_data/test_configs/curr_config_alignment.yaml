@@ -14,7 +14,7 @@ nucleotide_extension: .fna
 organisms:
 - Phaeocystis;antarctica
 original_tax_table: taxonomy-table.txt
-output: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/test_out
+output: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/test_out_D
 protein_extension: .faa
 protein_map: prot-map.json
 ref_fasta: reference.pep.fa
@@ -22,9 +22,10 @@ reference: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../
 salmon_dir: 0
 samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/samples_MAGs
 scratch: scratch
-subroutine: alignment
+subroutine: setup
 tax_table: tax-table.txt
 taxonomy_organisms:
 - species
 transdecoder_orfsize: 100
 use_salmon_counts: 0
+0

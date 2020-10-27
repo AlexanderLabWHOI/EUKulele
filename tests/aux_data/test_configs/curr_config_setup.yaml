@@ -8,19 +8,19 @@ database: mmetsp
 download_reference: 0
 individual_or_summary: individual
 jobname: test
-mets_or_mags: mets
+mets_or_mags: mags
 names_to_reads: 0
-nucleotide_extension: .fasta
+nucleotide_extension: .fna
 organisms:
 - Phaeocystis;antarctica
 original_tax_table: taxonomy-table.txt
-output: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/test_out
+output: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/test_out_A
 protein_extension: .faa
 protein_map: prot-map.json
 ref_fasta: reference.pep.fa
 reference: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/sample_ref
 salmon_dir: 0
-samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/samples_METs_small
+samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/samples_MAGs
 scratch: scratch
 subroutine: setup
 tax_table: tax-table.txt
