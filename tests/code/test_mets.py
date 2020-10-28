@@ -15,10 +15,12 @@ test_reference = "mmetsp"
 def test_setup():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     base_config = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config.yaml')
-    with open(base_config) as f:
+    base_config_curr = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config_P.yaml')
+    os.system("cp " + base_config + " " + base_config_curr)
+    with open(base_config_curr) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
        
-    outputdir = os.path.join(base_dir, "test_out")
+    outputdir = os.path.join(base_dir, "test_out_P")
     os.system("rm -rf " + outputdir)
     
     config["mets_or_mags"] = "mets"
@@ -36,7 +38,7 @@ def test_setup():
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
-    config_file = os.path.join(config_path, 'curr_config_setup.yaml')
+    config_file = os.path.join(config_path, 'curr_config_setup_P.yaml')
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
         
@@ -46,7 +48,7 @@ def test_setup():
 def test_setup_commandline():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_METs_small")
-    output_dir = os.path.join(base_dir, "test_out")
+    output_dir = os.path.join(base_dir, "test_out_Q")
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     os.system("rm -rf " + output_dir)
     #subprocess.Popen(["EUKulele", "setup", "--database", "mmetsp", "--sample_dir", sample_dir, 
@@ -68,14 +70,14 @@ def test_all_commandline():
     
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_METs_small")
-    output_dir = os.path.join(base_dir, "test_out")
+    output_dir = os.path.join(base_dir, "test_out_R")
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
     #EUKulele alignment --database mmetsp --sample_dir  tests/aux_data/mmetsp/samples_METs_small --mets_or_mags mets --out_dir tests/test_out --organisms Chromera --taxonomy_organisms genus --reference_dir tests/aux_data/mmetsp
             
     string_arguments=" ".join(["alignment", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--organisms", "Chromera",
-                      "--ref_fasta", "reference.pep.fa", "--run_transdecoder",
+                      "--ref_fasta", "reference.pep.fa", # "--run_transdecoder",
                       "--taxonomy_organisms", "genus", "--reference_dir", reference_dir])
     
     eukulele(string_arguments=string_arguments)
@@ -89,15 +91,19 @@ def test_all_commandline_busco():
     """
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_METs_small")
-    output_dir = os.path.join(base_dir, "test_out")
+    output_dir = os.path.join(base_dir, "test_out_S")
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
-    string_arguments = " ".join(["busco", "--database", "mmetsp", "--sample_dir", sample_dir, 
+    string_arguments = ["setup", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, 
                       "--individual_or_summary","summary", 
-                      "--ref_fasta", "reference.pep.fa", "--reference_dir", reference_dir])
+                      "--ref_fasta", "reference.pep.fa", "--reference_dir", reference_dir]
     
-    eukulele(string_arguments=string_arguments)
+    eukulele(string_arguments=" ".join(string_arguments))
+    string_arguments[0] = "alignment"
+    eukulele(string_arguments=" ".join(string_arguments))
+    string_arguments[0] = "busco"
+    eukulele(string_arguments=" ".join(string_arguments))
     
     samplenames = [curr.split(".")[0] for curr in os.listdir(sample_dir)]
     busco_out = os.path.join(output_dir, "busco_assessment", samplenames[0], 
@@ -110,20 +116,26 @@ def test_all_commandline_busco_individual():
     """
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_METs_small")
-    output_dir = os.path.join(base_dir, "test_out")
+    output_dir = os.path.join(base_dir, "test_out_T")
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
-    string_arguments = " ".join(["busco", "--database", "mmetsp", "--sample_dir", sample_dir, 
+    string_arguments = ["setup", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, 
                       "--individual_or_summary","individual",'--organisms', 'Chromera',
                       '--taxonomy_organisms', 'genus',"--ref_fasta", "reference.pep.fa", 
-                      "--reference_dir", reference_dir])
+                      "--reference_dir", reference_dir]
     
-    eukulele(string_arguments=string_arguments)
+    eukulele(string_arguments=" ".join(string_arguments))
+    string_arguments[0] = "alignment"
+    eukulele(string_arguments=" ".join(string_arguments))
+    string_arguments[0] = "busco"
+    eukulele(string_arguments=" ".join(string_arguments))
     
     samplenames = [curr.split(".")[0] for curr in os.listdir(sample_dir)]
     busco_out = os.path.join(output_dir, "busco_assessment", samplenames[0], 
-                             "species_combined", "summary_species_" + samplenames[0] + ".tsv")
+                             "individual", "summary_" + samplenames[0] + ".tsv")
+    #busco_out = os.path.join(output_dir, "busco_assessment", samplenames[0], 
+    #                         "species_combined", "summary_species_" + samplenames[0] + ".tsv")
     assert os.path.isfile(busco_out)
     
 def test_all_force_rerun():
@@ -132,7 +144,7 @@ def test_all_force_rerun():
     """
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_METs_small")
-    output_dir = os.path.join(base_dir, "test_out")
+    output_dir = os.path.join(base_dir, "test_out_U")
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     os.system("rm -rf " + output_dir)
     
@@ -140,7 +152,7 @@ def test_all_force_rerun():
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--busco_threshold", str(30),
                       "--individual_or_summary","individual",'--organisms', 'Chromera', "--filter_metric",
                       "bitscore", '--taxonomy_organisms', 'genus',"--ref_fasta", "reference.pep.fa", 
-                      "--reference_dir", reference_dir, "-f"])
+                      "--reference_dir", reference_dir])#, "-f"])
     
     eukulele(string_arguments=string_arguments)
     
@@ -156,7 +168,7 @@ def test_all_use_counts():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_METs_small")
     salmon_dir = os.path.join(base_dir, test_reference, "samples_METs", "salmon_quant")
-    output_dir = os.path.join(base_dir, "test_out")
+    output_dir = os.path.join(base_dir, "test_out_V")
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     os.system("rm -rf " + output_dir)
     

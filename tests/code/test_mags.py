@@ -21,7 +21,7 @@ def test_setup():
     config["reference"] = os.path.join(base_dir, test_reference, "sample_ref")
     config["samples"] = os.path.join(base_dir, test_reference, "samples_MAGs")
     config["subroutine"] = "setup"
-    config["output"] = os.path.join(base_dir, "test_out")
+    config["output"] = os.path.join(base_dir, "test_out_A")
     config["database"] = test_reference
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
@@ -42,7 +42,9 @@ def test_setup():
 def test_alignment():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     base_config = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config.yaml')
-    with open(base_config) as f:
+    base_config_curr = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config_B.yaml')
+    os.system("cp " + base_config + " " + base_config_curr)
+    with open(base_config_curr) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
        
     config["mets_or_mags"] = "mags"
@@ -50,7 +52,7 @@ def test_alignment():
     config["samples"] = os.path.join(base_dir, test_reference, "samples_MAGs")
     config["subroutine"] = "alignment"
     config["cutoff"] = os.path.join("tax-cutoffs.yaml")
-    config["output"] = os.path.join(base_dir, "test_out")
+    config["output"] = os.path.join(base_dir, "test_out_B")
     config["database"] = test_reference
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
@@ -60,7 +62,7 @@ def test_alignment():
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
-    config_file = os.path.join(config_path, 'curr_config_alignment.yaml')
+    config_file = os.path.join(config_path, 'curr_config_alignment_B.yaml')
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
         
@@ -71,7 +73,9 @@ def test_alignment():
 def test_setup_blast():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     base_config = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config.yaml')
-    with open(base_config) as f:
+    base_config_curr = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config_C.yaml')
+    os.system("cp " + base_config + " " + base_config_curr)
+    with open(base_config_curr) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
        
     config["mets_or_mags"] = "mags"
@@ -80,7 +84,7 @@ def test_setup_blast():
     config["subroutine"] = "setup"
     config["alignment_choice"] = "blast"
     config["cutoff"] = os.path.join("tax-cutoffs.yaml")
-    config["output"] = os.path.join(base_dir, "test_out")
+    config["output"] = os.path.join(base_dir, "test_out_C")
     config["database"] = test_reference
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
@@ -90,7 +94,7 @@ def test_setup_blast():
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
-    config_file = os.path.join(config_path, 'curr_config_alignment.yaml')
+    config_file = os.path.join(config_path, 'curr_config_alignment_C.yaml')
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
         
@@ -101,16 +105,18 @@ def test_setup_blast():
 def test_alignment_blast():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     base_config = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config.yaml')
-    with open(base_config) as f:
+    base_config_curr = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config_D.yaml')
+    os.system("cp " + base_config + " " + base_config_curr)
+    with open(base_config_curr) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
        
     config["mets_or_mags"] = "mags"
     config["reference"] = os.path.join(base_dir, test_reference, "sample_ref_MAG")
     config["samples"] = os.path.join(base_dir, test_reference, "samples_MAGs")
-    config["subroutine"] = "alignment"
+    config["subroutine"] = "setup"
     config["alignment_choice"] = "blast"
     config["cutoff"] = os.path.join("tax-cutoffs.yaml")
-    config["output"] = os.path.join(base_dir, "test_out")
+    config["output"] = os.path.join(base_dir, "test_out_D")
     config["database"] = test_reference
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
@@ -120,10 +126,14 @@ def test_alignment_blast():
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
-    config_file = os.path.join(config_path, 'curr_config_alignment.yaml')
+    config_file = os.path.join(config_path, 'curr_config_alignment_D.yaml')
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
         
+    eukulele(config=config_file)
+    config["subroutine"] = "alignment"
+    with open(config_file, 'w') as f:
+        yaml.dump(config, f)
     eukulele(config=config_file)
     outprefix = config["output"].split("/")[-1]
     assert os.path.isfile(os.path.join(config["output"], "taxonomy_counts", outprefix + "_all_species_counts.csv"))
@@ -131,7 +141,9 @@ def test_alignment_blast():
 def test_busco():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     base_config = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config.yaml')
-    with open(base_config) as f:
+    base_config_curr = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config_all.yaml')
+    os.system("cp " + base_config + " " + base_config_curr)
+    with open(base_config_curr) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
        
     config["mets_or_mags"] = "mags"
@@ -150,7 +162,7 @@ def test_busco():
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
-    config_file = os.path.join(config_path, 'curr_config_busco.yaml')
+    config_file = os.path.join(config_path, 'curr_config_busco_all.yaml')
         
     config["subroutine"] = "alignment"
     
