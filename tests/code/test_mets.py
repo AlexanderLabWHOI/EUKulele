@@ -75,7 +75,7 @@ def test_all_commandline():
             
     string_arguments=" ".join(["alignment", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--organisms", "Chromera",
-                      "--ref_fasta", "reference.pep.fa", "--run_transdecoder",
+                      "--ref_fasta", "reference.pep.fa", # "--run_transdecoder",
                       "--taxonomy_organisms", "genus", "--reference_dir", reference_dir])
     
     eukulele(string_arguments=string_arguments)

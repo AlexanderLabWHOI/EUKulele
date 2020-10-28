@@ -23,7 +23,8 @@ install:
   - conda config --add channels conda-forge
   - conda create -n test
   - conda activate test
-  - conda install blast busco=4.0.5 diamond transdecoder ujson pandas yaml chardet pyyaml numpy joblib
+#  - conda install blast busco=4.0.5 diamond transdecoder ujson pandas yaml chardet pyyaml numpy joblib
+  - conda install blast busco=4.0.5 diamond ujson pandas yaml chardet pyyaml numpy joblib
   - python3 -m pip install -e . --user
   - python setup.py install
   - configure_busco.sh "eukaryota_odb10"
@@ -33,7 +34,7 @@ branches:
 script:
   - pip install coverage #==4.5.4 
   - pip install biopython==1.77
-  - py.test --doctest-modules -v --cov EUKulele --cov-report term-missing
+  - py.test --doctest-modules -v -n 7 --cov EUKulele --cov-report term-missing
   #- travis_wait 25 py.test tests/code/test_mags_2.py --doctest-modules -v --cov EUKulele --cov-report term-missing
   #- py.test tests/code/test_mets.py --doctest-modules -v --cov EUKulele --cov-report term-missing
 after_success:
