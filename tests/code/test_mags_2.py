@@ -142,25 +142,25 @@ def test_error_busco():
     
     assert error == 1
     
-#def test_busco_file():
-#    base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
-#    sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
-#    output_dir = os.path.join(base_dir, "test_out_L")
-#    os.system("rm -rf " + output_dir)
-#    reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
+def test_busco_file():
+    base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
+    sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
+    output_dir = os.path.join(base_dir, "test_out_K")
+    os.system("rm -rf " + output_dir)
+    reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
-#    string_arguments = " ".join(["--database", "mmetsp", "--sample_dir", sample_dir, 
-#                                 "--mets_or_mags", "mags", "--out_dir", output_dir, "-i",
-#                                 '--busco_file', os.path.join(base_dir, test_reference, "samples_MAGs", "test_busco.tsv"),
-#                                 "--reference_dir", reference_dir])
-#    error = 0
-#    eukulele(string_arguments=string_arguments)
-#    samplenames = [curr.split(".")[0] for curr in os.listdir(sample_dir)]
-#    busco_out = os.path.join(output_dir, "busco_assessment", samplenames[0], "individual", 
-#                             "summary_" + samplenames[0] + ".tsv")
-#    out_prefix = samplenames[0]
+    string_arguments = " ".join(["--database", "mmetsp", "--sample_dir", sample_dir, 
+                                 "--mets_or_mags", "mags", "--out_dir", output_dir, "-i",
+                                 '--busco_file', os.path.join(base_dir, test_reference, "samples_MAGs", "test_busco.tsv"),
+                                 "--reference_dir", reference_dir])
+    error = 0
+    eukulele(string_arguments=string_arguments)
+    samplenames = [curr.split(".")[0] for curr in os.listdir(sample_dir)]
+    busco_out = os.path.join(output_dir, "busco_assessment", samplenames[0], "individual", 
+                             "summary_" + samplenames[0] + ".tsv")
+    out_prefix = samplenames[0]
     
-#    assert (os.path.isfile(busco_out))
+    assert (os.path.isfile(busco_out))
     
 def test_all():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
@@ -176,14 +176,14 @@ def test_all():
     config["subroutine"] = "all"
     config["individual_or_summary"] = "summary"
     config["cutoff"] = os.path.join("tax-cutoffs.yaml")
-    config["output"] = os.path.join(base_dir, "test_out_all_O")
+    config["output"] = os.path.join(base_dir, "test_out_all_K")
     config["database"] = test_reference
     config["organisms"] = ["Chromera"]
     config["taxonomy_organisms"] = ["genus"]
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
     config["ref_fasta"] = "reference.pep.fa"
-    config["\_map"] = "prot-map.json"
+    config["protein_map"] = "prot-map.json"
     config["tax_table"] = "tax-table.txt"
     
     config_path = os.path.join(base_dir, 'test_configs')
