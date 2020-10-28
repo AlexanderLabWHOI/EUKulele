@@ -145,7 +145,7 @@ def test_error_busco():
 def test_busco_file():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
-    output_dir = os.path.join(base_dir, "test_out_L")
+    output_dir = os.path.join(base_dir, "test_out_K")
     os.system("rm -rf " + output_dir)
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
@@ -176,7 +176,7 @@ def test_all():
     config["subroutine"] = "all"
     config["individual_or_summary"] = "summary"
     config["cutoff"] = os.path.join("tax-cutoffs.yaml")
-    config["output"] = os.path.join(base_dir, "test_out_all_O")
+    config["output"] = os.path.join(base_dir, "test_out_all_K")
     config["database"] = test_reference
     config["organisms"] = ["Chromera"]
     config["taxonomy_organisms"] = ["genus"]
