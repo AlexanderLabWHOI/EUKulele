@@ -11,6 +11,7 @@ Welcome to EUKulele's documentation!
    :caption: Contents
    
    quickstart
+   about
    running-eukulele
    install
    databaseandconfig
@@ -31,7 +32,7 @@ Welcome to EUKulele's documentation!
    :caption: Example Analyses  
    
    EUKulele_read_breakdown
-   available-databases-R
+   EUKulele-tuneR
    
 Source Code
 -----------

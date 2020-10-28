@@ -11,6 +11,7 @@ Welcome to EUKulele's documentation!
    :caption: Contents
    
    quickstart
+   about
    running-eukulele
    install
    databaseandconfig

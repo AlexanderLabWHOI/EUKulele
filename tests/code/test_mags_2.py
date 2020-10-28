@@ -14,7 +14,7 @@ test_reference = "mmetsp"
 def test_individual():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
-    output_dir = os.path.join(base_dir, "test_out")
+    output_dir = os.path.join(base_dir, "test_out_E")
     os.system("rm -rf " + output_dir)
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
@@ -32,7 +32,7 @@ def test_individual():
 def test_error_input():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
-    output_dir = os.path.join(base_dir, "test_out")
+    output_dir = os.path.join(base_dir, "test_out_F")
     os.system("rm -rf " + output_dir)
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
@@ -51,7 +51,7 @@ def test_error_input():
 def test_error_required_input():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
-    output_dir = os.path.join(base_dir, "test_out")
+    output_dir = os.path.join(base_dir, "test_out_G")
     os.system("rm -rf " + output_dir)
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
@@ -70,7 +70,7 @@ def test_error_required_input():
 def test_error_busco_no_orgs():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
-    output_dir = os.path.join(base_dir, "test_out")
+    output_dir = os.path.join(base_dir, "test_out_H")
     os.system("rm -rf " + output_dir)
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
@@ -88,7 +88,7 @@ def test_error_busco_no_orgs():
 def test_error_n_extension():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
-    output_dir = os.path.join(base_dir, "test_out")
+    output_dir = os.path.join(base_dir, "test_out_I")
     os.system("rm -rf " + output_dir)
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
@@ -107,7 +107,7 @@ def test_error_n_extension():
 def test_error_p_extension():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
-    output_dir = os.path.join(base_dir, "test_out")
+    output_dir = os.path.join(base_dir, "test_out_J")
     os.system("rm -rf " + output_dir)
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
@@ -126,7 +126,7 @@ def test_error_p_extension():
 def test_error_busco():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
-    output_dir = os.path.join(base_dir, "test_out")
+    output_dir = os.path.join(base_dir, "test_out_K")
     os.system("rm -rf " + output_dir)
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
@@ -145,7 +145,7 @@ def test_error_busco():
 def test_busco_file():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
-    output_dir = os.path.join(base_dir, "test_out")
+    output_dir = os.path.join(base_dir, "test_out_L")
     os.system("rm -rf " + output_dir)
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
@@ -165,7 +165,9 @@ def test_busco_file():
 def test_all():
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     base_config = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config.yaml')
-    with open(base_config) as f:
+    base_config_curr = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config_O.yaml')
+    os.system("cp " + base_config + " " + base_config_curr)
+    with open(base_config_curr) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
        
     config["mets_or_mags"] = "mags"
@@ -174,19 +176,19 @@ def test_all():
     config["subroutine"] = "all"
     config["individual_or_summary"] = "summary"
     config["cutoff"] = os.path.join("tax-cutoffs.yaml")
-    config["output"] = os.path.join(base_dir, "test_out_all")
+    config["output"] = os.path.join(base_dir, "test_out_all_O")
     config["database"] = test_reference
     config["organisms"] = ["Chromera"]
     config["taxonomy_organisms"] = ["genus"]
     config["download_reference"] = 0
     config["column"] = "SOURCE_ID"
     config["ref_fasta"] = "reference.pep.fa"
-    config["protein_map"] = "prot-map.json"
+    config["\_map"] = "prot-map.json"
     config["tax_table"] = "tax-table.txt"
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
-    config_file = os.path.join(config_path, 'curr_config_busco.yaml')
+    config_file = os.path.join(config_path, 'curr_config_busco_O.yaml')
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
         
@@ -212,21 +214,21 @@ def test_tester():
     eukulele(string_arguments=string_arguments)
     assert (not os.path.isdir(output_dir))
     
-def test_cleanup():
-    base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
-    config_path = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'test_configs')
-    base_configs = [os.path.join(config_path, 'curr_config_alignment.yaml'),\
-                    os.path.join(config_path, 'curr_config_setup.yaml')]
+#def test_cleanup():
+#    base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
+#    config_path = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'test_configs')
+#    base_configs = [os.path.join(config_path, 'curr_config_alignment.yaml'),\
+#                    os.path.join(config_path, 'curr_config_setup.yaml')]
     
-    successful_test = True
-    for base_config in base_configs:
-        with open(base_config) as f:
-            config = yaml.load(f, Loader=yaml.FullLoader)
+#    successful_test = True
+#    for base_config in base_configs:
+#        with open(base_config) as f:
+#            config = yaml.load(f, Loader=yaml.FullLoader)
 
-        config["reference"] = os.path.join(base_dir, test_reference)
-        os.system("rm -rf " + os.path.join(config["output"]))
+#        config["reference"] = os.path.join(base_dir, test_reference)
+#       os.system("rm -rf " + os.path.join(config["output"]))
 
-        successful_test = successful_test & (not os.path.isdir(os.path.join(config["output"])))
-        successful_test = True      
-    assert successful_test
+#        successful_test = successful_test & (not os.path.isdir(os.path.join(config["output"])))
+#        successful_test = True      
+#    assert successful_test
        

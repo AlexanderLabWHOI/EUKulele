@@ -1,5 +1,14 @@
-Installation and Invocation
-===========================
+Installation
+============
+
+Installing with ``conda``
+-------------------------
+
+:code:`EUKulele` may also be downloaded as a :code:`conda` package, which will eventually become the easiest option, as `conda` automatically installs all dependencies for the user. The package can currently be downloaded via::
+
+    conda install -c akrinos -c bioconda -c conda-forge EUKulele
+    
+Eventually, the :code:`-c akrinos` designation will be replaced, when ``EUKulele`` becomes a ``bioconda`` package, at which point it may be installed from that channel (and this documentation will be updated). 
 
 Installing with Pip
 -------------------
@@ -23,15 +32,6 @@ As the dependencies external to PyPI are:
 - Diamond
 - TransDecoder (if using metatranscriptome samples and the ``--use_transdecoder`` flag)
 
-Installing with ``conda``
--------------------------
-
-:code:`EUKulele` may also be downloaded as a :code:`conda` package, which will eventually become the easiest option, as `conda` automatically installs all dependencies for the user. The package can currently be downloaded via::
-
-    conda install -c akrinos -c bioconda -c conda-forge EUKulele
-    
-Eventually, the :code:`-c akrinos` designation will be replaced, when ``EUKulele`` becomes a ``bioconda`` package, at which point it may be installed from that channel (and this documentation will be updated). 
-
 Cloning the Development Code from GitHub
 ----------------------------------------
 
@@ -52,8 +52,8 @@ Again, in this case, external dependencies may be installed via::
     
 Or individually for each software.
 
-Invoking ``EUKulele``
----------------------
+Invocation
+==========
 
 If installed either with pip or ``conda``, ``EUKulele`` can be invoked via::
 
@@ -64,6 +64,9 @@ Where the minimal command would be::
     EUKulele --mets_or_mags <choice of data type> --sample_dir <where samples are located>
     
 In which case ``EUKulele`` would be run with mostly parameter defaults and using the MMETSP database, by default.
+
+Less common use cases
+---------------------
 
 ``EUKulele`` may also be run as a module within Python. Include the phrase ``import EUKulele`` in the header of a Python file. Then, you may execute ``EUKulele`` using::
 

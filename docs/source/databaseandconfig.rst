@@ -1,3 +1,5 @@
+.. _databases:
+=====================================================
 Installing Databases and Creating Configuration Files
 =====================================================
 
@@ -10,6 +12,8 @@ Three databases can be downloaded and formatted automatically when invoking ``EU
 - `EukProt <https://figshare.com/articles/EukProt_a_database_of_genome-scale_predicted_proteins_across_the_diversity_of_eukaryotic_life/12417881/2>`_
 - `MMETSP <https://zenodo.org/record/1212585#.Xw3PoJNKhTZ>`_ *Default*
 - `EukZoo <https://github.com/zxl124/EukZoo-database>`_
+
+Note that the MMETSP database is generated using cleaned MMETSP assemblies originally derived from, but not identical to, the assemblies stored in full at the link above. In order to download the cleaned assemblies used to create the ``EUKulele`` MMETSP database, please follow the instructions recorded in `this Github repository <https://github.com/shu251/download-cleaned-mmetsp>`_.
 
 To use these databases, all you need to do is specify ``--database phylodb``, ``--database eukprot``, or ``--database mmetsp``, respectively, when invoking ``EUKulele``. 
 

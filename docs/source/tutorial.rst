@@ -1,5 +1,5 @@
-Tutorial 
-====================================
+Trying out ``EUKulele``
+=======================
 
 A minimal working example for ``EUKulele`` can be tested using the instructions on this page.
 
