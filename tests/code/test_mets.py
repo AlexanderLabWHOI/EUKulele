@@ -94,12 +94,16 @@ def test_all_commandline_busco():
     output_dir = os.path.join(base_dir, "test_out_S")
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
-    string_arguments = " ".join(["busco", "--database", "mmetsp", "--sample_dir", sample_dir, 
+    string_arguments = ["setup", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, 
                       "--individual_or_summary","summary", 
-                      "--ref_fasta", "reference.pep.fa", "--reference_dir", reference_dir])
+                      "--ref_fasta", "reference.pep.fa", "--reference_dir", reference_dir]
     
-    eukulele(string_arguments=string_arguments)
+    eukulele(string_arguments=" ".join(string_arguments))
+    string_arguments[0] = "alignment"
+    eukulele(string_arguments=" ".join(string_arguments))
+    string_arguments[0] = "busco"
+    eukulele(string_arguments=" ".join(string_arguments))
     
     samplenames = [curr.split(".")[0] for curr in os.listdir(sample_dir)]
     busco_out = os.path.join(output_dir, "busco_assessment", samplenames[0], 
@@ -115,17 +119,23 @@ def test_all_commandline_busco_individual():
     output_dir = os.path.join(base_dir, "test_out_T")
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     
-    string_arguments = " ".join(["busco", "--database", "mmetsp", "--sample_dir", sample_dir, 
+    string_arguments = ["setup", "--database", "mmetsp", "--sample_dir", sample_dir, 
                       "--mets_or_mags", "mets", "--out_dir", output_dir, 
                       "--individual_or_summary","individual",'--organisms', 'Chromera',
                       '--taxonomy_organisms', 'genus',"--ref_fasta", "reference.pep.fa", 
-                      "--reference_dir", reference_dir])
+                      "--reference_dir", reference_dir]
     
-    eukulele(string_arguments=string_arguments)
+    eukulele(string_arguments=" ".join(string_arguments))
+    string_arguments[0] = "alignment"
+    eukulele(string_arguments=" ".join(string_arguments))
+    string_arguments[0] = "busco"
+    eukulele(string_arguments=" ".join(string_arguments))
     
     samplenames = [curr.split(".")[0] for curr in os.listdir(sample_dir)]
     busco_out = os.path.join(output_dir, "busco_assessment", samplenames[0], 
-                             "species_combined", "summary_species_" + samplenames[0] + ".tsv")
+                             "individual", "summary_" + samplenames[0] + ".tsv")
+    #busco_out = os.path.join(output_dir, "busco_assessment", samplenames[0], 
+    #                         "species_combined", "summary_species_" + samplenames[0] + ".tsv")
     assert os.path.isfile(busco_out)
     
 def test_all_force_rerun():
@@ -142,7 +152,7 @@ def test_all_force_rerun():
                       "--mets_or_mags", "mets", "--out_dir", output_dir, "--busco_threshold", str(30),
                       "--individual_or_summary","individual",'--organisms', 'Chromera', "--filter_metric",
                       "bitscore", '--taxonomy_organisms', 'genus',"--ref_fasta", "reference.pep.fa", 
-                      "--reference_dir", reference_dir, "-f"])
+                      "--reference_dir", reference_dir])#, "-f"])
     
     eukulele(string_arguments=string_arguments)
     
