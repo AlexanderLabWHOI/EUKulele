@@ -60,9 +60,21 @@ Note that databases provided through ``EUKulele`` include the taxonomic structur
      - (621)
      - Supergroup_UniEuk, Taxogroup_UniEuk, Epithet_UniEuk, Genus_UniEuk, Strain
      
-.. image:: mmetsp-breakdown.png
+.. image:: mmetsp-doughnut.png
   :width: 400
-  :alt: MMETSP breakdown
+  :alt: Breakdown of MMETSP database composition.
+  
+.. image:: phylodb-doughnut.png
+  :width: 400
+  :alt: Breakdown of PhyloDB database composition.
+  
+.. image:: eukprot-doughnut.png
+  :width: 400
+  :alt: Breakdown of EukProt database composition.
+  
+.. image:: eukzoo-doughnut.png
+  :width: 400
+  :alt: Breakdown of EukZoo database composition.
   
 Recommendations for Database Usage
 ----------------------------------
