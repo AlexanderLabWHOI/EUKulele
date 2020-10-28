@@ -37,12 +37,14 @@ def test_setup():
         yaml.dump(config, f)
         
     eukulele(config=config_file)
+    assert os.path.isfile(os.path.join(config["reference"], config["tax_table"]))
     config["subroutine"] = "alignment"
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
         
     eukulele(config=config_file)
-    assert os.path.isfile(os.path.join(config["reference"], config["tax_table"]))
+    outprefix = config["output"].split("/")[-1]
+    assert os.path.isfile(os.path.join(config["output"], "taxonomy_counts", outprefix + "_all_species_counts.csv"))
        
 #def test_alignment():
 #    base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
@@ -104,13 +106,14 @@ def test_setup_blast():
         yaml.dump(config, f)
         
     eukulele(config=config_file)
+    assert os.path.isdir(os.path.join(config["reference"], "blast"))
     config["subroutine"] = "alignment"
     with open(config_file, 'w') as f:
         yaml.dump(config, f)
         
     eukulele(config=config_file)
     outprefix = config["output"].split("/")[-1]
-    assert os.path.isdir(os.path.join(config["reference"], "blast"))
+    assert os.path.isfile(os.path.join(config["output"], "taxonomy_counts", outprefix + "_all_species_counts.csv"))
     
 #def test_alignment_blast():
 #    base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
