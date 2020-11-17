@@ -6,7 +6,7 @@ Installing Databases and Creating Configuration Files
 Default Databases
 -----------------
 
-Three databases can be downloaded and formatted automatically when invoking ``EUKulele``. Currently the supported databases are:
+Four databases can be downloaded and formatted automatically when invoking ``EUKulele``. Currently the supported databases are:
 
 - `PhyloDB <https://drive.google.com/drive/u/0/folders/0B-BsLZUMHrDQfldGeDRIUHNZMEREY0g3ekpEZFhrTDlQSjQtbm5heC1QX2V6TUxBeFlOejQ>`_
 - `EukProt <https://figshare.com/articles/EukProt_a_database_of_genome-scale_predicted_proteins_across_the_diversity_of_eukaryotic_life/12417881/2>`_
@@ -21,7 +21,7 @@ A database (for example ``phylodb``) can be setup prior to running by using::
 
     EUKulele setup --database phylodb
 
-If a database is not found automatically by ``EUKuele`` it will automatically download the database specified by the flag. If you downloaded a database previously you can specify the ``--reference_dir`` flag indicating the path to the previously downloaded database. If no reference database is specified with ```--reference_dir```, EUKulele will automatically download and use the MMETSP database. You can also (1) download the other databases and use the flag ```reference_dir``` to point EUKulele to the location of already downloaded databases or (2) use your own databases.
+If a database is not found automatically by ``EUKuele`` it will automatically download the database specified by the flag. If you downloaded a database previously you can specify the ``--reference_dir`` flag indicating the path to the previously downloaded database. If no reference database is specified with ``--reference_dir``, EUKulele will automatically download and use the MMETSP database. You can also (1) download the other databases and use the flag ``reference_dir`` to point EUKulele to the location of already downloaded databases or (2) use your own databases.
 
 Composition of Default Databases
 --------------------------------
