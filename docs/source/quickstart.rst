@@ -9,8 +9,8 @@ Installation
 The conda installation is the most straightforward approach and the environment will contain all dependencies needed to run ``EUKulele``. If you do not already have conda installed on your machine, see the conda installation documentation `here <https://docs.conda.io/projects/conda/en/latest/user-guide/install/>`_. Other installation options are included under Installation and Invocation::
 
     conda create -n EUKulele
-    conda install -c akrinos -c bioconda -c conda-forge EUKulele
     conda activate EUKulele
+    conda install -c akrinos -c bioconda -c conda-forge EUKulele
 
 Generalized flow of EUKulele annotation
 ---------------------------------------
