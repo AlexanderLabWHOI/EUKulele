@@ -6,7 +6,7 @@ Using EUKulele
 
 Metatranscriptomes (METs)
 =========================
-In the first case, metatranscriptomes (shortened in ``EUKulele`` to ``mets``), are assumed to be contigs generated from shotgun-style sequencing and assembly of metatranscriptomic data (RNA) from a mixed community. These contigs can be provide to ``EUKulele`` as either nucleotide sequences (such as those output by `Trinity <https://github.com/trinityrnaseq/trinityrnaseq/wiki>`_) or predicted protein sequences from these contigs (such as those output by `Transdecoder <https://github.com/transdecoder>`_). 
+In the first case, metatranscriptomes (shortened in ``EUKulele`` to ``mets``), are assumed to be contigs generated from shotgun-style sequencing and assembly of metatranscriptomic data (RNA) from a mixed community. These contigs can be provided to ``EUKulele`` as either nucleotide sequences (such as those output by `Trinity <https://github.com/trinityrnaseq/trinityrnaseq/wiki>`_) or predicted protein sequences from these contigs (such as those output by `Transdecoder <https://github.com/transdecoder>`_). 
 
 The most basic running of ``EUKulele`` on metatranscriptome samples  would be::
 
