@@ -30,7 +30,7 @@ Below is what you should expect to see when you run ``EUKulele``. ``output-folde
 Taxonomy Estimation Folders
 ---------------------------
 
-Inside each of the taxonomy estimation folders (``core_taxonomy_estimation``, for exclusively transcripts annotated as core genes, and ``taxonomy_estimation``), there are files labeled *sample_name* ``-estimated-taxonomy.out``. Each of these files has the following columns:
+Inside each of the taxonomy estimation folders (``core_taxonomy_estimation``, for exclusively transcripts annotated as core genes, and ``taxonomy_estimation``), there are files labeled ``<sample_name>-estimated-taxonomy.out``. Each of these files has the following columns:
 
 - transcript_name
     - The name of the matched transcript/contig from this sample file
@@ -63,7 +63,7 @@ Inside each of the taxonomy counts folders (``core_taxonomy_counts`` and ``taxon
 - Sample
     - The original metagenomic/metatranscriptomic sample that this count is from (a separate row would be provided if the match is found in multiple samples)
     
-The taxonomic count files are named according to the convention *output-folder-name* ``_all_`` *taxonomic-level* ``_counts.csv``.
+The taxonomic count files are named according to the convention ``<output-folder-name>_all_<taxonomic-level>_counts.csv``.
 
 Taxonomy Visualization Folders
 ------------------------------
