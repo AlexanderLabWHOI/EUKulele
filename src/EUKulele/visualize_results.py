@@ -8,11 +8,11 @@ import sys
 import yaml
 import argparse
 
-#.loc[[name == curr for name in final_frame.loc[name_level]],["Sum"]] 
+#.loc[[name == curr for name in final_frame.loc[name_level]],["Sum"]]
 
 def countClassifs(level, level_hierarchy, name_level, df):
     set_list = set()
-    
+   
     classifications = list(df.loc[df["classification_level"] == level]["classification"])
     counts = list(df.loc[df["classification_level"] == level]["counts"])
     transcript_names = list(df.loc[df["classification_level"] == level]["transcript_name"])
@@ -21,13 +21,13 @@ def countClassifs(level, level_hierarchy, name_level, df):
         classification_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["full_classification"])
         transcripts_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["transcript_name"])
         correct_index = list(np.where([len(str(cr).split(";")) >= abs(-1-(curr-match_loc)) for cr in classification_curr])[0])
-        
+       
         classification_curr = [classification_curr[cr2] for cr2 in correct_index]
         classifs_curr = [str(cr).split(";")[match_loc].strip() for cr in classification_curr]
         transcripts_curr = [transcripts_curr[cr2] for cr2 in correct_index]
         counts_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["counts"])
         counts_curr = [counts_curr[cr2] for cr2 in correct_index]
-        
+       
         # add to running list
         classifications.extend(classifs_curr)
         transcript_names.extend(transcripts_curr)
@@ -36,69 +36,69 @@ def countClassifs(level, level_hierarchy, name_level, df):
     counts.extend(list(lostducklings.counts))
     transcript_names.extend(list(lostducklings.transcript_name))
     classifications.extend(["NoClassification"] * len(lostducklings.index))
-        
+       
     classifications = [str(cr).strip().strip(""''"]['") for cr in classifications]
     full_list = classifications
     set_list.update(set(classifications))
-    
+   
     transcripts_classes = pd.DataFrame({"classifications": classifications, "transcript_names": transcript_names})
     transcripts_classes = transcripts_classes.groupby("classifications").agg({"transcript_names": lambda x: ';'.join(x)})
-    
+   
     # Apparently now when you groupby, the grouping becomes the index.
     if transcripts_classes.index.name != "classifications":
         transcripts_classes = transcripts_classes.set_index('classifications')
     transcripts_classes = transcripts_classes.loc[sorted(list(set_list))]
-    
+   
     full_frame = pd.DataFrame({name_level: classifications, "Counts": counts})
-    final_frame = full_frame.groupby(name_level)['Counts'].agg(Sum='sum', Count='count') 
+    final_frame = full_frame.groupby(name_level)['Counts'].agg(Sum='sum', Count='count')
     # gives both the sum of cts & # transcripts
     final_frame["GroupedTranscripts"] = list(transcripts_classes.transcript_names)
-    
-    end_frame = pd.DataFrame({name_level: sorted(list(set_list)), 
+   
+    end_frame = pd.DataFrame({name_level: sorted(list(set_list)),
                                 "Counts": tuple([float(final_frame[final_frame.index == curr].Sum) \
                                            for curr in sorted(list(set_list))]),
-                                "NumTranscripts": [full_list.count(curr) for curr in sorted(list(set_list))], 
+                                "NumTranscripts": [full_list.count(curr) for curr in sorted(list(set_list))],
                                 "GroupedTranscripts": list(transcripts_classes.transcript_names)})
     return classifications, end_frame
-    
+   
 def countClassifsNoCounts(level, level_hierarchy, name_level, df):
     set_list = set()
-    
+   
     classifications = list(df.loc[df["classification_level"] == level]["classification"])
     transcript_names = list(df.loc[df["classification_level"] == level]["transcript_name"])
     match_loc = int(np.where([curr == level.lower() for curr in level_hierarchy])[0])
-    
+   
     for curr in range(match_loc + 1,len(level_hierarchy)):
         ## MAKE THE TWO CHANGES FROM ABOVE HERE!!
         classification_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["full_classification"])
         transcripts_curr = list(df.loc[df["classification_level"] == level_hierarchy[curr]]["transcript_name"])
         correct_index = list(np.where([len(str(cr).split(";")) >= abs(-1-(curr-match_loc)) for cr in classification_curr])[0])
-        
+       
         classification_curr = [classification_curr[cr2] for cr2 in correct_index]
         transcripts_curr = [transcripts_curr[cr2] for cr2 in correct_index]
         classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() for cr in classification_curr]
-        
+       
         transcript_names.extend(transcripts_curr)
         classifications.extend(classifs_curr)
-        
+       
     # a vector containing all of the classifications given at the current taxonomic level
     classifications = [str(cr).strip().strip(""''"]['") for cr in classifications]
     full_list = classifications
     set_list.update(set(classifications))
-    
+   
     transcripts_classes = pd.DataFrame({"classifications": classifications, "transcript_names": transcript_names})
     transcripts_classes = transcripts_classes.groupby("classifications").agg({"transcript_names": lambda x: ';'.join(x)})
     transcripts_classes.sort_values(by = "classifications", inplace=True)
-    
-    final_frame = pd.DataFrame({name_level: sorted(list(set_list)), 
-                                "Counts": [full_list.count(curr) for curr in sorted(list(set_list))], 
+   
+    final_frame = pd.DataFrame({name_level: sorted(list(set_list)),
+                                "Counts": [full_list.count(curr) for curr in sorted(list(set_list))],
                                 "GroupedTranscripts": list(transcripts_classes.transcript_names)})
-    
+   
     return classifications, final_frame
 
 def stripClassifData(df, use_counts):
     level_hierarchy = ['supergroup','division','class','order','family','genus','species']
-    
+   
     return_dict_list = dict()
     return_dict_frame = dict()
     for curr_level in level_hierarchy:
@@ -117,13 +117,13 @@ def createPlotDataFrame(curr_df_start, cutoff_relative = 0.1, transcript_or_coun
     curr_df_summed = curr_df_start.groupby("Sample")[transcript_or_counts].agg(AllCts='sum')
     curr_df_summed = curr_df_start.join(curr_df_summed,how="left",on="Sample")
 
-    ## CALCULATE RELATIVE COUNTS ## 
+    ## CALCULATE RELATIVE COUNTS ##
     curr_df_summed["Rel_Counts"] = curr_df_summed[transcript_or_counts] / curr_df_summed["AllCts"]
     curr_df_plot = curr_df_summed[["OfInterest","Sample","Rel_Counts"]]
     pivoted = curr_df_plot.pivot(index='Sample', columns='OfInterest', values='Rel_Counts')
     pivoted = pivoted.reindex(sorted(pivoted.columns), axis=1)
 
-    ## If we're plotting both counts and transcripts, still decide on cutoff via transcripts ## 
+    ## If we're plotting both counts and transcripts, still decide on cutoff via transcripts ##
     if transcript_or_counts == "Counts":
         curr_df_summed = curr_df_start.groupby("Sample")["NumTranscripts"].agg(AllCts='sum')
         curr_df_summed = curr_df_start.join(curr_df_summed,how="left",on="Sample")
@@ -134,16 +134,16 @@ def createPlotDataFrame(curr_df_start, cutoff_relative = 0.1, transcript_or_coun
         pivoted_agg = list(pivoted_on_transcripts.max(axis = 0, skipna = True))
     else:
         pivoted_agg = list(pivoted.max(axis = 0, skipna = True))
-    
+   
     ## Leave the columns that meet the threshold; sum the others into an "Other" column ##
     chosen_cols = [curr for curr in range(len(pivoted_agg)) if pivoted_agg[curr] > cutoff_relative]
     chosen_cols_other = [curr for curr in range(len(pivoted_agg)) if pivoted_agg[curr] <= cutoff_relative]
     pivoted_agg = list(pivoted.iloc[:,chosen_cols_other].sum(axis = 1, skipna = True))
-    
+   
     ## Modify the output dataframe accordingly ##
     pivoted = pivoted.iloc[:,chosen_cols]
     pivoted["Other"] = pivoted_agg
-    
+   
     return pivoted
 
 def makeConcatFrame(curr_df, new_df, level, sample_name, use_counts):
@@ -157,11 +157,11 @@ def makeConcatFrame(curr_df, new_df, level, sample_name, use_counts):
     else:
         new_df = pd.DataFrame(new_df)
         new_df.columns = [level,"NumTranscripts","GroupedTranscripts"]
-    
+   
     new_df["Sample"] = sample_name
     return pd.concat([curr_df, new_df], sort=True)
 
-def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extension, nucle_extension, use_counts, 
+def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extension, nucle_extension, use_counts,
                           rerun, core = False):
     results_frame = dict()
     results_counts_dir = os.path.join(out_dir, "taxonomy_counts")
@@ -183,7 +183,7 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
             else:
                 results_frame[file_name] = pd.read_csv(os.path.join(est_dir, file_name), sep = "\t", index_col=0)
         good_samples = good_samples + 1
-            
+           
     if (good_samples == 0) & (not core):
         print("No taxonomic estimation files found! Exiting...")
         sys.exit(1)
@@ -191,7 +191,7 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
     list_results = dict()
     frame_results = dict()
 
-    # characterizing by major classes 
+    # characterizing by major classes
     for curr in results_frame.keys():
         list_results[curr], frame_results[curr] = stripClassifData(results_frame[curr], use_counts)
 
@@ -212,7 +212,7 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
         prefix = out_prefix
         os.system("mkdir -p " + results_counts_dir)
         counts_all[l].to_csv(os.path.join(results_counts_dir, prefix + "_all_" + l + "_counts.csv"))
-        
+       
         if (not os.path.isfile(os.path.join(results_counts_dir, prefix + "_all_" + l + "_counts.csv"))):
             print("Taxonomy counts were not successfully generated. Check log for details.")
             sys.exit(1)
@@ -235,7 +235,7 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir, prot_extens
         curr_df_summed = curr_df_start.groupby("Sample")["NumTranscripts"].agg(AllCts='sum')
         curr_df_summed = curr_df_start.join(curr_df_summed,how="left",on="Sample")
 
-        ## CALCULATE RELATIVE COUNTS ## 
+        ## CALCULATE RELATIVE COUNTS ##
         curr_df_summed["Rel_Counts"] = curr_df_summed["NumTranscripts"] / curr_df_summed["AllCts"]
         curr_df_plot = curr_df_summed[["OfInterest","Sample","Rel_Counts"]]
         pivoted = curr_df_plot.pivot(index='Sample', columns='OfInterest', values='Rel_Counts')

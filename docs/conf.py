@@ -13,8 +13,9 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
-import sphinx_rtd_theme
+'''Configuration file for readthedocs'''
 
+import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
@@ -31,7 +32,7 @@ master_doc = 'index'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx_rtd_theme","nbsphinx","sphinx.ext.mathjax"]
+extensions = ["sphinx_rtd_theme","nbsphinx","sphinx.ext.mathjax","sphinx.ext.autosectionlabel"]
 #,"sphinxcontrib_markdown"]
 #'recommonmark',
 

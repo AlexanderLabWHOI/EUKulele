@@ -92,7 +92,7 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts, tax_cutoffs):
     assignment, level = tax_placement(md, tax_cutoffs) # most specific taxonomic level assigned
     if len(ds)==1:
         if ds[0] not in tax_dict:
-            return(pd.DataFrame(columns=['transcript_name','classification_level', 'full_classification', 
+            return(pd.DataFrame(columns=['transcript_name','classification_level', 'full_classification',
                                          'classification', 'max_pid', 'counts', 'ambiguous']))
         full_classification = str(tax_dict[ds[0]]).split(";")[0:level]
         best_classification = full_classification[len(full_classification) - 1] # the most specific taxonomic level we can classify by
@@ -102,7 +102,7 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts, tax_cutoffs):
         full_classification_0 = []
         for d in ds:
             if d not in tax_dict:
-                return(pd.DataFrame(columns=['transcript_name','classification_level', 'full_classification', 
+                return(pd.DataFrame(columns=['transcript_name','classification_level', 'full_classification',
                                              'classification', 'max_pid', 'counts', 'ambiguous']))
             d_full_class = str(tax_dict[d]).split(";")[0:level]
             classification_0.append(d_full_class[len(d_full_class) - 1]) # the most specific taxonomic level we can classify by
@@ -131,16 +131,16 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts, tax_cutoffs):
     if use_counts == 1:
         return pd.DataFrame([[transcript_name, assignment, full_classification, best_classification, md,\
                               chosen_count, ambiguous]],\
-                       columns=['transcript_name','classification_level', 'full_classification', 
+                       columns=['transcript_name','classification_level', 'full_classification',
                                 'classification', 'max_pid', 'counts', 'ambiguous'])
     else:
         return pd.DataFrame([[transcript_name, assignment, full_classification, best_classification, md, ambiguous]],\
-                       columns=['transcript_name', 'classification_level', 'full_classification', 
+                       columns=['transcript_name', 'classification_level', 'full_classification',
                                 'classification', 'max_pid', 'ambiguous'])
 
 def apply_parallel(grouped_data, match_maker, consensus_cutoff, tax_dict, use_counts, tax_cutoffs):
-    resultdf = Parallel(n_jobs=multiprocessing.cpu_count(), prefer="threads")(delayed(match_maker)(group, consensus_cutoff, 
-                                                                                                   tax_dict, use_counts, 
+    resultdf = Parallel(n_jobs=multiprocessing.cpu_count(), prefer="threads")(delayed(match_maker)(group, consensus_cutoff,
+                                                                                                   tax_dict, use_counts,
                                                                                                    tax_cutoffs) for name, group \
                                                                               in grouped_data)
     return pd.concat(resultdf)
@@ -148,37 +148,37 @@ def apply_parallel(grouped_data, match_maker, consensus_cutoff, tax_dict, use_co
 def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict, consensus_cutoff, tax_cutoffs):
     chunksize = 2 * 10 ** 6
     counter = 0
-    
+   
     ## Return an empty dataframe if no matches made ##
     if os.stat(str(df)).st_size == 0:
         if namestoreads != 0:
-            return pd.DataFrame([[transcript_name, assignment, full_classification, best_classification, 
+            return pd.DataFrame([[transcript_name, assignment, full_classification, best_classification,
                                   md, chosen_count, ambiguous]],\
-                       columns=['transcript_name','classification_level', 'full_classification', 
+                       columns=['transcript_name','classification_level', 'full_classification',
                                 'classification', 'max_pid', 'counts', 'ambiguous'])
         else:
-            return pd.DataFrame(columns=['transcript_name', 'classification_level', 'full_classification', 
+            return pd.DataFrame(columns=['transcript_name', 'classification_level', 'full_classification',
                                 'classification', 'max_pid', 'ambiguous'])
-        
+       
     for chunk in pd.read_csv(str(df), sep = '\t', header = None, chunksize=chunksize):
-        chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 'qstart', 
+        chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 'qstart',
                          'qend', 'sstart', 'send', 'evalue', 'bitscore']
         chunk['ssqid_TAXID']=chunk.sseqid.map(pdict)
         chunk = chunk[['qseqid','pident', 'evalue', 'bitscore', 'ssqid_TAXID']]
         if namestoreads != 0:
-            chunk['counts']=[namestoreads[curr.split(".")[0].split(":")[0]] if curr.split(".")[0].split(":")[0] in 
+            chunk['counts']=[namestoreads[curr.split(".")[0].split(":")[0]] if curr.split(".")[0].split(":")[0] in
                              namestoreads else 0 for curr in chunk.qseqid]
             use_counts = 1
         else:
             chunk['counts'] = [0] * len(chunk.qseqid) # if no reads dict, each count is just assumed to be 0 and isn't recorded later
             use_counts = 0
-            
+           
         if counter == 0:
-            outdf = apply_parallel(chunk.groupby('qseqid'), match_maker, 
+            outdf = apply_parallel(chunk.groupby('qseqid'), match_maker,
                                    consensus_cutoff, tax_dict, use_counts, tax_cutoffs)
         else:
-            outdf = pd.concat([outdf, apply_parallel(chunk.groupby('qseqid'), 
-                                                     match_maker, consensus_cutoff, tax_dict, 
+            outdf = pd.concat([outdf, apply_parallel(chunk.groupby('qseqid'),
+                                                     match_maker, consensus_cutoff, tax_dict,
                                                      use_counts, tax_cutoffs)], axis = 0)
         counter = counter + 1
     return outdf
@@ -188,7 +188,7 @@ def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,
     if (os.path.isfile(outfile)) & (not rerun):
         print("Taxonomic placement already complete at", outfile + "; will not re-run step.")
         return pd.read_csv(outfile, sep = "\t")
-    
+   
     tax_table = read_in_taxonomy(tax_file)
     tax_cutoffs = read_in_tax_cutoffs(os.path.join(os.path.dirname(os.path.realpath(__file__)), "static", cutoff_file))
     pdict = read_in_protein_map(prot_map_file)
@@ -196,10 +196,10 @@ def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,
     consensus_cutoff = float(consensus_cutoff)
     if (int(use_counts) == 1):
         reads_dict = gen_reads_dict(names_to_reads)
-        classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, reads_dict, 
+        classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, reads_dict,
                                                        pdict, consensus_cutoff, tax_cutoffs)
     else:
-        classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, 0, pdict, 
+        classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, 0, pdict,
                                                        consensus_cutoff, tax_cutoffs)
     classification_df.to_csv(outfile, sep='\t')
     return outfile

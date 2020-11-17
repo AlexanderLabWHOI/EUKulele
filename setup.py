@@ -1,7 +1,9 @@
-from setuptools import setup, find_packages
+'''
+Build and deploy the package.
+'''
+
 import os
-import numpy.random
-from glob import glob
+from setuptools import setup, find_packages
 
 os.system("export PY_IGNORE_IMPORTMISMATCH=1")
 os.system("cp VERSION src/EUKulele/static")
@@ -22,9 +24,12 @@ setup(
     author_email="akrinos@mit.edu",
     packages=['EUKulele','scripts'],
     package_dir={'EUKulele': 'src/EUKulele'},
-    scripts=['bin/EUKulele','scripts/create_protein_table.py','scripts/download_database.sh',\
-             'scripts/concatenate_busco.sh','scripts/configure_busco.sh','scripts/run_busco.sh',\
-             'scripts/install_dependencies.sh','scripts/after_job.sh','scripts/coordinate_batch.sh'],
+    scripts=['bin/EUKulele','scripts/create_protein_table.py',
+             'scripts/download_database.sh',\
+             'scripts/concatenate_busco.sh','scripts/configure_busco.sh',
+             'scripts/run_busco.sh',\
+             'scripts/install_dependencies.sh','scripts/after_job.sh',
+             'scripts/coordinate_batch.sh'],
     license="MIT",
     include=['code'],
     include_package_data = True,
