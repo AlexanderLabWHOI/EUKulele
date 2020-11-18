@@ -92,11 +92,11 @@ def magStats(args=None):
             pass
     for curr_level in levels:
         tax_dict[curr_level].to_csv(os.path.join(args.outdir,
-                                        args.out_prefix + '.' +
+                                        args.out_prefix + '.' +\
                                                  curr_level),
                            header=False, sep='\t')
     max_df.to_csv(os.path.join(args.max_out_dir,
-                               args.out_prefix +
+                               args.out_prefix +\
                                '-max-level.csv'), sep='\t')
     return 0
 

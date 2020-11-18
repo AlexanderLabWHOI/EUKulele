@@ -113,7 +113,7 @@ def createProteinTable(args=None):
 
         print("Modifying...",pepfile,flush=True)
         os.system("cut -f 1 " + str(pepfile) + " > " + str(pepfile) + ".tester.pep.fa")
-        os.system("perl -i -pe 's/$/_$seen{$_}/ if ++$seen{$_}>1 and /^>/; ' " +
+        os.system("perl -i -pe 's/$/_$seen{$_}/ if ++$seen{$_}>1 and /^>/; ' " + \
                   str(pepfile) + ".tester.pep.fa")
         os.system("mv " + str(pepfile) + ".tester.pep.fa " + str(pepfile))
 
@@ -125,7 +125,7 @@ def createProteinTable(args=None):
         tax_out = pd.DataFrame(columns=colnames_tax)
         for i in range(0,len(tax_file.index)):
             if not args.eukprot:
-                curr_row = [tax_file[args.col_source_id][i]] +
+                curr_row = [tax_file[args.col_source_id][i]] + \
                            tax_file[args.taxonomy_col_id][i].split(";")
                 if len(curr_row) < (len(colnames_tax)):
                     curr_row = curr_row + [""] * ((len(colnames_tax) + 1) - len(curr_row))

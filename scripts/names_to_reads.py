@@ -9,7 +9,7 @@ def namesToReads(reference_dir, names_to_reads, salmon_dir):
     ''' Main function to create reads table from Salmon names.'''
 
     if os.path.isfile(os.path.join(reference_dir,names_to_reads)):
-        print("Salmon reads file previously created; new file will" +
+        print("Salmon reads file previously created; new file will" +\
               "not be created from Salmon directory.")
         sys.exit(0)
 
