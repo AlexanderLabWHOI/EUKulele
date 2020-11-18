@@ -224,13 +224,13 @@ def queryBusco(args=None):
     parser.add_argument('--taxonomy_file_prefix',
                         help = "The taxonomy file we use to create the mock transcriptome.")
     parser.add_argument('--tax_table',
-                        help = "the taxonomy table to get the full classification of the organism, " +\ 
+                        help = "the taxonomy table to get the full classification of the organism, " +\
                         "as assessed by the database being used.")
     parser.add_argument('--sample_name', help = "The name of the original sample being assessed.")
     parser.add_argument('--download_busco',action='store_true',
                         help = "If specified, we download BUSCO file from the url in the next argument.")
     parser.add_argument('--create_fasta',action='store_true',
-                        help = "If specified, we create a 'transcriptome fasta'" + 
+                        help = "If specified, we create a 'transcriptome fasta'" +\
                                " when we query for the organisms.")
     parser.add_argument('--busco_url',default=0)
     parser.add_argument('--busco_location',default="busco",
@@ -287,7 +287,8 @@ def queryBusco(args=None):
                                                         args.sample_name + ".tsv"), sep = "\t")
     else:
         for taxonomy in level_hierarchy:
-            taxonomy_file = pd.read_csv(args.taxonomy_file_prefix + "_all_" + str(taxonomy) +\                                        "_counts.csv", sep=",",header=0)
+            taxonomy_file = pd.read_csv(args.taxonomy_file_prefix + "_all_" + str(taxonomy) +\
+                                        "_counts.csv", sep=",",header=0)
             if len(taxonomy_file.index) > 0:
                 curr_frame = taxonomy_file.nlargest(multiprocessing.cpu_count(), 'NumTranscripts')
                 organisms = list(set(list(curr_frame[taxonomy.capitalize()])))
@@ -314,7 +315,8 @@ def queryBusco(args=None):
                                                  taxonomy + "_combined"))
             results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, "busco_assessment",
                                                             args.sample_name, taxonomy + "_combined",
-                                                            "summary_" + taxonomy + "_" +  args.sample_name +\                                                        ".tsv"), sep = "\t")
+                                                            "summary_" + taxonomy + "_" +  args.sample_name +\
+                                                            ".tsv"), sep = "\t")
        
     return 0
        

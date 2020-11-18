@@ -33,7 +33,7 @@ USAGE:
     --output
     /vortexfs1/omics/alexander/akrinos/EUKulele-Reference/phylodb_db/taxonomy_table.txt
     --delim "\t" --strain_col_id strain_name --taxonomy_col_id taxonomy --column 2
-    
+
 """
 
 import os
@@ -69,7 +69,7 @@ def createProteinTable(args=None):
     parser.add_argument('--euk-prot', dest='eukprot',
                         default=False, action='store_true') # eukprot's taxonomy is too unique
 
-    if args != None:
+    if args is not None:
         args = parser.parse_args(args)
     else:
         args = parser.parse_args()
@@ -105,9 +105,9 @@ def createProteinTable(args=None):
                 sid = hlist[int(args.column)]
                 odict[rid] = sid
             else:
-                for h in hlist:
-                    if args.column in h: #h.startswith(args.column):
-                        sid = h.split('=')[1].strip()  
+                for h_curr in hlist:
+                    if args.column in h_curr: #h.startswith(args.column):
+                        sid = h_curr.split('=')[1].strip()
                         odict[rid] = sid
                         break
 
@@ -150,10 +150,10 @@ def createProteinTable(args=None):
 
         tax_file = tax_out
     tax_file.to_csv(args.output,sep="\t")
-    with open(args.outfile_json, 'w') as f:
-        json.dump(odict, f)
-        
+    with open(args.outfile_json, 'w') as file_out:
+        json.dump(odict, file_out)
+
     return 0
-        
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     createProteinTable()

@@ -3,10 +3,10 @@ Sets up EUKulele imports for downstream processing.
 '''
 
 import os
-import math
 import sys
 import yaml
-import pandas as pd
+
+import EUKulele
 
 abs_path = os.path.abspath(os.path.dirname(__file__))
 
@@ -36,6 +36,10 @@ def eukulele(config="", string_arguments=""):
         EUKulele.EUKulele_main.main(str(args))
 
 def parseConfig(config_file):
+    '''
+    Process a user-defined configuration file.
+    '''
+    
     with open(config_file, 'r') as configfile:
         config = yaml.safe_load(configfile)
 
@@ -54,15 +58,15 @@ def parseConfig(config_file):
         args = args + str(config["subroutine"]) + " "
     args = args + " --config_file " + str(config_file)
     args = args + " --mets_or_mags " + str(config["mets_or_mags"])
-  
+
     ## If reference_dir is provided, databases are not downloaded.
     if "reference" in config:
         args = args + " --reference_dir " + str(config["reference"])
     if "samples" in config:
         args = args + " --sample_dir " + str(config["samples"])
-    if "ref_fasta" in config: 
-        # otherwise, this will default to reference.pep.fa! 
-        #Set automatically if database is auto-downloaded 
+    if "ref_fasta" in config:
+        # otherwise, this will default to reference.pep.fa!
+        #Set automatically if database is auto-downloaded
         #("download_reference", below)
         args = args + " --ref_fasta " + str(config["ref_fasta"])
     if "output" in config:
@@ -105,7 +109,7 @@ def parseConfig(config_file):
     ## ALIGNMENT AND BUSCO OPTIONS ##
     if "alignment_choice" in config:
         args = args + " --alignment_choice " + str(config["alignment_choice"])
-    if "cutoff" in config:  
+    if "cutoff" in config:
         args = args + " --cutoff_file " + config["cutoff"]
     if "filter_metric" in config:
         args = args + " --filter_metric " + config["filter_metric"]
@@ -134,8 +138,8 @@ def parseConfig(config_file):
     if "protein_map" in config: # unique, non-default name for formatted protein map
         protein_map = config["protein_map"]
         args = args + " --protein_map " + str(protein_map)
-      
+
     return args
-   
+
 if __name__ == "__main__":
     eukulele(string_arguments = " ".join(sys.argv))
