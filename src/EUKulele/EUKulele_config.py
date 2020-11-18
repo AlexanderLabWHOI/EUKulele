@@ -26,7 +26,7 @@ def eukulele(config="", string_arguments=""):
             return 0
 
     if (config == "") | (not os.path.isfile(config)):
-        print("Running EUKulele with command line arguments, " +
+        print("Running EUKulele with command line arguments, " + \
               "as no valid configuration file was provided.")
 
         EUKulele.EUKulele_main.main(str(string_arguments))
@@ -45,7 +45,7 @@ def parseConfig(config_file):
     required_entries = ["mets_or_mags","samples"]
     for r_curr in required_entries:
         if r_curr not in config:
-            print("You did not include required entry: " +
+            print("You did not include required entry: " + \
                   str(r_curr) + " in the configuration file.")
             sys.exit(1)
 
@@ -72,8 +72,7 @@ def parseConfig(config_file):
     if "nucleotide_extension" in config:
         args = args + " --nucleotide_extension " + str(config["nucleotide_extension"])
     if "protein_extension" in config:
-        args = args + " --protein_extension " +
-               str(config["protein_extension"])
+        args = args + " --protein_extension " + str(config["protein_extension"])
     if "scratch" in config:
         args = args + " --scratch " + str(config["scratch"])
     if "force_rerun" in config:
@@ -87,16 +86,16 @@ def parseConfig(config_file):
             if "salmon_dir" in config:
                 args = args + " --salmon_dir " + config["salmon_dir"]
             else:
-                print("You need to include a salmon directory "+
+                print("You need to include a salmon directory "+\
                       "if you wish to process salmon counts.")
                 sys.exit(1)
             if "names_to_reads" in config:
-                args = args + " --names_to_reads " +
+                args = args + " --names_to_reads " + \
                        config["names_to_reads"]
 
     ## TRANSDECODER AND COMPUTATIONS OPTIONS ##
     if "transdecoder_orfsize" in config:
-        args = args + " --transdecoder_orfsize " +
+        args = args + " --transdecoder_orfsize " + \
                str(config["transdecoder_orfsize"])
     if "CPUs" in config:
         args = args + " --CPUs " + str(config["CPUs"])
@@ -115,13 +114,13 @@ def parseConfig(config_file):
     if "busco_file" in config:
         args = args + " --busco_file " + str(config["busco_file"])
     if "individual_or_summary" in config:
-        args = args + " --individual_or_summary " +
+        args = args + " --individual_or_summary " + \
                str(config["individual_or_summary"])
     if "organisms" in config:
-        args = args + " --organisms " +
+        args = args + " --organisms " + \
                str(" ".join(config["organisms"]))
     if "taxonomy_organisms" in config:
-        args = args + " --taxonomy_organisms " +
+        args = args + " --taxonomy_organisms " + \
                str(" ".join(config["taxonomy_organisms"]))
     if "busco_threshold" in config:
         args = args + " --busco_threshold " + str(config["busco_threshold"])
