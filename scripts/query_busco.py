@@ -65,8 +65,8 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
     number_covered = []
     busco_out_file = pd.read_csv(busco_out, sep = "\t", comment = "#",
                                  names = ["BuscoID","Status","Sequence","Score","Length"])
-    select_inds = [ (busco_out_file.Status[curr] == "Complete") |
-                   (busco_out_file.Status[curr] == "Fragmented") |
+    select_inds = [ (busco_out_file.Status[curr] == "Complete") |\
+                   (busco_out_file.Status[curr] == "Fragmented") |\
                    (busco_out_file.Status[curr] == "Duplicated") for \
                    curr in range(len(busco_out_file.index))]
     good_buscos = busco_out_file.loc[select_inds,:]
@@ -196,7 +196,8 @@ def read_in_taxonomy(infile):
     classes = ['supergroup','division','class','order','family','genus','species']
     for c in tax_out.columns:
         if c.lower() in classes:
-            if (np.issubdtype(tax_out[str(c)].dtypes, np.number)) | (np.issubdtype(tax_out[str(c)].dtypes, np.float_)):
+            if (np.issubdtype(tax_out[str(c)].dtypes, np.number)) |\
+               (np.issubdtype(tax_out[str(c)].dtypes, np.float_)):
                 tax_out = tax_out.loc[:,~(tax_out.columns == c)]
     tax_out.columns = tax_out.columns.str.lower()
     tax_out = tax_out.set_index('source_id')
@@ -250,8 +251,8 @@ def queryBusco(args=None):
     taxonomy = args.taxonomic_level
     tax_table = read_in_taxonomy(args.tax_table)
 
-    if (args.individual_or_summary == "individual") &
-       ((len(args.organism_group) == 0) |
+    if (args.individual_or_summary == "individual") &\
+       ((len(args.organism_group) == 0) | \
         (len(args.taxonomic_level) == 0)):
         print("You specified individual mode, but then did not " +\
               "provide a taxonomic group and/or accompanying taxonomic level.",
