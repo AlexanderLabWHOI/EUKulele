@@ -1,22 +1,9 @@
-#!/usr/bin/env python
+'''
+Software for taxonomic identification of eukaryotes.
+'''
 
-# Software for taxonomic identification of eukaryotes.
-
-import pandas as pd
-import numpy as np
 import os
 import sys
-import yaml
-import chardet
-import argparse
-import multiprocessing
-import subprocess
-import shutil
-import glob
-from joblib import Parallel, delayed
-import pkgutil
-
-import EUKulele
 
 from EUKulele.download_database import downloadDatabase
 from EUKulele.manage_steps import manageEukulele
@@ -24,7 +11,6 @@ from EUKulele.busco_runner import readBuscoFile
 from EUKulele.busco_runner import configRunBusco
 from EUKulele.busco_runner import manageBuscoQuery
 
-import scripts as HelperScripts
 from scripts.names_to_reads import namesToReads
 
 __author__ = "Harriet Alexander, Arianna Krinos"
@@ -39,11 +25,11 @@ def main(args_in):
                     'for further information.',
         usage='eukulele [subroutine] --mets_or_mags [dataset_type] --sample_dir [sample_directory] ' +
               '--reference_dir [reference_database_location] [all other options]')
-   
+  
     parser.add_argument('subroutine', metavar="subroutine", nargs='?', type=str, default="all",
                         choices = ["","all","download","setup","alignment","busco","coregenes"],
                         help='Choice of subroutine to run.')
-   
+  
     parser.add_argument('-v', '--version', dest = "version", default=False, action='store_true')
     parser.add_argument('-m', '--mets_or_mags', dest = "mets_or_mags", required = False, default = "")
     parser.add_argument('--n_ext', '--nucleotide_extension', dest = "nucleotide_extension", default = ".fasta")
@@ -69,7 +55,7 @@ def main(args_in):
                         help = "Folder where the output will be written.")
     parser.add_argument('-s', '--sample_dir', required = False, dest = "sample_dir", default = "nan",
                         help = "Folder where the input data is located (the protein or peptide files to be assessed).")
-   
+  
     ## ONLY SPECIFY THESE ARGUMENTS IF YOU HAVE ALREADY PROVIDED AND FORMATTED YOUR OWN DATABASE ##
     parser.add_argument('--reference_dir', default=".",
                         help = "Folder containing the reference files for the chosen database.")
@@ -77,10 +63,10 @@ def main(args_in):
                         help = "Either a file in the reference directory where the fasta file for the database " +
                                "is located, or a directory containing multiple fasta files that " +
                                "constitute the database.")
- 
+
     parser.add_argument('--tax_table', default = "tax-table.txt")
     parser.add_argument('--protein_map', default = "prot-map.json")
-   
+  
     ## ALIGNMENT OPTIONS ##
     parser.add_argument('--alignment_choice', default = "diamond", choices = ["diamond", "blast"])
 
@@ -111,11 +97,11 @@ def main(args_in):
                        help = "Whether TransDecoder should be run on metatranscriptomic samples. Otherwise, " +
                        "BLASTp is run if protein translated samples are provided, otherwise BLASTx is run " +
                        "on nucleotide samples.")
-   
-   
+  
+  
     parser.add_argument('--test', action='store_true', default=False,
                        help = "Whether we're just running a test and should not execute downloads.")
-              
+             
     args = parser.parse_args(list(filter(None, args_in.split(" "))))
     if (args.mets_or_mags == "") & (args.subroutine != "download") & (not args.version):
         print("METs or MAGs argument (-m/--mets_or_mags) is required with one of 'mets' or 'mags'.")
@@ -123,7 +109,7 @@ def main(args_in):
     if (args.sample_dir == "nan") & (args.subroutine != "download") & (not args.version):
         print("A sample directory must be specified (-s/--sample_dir).")
         sys.exit(1)
-   
+  
     ## VARIABLES ##
     TEST = args.test
     CONSENSUS_CUTOFF = args.consensus_cutoff
@@ -134,34 +120,28 @@ def main(args_in):
     PERC_MEM = args.perc_mem
 
     ALIGNMENT_CHOICE = args.alignment_choice
-    OUTPUT_EXTENSION = "txt"
-    DBEXTENSION = ""
     TRANSDECODERORFSIZE=args.transdecoder_orfsize
-    if ALIGNMENT_CHOICE == "diamond":
-        OUTPUT_EXTENSION = "out"
-        DBEXTENSION = ".dmnd"
     NT_EXT = args.nucleotide_extension.strip('.')
     PEP_EXT = args.protein_extension.strip('.')
     mets_or_mags = args.mets_or_mags.lower()
     individual_or_summary = args.individual_or_summary
     if args.individual_tag:
         individual_or_summary = "individual"
-   
+  
     if (mets_or_mags != "mets") & (mets_or_mags != "mags") & (args.subroutine != "download") & (not args.version):
         print("Only METs or MAGs are supported as input data types. Please update the 'mets_or_mags' flag accordingly.")
         sys.exit(1)
 
     USE_SALMON_COUNTS = args.use_salmon_counts
     SALMON_DIR = args.salmon_dir
-    NAMES_TO_READS = os.path.join(REFERENCE_DIR, str(args.names_to_reads))
-    CPUS = args.CPUs                        
+    NAMES_TO_READS = os.path.join(REFERENCE_DIR, str(args.names_to_reads))                      
 
     ORGANISMS = args.organisms
     ORGANISMS_TAXONOMY = args.taxonomy_organisms
     BUSCO_FILE = args.busco_file
     RERUN_RULES = args.force_rerun
     RUN_TRANSDECODER = args.run_transdecoder
-   
+  
     ORGANISMS, ORGANISMS_TAXONOMY = readBuscoFile(individual_or_summary, BUSCO_FILE,
                                                   ORGANISMS, ORGANISMS_TAXONOMY)
 
@@ -170,13 +150,13 @@ def main(args_in):
     ALIGNMENT = False
     BUSCO = False
     COREGENES = False
-   
+  
     if args.version:
         TEST = True
         filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), "static", "VERSION")
         f = open(filename, "r")
         print("The current EUKulele version is",f.read())
-   
+  
     if (args.subroutine == "download"):
         DOWNLOAD = True
     if (args.subroutine == "all") | (args.subroutine == "setup"):
@@ -187,7 +167,7 @@ def main(args_in):
         BUSCO = True
     if (args.subroutine == "all") | (args.subroutine == "coregenes"):
         COREGENES = True
-       
+      
     if TEST:
         SETUP = False
         ALIGNMENT = False
@@ -242,7 +222,7 @@ def main(args_in):
         manageEukulele(piece = "transdecode", mets_or_mags = mets_or_mags, samples = samples, output_dir = OUTPUTDIR,
                        rerun_rules = RERUN_RULES, sample_dir = SAMPLE_DIR, transdecoder_orf_size = TRANSDECODERORFSIZE,
                        nt_ext = NT_EXT, pep_ext = PEP_EXT, run_transdecoder = RUN_TRANSDECODER, perc_mem = PERC_MEM)
-       
+      
         ## Next to align against our database of choice ##
         alignment_res = manageEukulele(piece = "align_to_db", alignment_choice = ALIGNMENT_CHOICE, samples = samples,
                                         filter_metric = args.filter_metric, output_dir = OUTPUTDIR,
@@ -251,7 +231,7 @@ def main(args_in):
                                         nt_ext = NT_EXT, pep_ext = PEP_EXT, perc_mem = PERC_MEM)
 
         ## Next to do salmon counts estimation. ##
-        if (USE_SALMON_COUNTS == True):
+        if USE_SALMON_COUNTS:
             try:
                 NAMES_TO_READS = namesToReads(REFERENCE_DIR, NAMES_TO_READS, SALMON_DIR)
             except:
@@ -286,7 +266,7 @@ def main(args_in):
                          nt_ext = NT_EXT, sample_dir = SAMPLE_DIR, organisms = ORGANISMS,
                          organisms_taxonomy = ORGANISMS_TAXONOMY, tax_tab = TAX_TAB,
                          busco_threshold = args.busco_threshold, perc_mem = PERC_MEM)
-   
+  
     if COREGENES & busco_matched:
         print("Investigating core genes...")
         ## Next to align against our database of choice ##
@@ -314,6 +294,6 @@ def main(args_in):
                            output_dir = OUTPUTDIR)
     if not args.version:
         print("EUKulele run complete!", flush = True)
-                  
+                 
 if __name__ == "__main__":
     main(args_in = " ".join(sys.argv[1:]))

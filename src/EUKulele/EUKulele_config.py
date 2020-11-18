@@ -70,8 +70,7 @@ def parseConfig(config_file):
     if "database" in config:
         args = args + " --database " + str(config["database"])
     if "nucleotide_extension" in config:
-        args = args + " --nucleotide_extension " +
-               str(config["nucleotide_extension"])
+        args = args + " --nucleotide_extension " + str(config["nucleotide_extension"])
     if "protein_extension" in config:
         args = args + " --protein_extension " +
                str(config["protein_extension"])

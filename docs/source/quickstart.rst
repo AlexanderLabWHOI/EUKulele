@@ -27,7 +27,7 @@ Metagenome-assembled genome (MAG) annotation
 
     EUKulele --sample_dir/output_directory -m mags
 
-where ``output_directory`` contains one or more assembly fasta files with the extension ``.fasta``. See Parameters for other file extension accommodations. This will annotate the assemblies using the MMETSP database (default) and DIAMOND aligner (default). 
+where ``output_directory`` contains one or more assembly fasta files with the extension ``.faa`` (it is recommended that MAG files are provided in protein format; see :ref:`Using EUKulele<usingeukulele>`). See :ref:`Parameters<parameters>` for other file extension accommodations. This will annotate the assemblies using the MMETSP database (default) and DIAMOND aligner (default). 
 
 Useful output is located in:
 
