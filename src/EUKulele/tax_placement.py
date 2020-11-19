@@ -4,12 +4,12 @@ Script for handling taxonomic estimation.
 
 #!/usr/bin/env python
 import os
-import yaml
 import chardet
 import argparse
 import multiprocessing
 from joblib import Parallel, delayed
 import ujson
+import yaml
 import pandas as pd
 import numpy as np
 
@@ -19,15 +19,20 @@ def tax_placement(pident, tax_cutoffs):
     ''' Decide which level of taxonomy is appropriate. '''
 
     if pident >= tax_cutoffs['species']:
-        out = 'species'; level = 7
+        out = 'species'
+        level = 7
     elif pident >= tax_cutoffs['genus']:
-        out = 'genus'; level = 6
+        out = 'genus'
+        level = 6
     elif pident >= tax_cutoffs['family']:
-        out = 'family'; level = 5
+        out = 'family'
+        level = 5
     elif pident >= tax_cutoffs['order']:
-        out = 'order'; level = 4
+        out = 'order'
+        level = 4
     elif pident < tax_cutoffs['order']:
-        out = 'class'; level = 3
+        out = 'class'
+        level = 3
     return out, level
 
 def read_in_taxonomy(infile):
@@ -193,7 +198,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
 
     chunksize = 2 * 10 ** 6
     counter = 0
- 
+
     ## Return an empty dataframe if no matches made ##
     if os.stat(str(df)).st_size == 0:
         if namestoreads != 0:
@@ -204,7 +209,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
             return pd.DataFrame(columns=['transcript_name','classification_level',\
                                          'full_classification',
                                 'classification', 'max_pid', 'ambiguous'])
-     
+
     for chunk in pd.read_csv(str(df), sep = '\t', header = None, chunksize=chunksize):
         chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch',
                          'gapopen', 'qstart','qend', 'sstart', 'send',
@@ -220,7 +225,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
             chunk['counts'] = [0] * len(chunk.qseqid)
             # if no reads dict, each count is just assumed to be 0 and isn't recorded later
             use_counts = 0
-         
+
         if counter == 0:
             outdf = apply_parallel(chunk.groupby('qseqid'), match_maker,
                                    consensus_cutoff, tax_dict, use_counts, tax_cutoffs)

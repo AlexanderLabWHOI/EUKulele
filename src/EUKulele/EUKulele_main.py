@@ -190,8 +190,7 @@ def main(args_in):
     if (args.subroutine == "all") | (args.subroutine == "setup"):
         setup_choice = True
     if (args.subroutine == "all") | (args.subroutine == "alignment"):
-        
-        \= True
+        alignment_choice_select = True
     if (args.subroutine == "all") | (args.subroutine == "busco"):
         busco_choice = True
     if (args.subroutine == "all") | (args.subroutine == "coregenes"):
