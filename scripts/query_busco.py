@@ -14,12 +14,11 @@ matches to differentiate between multiple strains.'''
 # --taxonomy_file_prefix   --tax_table " +\n# TAX_TAB + " --busco_out " + busco_table
 
 import os
-import glob
 import sys
-import pandas as pd
-import numpy as np
 import argparse
 import chardet
+import pandas as pd
+import numpy as np
 import multiprocessing
 from joblib import Parallel, delayed
 
@@ -28,30 +27,38 @@ __copyright__ = "EUKulele"
 __license__ = "MIT"
 __email__ = "akrinos@mit.edu"
 
-level_hierarchy = ['supergroup','division','class','order','family','genus','species']
+level_hierarchy = ['supergroup','division','class','order',
+                   'family','genus','species']
 
-def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcript_file, busco_out,
-                      taxonomy_file_prefix, busco_threshold, output_dir, sample_name, fasta_file):
+def evaluate_organism(organism, taxonomy, tax_table, create_fasta,
+                      write_transcript_file, busco_out,
+                      taxonomy_file_prefix, busco_threshold,
+                      output_dir, sample_name, fasta_file):
     '''Check the BUSCO completeness of the specified taxonomic group.'''
 
     organism_format = organism
     if organism == "":
         print("No organism found", flush=True)
-        return pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness","NumberCovered",
-                                       "CtTwoCopies","CtThreeCopies","CtFourCopies","CtFivePlusCopies",
+        return pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness",
+                                       "NumberCovered","CtTwoCopies","CtThreeCopies",
+                                       "CtFourCopies","CtFivePlusCopies",
                                        "PercentageDuplicated"])
     if taxonomy == "species":
         organism_format = " ".join(str(organism).split(";"))
-    full_taxonomy = tax_table.loc[[(organism_format in curr) for curr in list(tax_table[taxonomy])],:]
+    full_taxonomy = tax_table.loc[[(organism_format in curr) \
+                                   for curr in list(tax_table[taxonomy])],:]
     if len(full_taxonomy.index) < 1:
-        print("No taxonomy found for that organism " + str(organism) + " and taxonomic level " + str(taxonomy) + ".",
+        print("No taxonomy found for that organism " + str(organism) + \
+              " and taxonomic level " + str(taxonomy) + ".",
               flush=True)
-        return pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness","NumberCovered",
-                                       "CtTwoCopies","CtThreeCopies","CtFourCopies","CtFivePlusCopies",
+        return pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness",
+                                       "NumberCovered",
+                                       "CtTwoCopies","CtThreeCopies","CtFourCopies",
+                                       "CtFivePlusCopies",
                                        "PercentageDuplicated"])
 
     curr_level = [ind for ind in range(len(level_hierarchy)) if level_hierarchy[ind] == taxonomy][0]
-    max_level = len(level_hierarchy) - 1
+    # max_level = len(level_hierarchy) - 1
 
     success = 0
     success_level = ""
@@ -90,7 +97,8 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
                   str(", ".join(curr_tax_list)), flush=True)
         curr_taxonomy = ";".join(curr_tax_list)
         if (curr_taxonomy == "") | (curr_taxonomy.lower() == "nan"):
-            print("No taxonomy found at level " + level_hierarchy[curr_level], flush=True)
+            print("No taxonomy found at level " + level_hierarchy[curr_level],
+                  flush=True)
             continue
 
         #### CREATE A "MOCK TRANSCRIPTOME" BY PULLING BY TAXONOMIC LEVEL ####
@@ -108,10 +116,13 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
 
         set_transcripts_to_search = set(transcripts_to_search_sep)
         good_busco_sequences_list = list(good_busco_sequences)
-        BUSCOs_covered_all = [Covered_IDs[curr] for curr in range(len(good_busco_sequences_list)) if \
-                              good_busco_sequences_list[curr] in list(set_transcripts_to_search)]
+        BUSCOs_covered_all = [Covered_IDs[curr] for curr in \
+                              range(len(good_busco_sequences_list)) if \
+                              good_busco_sequences_list[curr] in \
+                              list(set_transcripts_to_search)]
         BUSCOs_covered = set(BUSCOs_covered_all)
-        number_appearences = [BUSCOs_covered_all.count(curr_busco) for curr_busco in list(BUSCOs_covered)]
+        number_appearences = [BUSCOs_covered_all.count(curr_busco) for \
+                              curr_busco in list(BUSCOs_covered)]
         multiples = [curr_appear for curr_appear in number_appearences if curr_appear >= 2]
        
         ## KEEP TRACK OF WHETHER DUPLICATES/TRIPLES/ETC. ARE COMMON ##
@@ -148,11 +159,11 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
     if success == 1:
         file_written = os.path.join(report_dir, level_hierarchy[curr_level] +\
                                     "_" + sample_name + ".txt")
-        if (write_transcript_file):
+        if write_transcript_file:
             with open(file_written, 'w') as filehandle:
                 for transcript_name in transcripts_to_search_sep:
                     filehandle.write(transcript_name + '\n')
-        if (create_fasta):
+        if create_fasta:
             mock_file_name = os.path.join(report_dir, organism + "_" +\
                                           level_hierarchy[curr_level] + "_" +\
                                           sample_name + "_transcripts.fasta")
@@ -167,14 +178,16 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta, write_transcr
                        ". \n The file containing the transcript names " +\
                        " for the mock transcriptome corresponding to this "
                        "taxonomic level is located here: " + str(file_written) + ".\n")
-        reported.write("The BUSCO scores found at the various taxonomic levels (Supergroup to " +\
-                       str(taxonomy) + ") were: " + " ".join([str(curr) for curr in reversed_scores]))
+        reported.write("The BUSCO scores found at the various taxonomic levels " +\
+                       "(Supergroup to " + str(taxonomy) + ") were: " +\
+                       " ".join([str(curr) for curr in reversed_scores]))
     else:
         reported.write("Sufficient BUSCO completeness not found at threshold " +\
                        str(busco_threshold) + "%. \n")
         reported.write("The BUSCO scores found at the various taxonomic levels " +\
                        "(Supergroup to " + str(taxonomy) +\
-                       ") were: " + " ".join([str(curr) for curr in reversed_scores]) + "\n")
+                       ") were: " + " ".join([str(curr) for curr in reversed_scores]) + \
+                       "\n")
     reported.close()
     reversed_levels = levels_out
     reversed_levels.reverse()
@@ -193,7 +206,8 @@ def read_in_taxonomy(infile):
     with open(infile, 'rb') as f:
         result = chardet.detect(f.read())
     tax_out = pd.read_csv(infile, sep='\t',encoding=result['encoding'])
-    classes = ['supergroup','division','class','order','family','genus','species']
+    classes = ['supergroup','division','class','order','family',
+               'genus','species']
     for c in tax_out.columns:
         if c.lower() in classes:
             if (np.issubdtype(tax_out[str(c)].dtypes, np.number)) |\
@@ -225,11 +239,14 @@ def queryBusco(args=None):
     parser.add_argument('--taxonomy_file_prefix',
                         help = "The taxonomy file we use to create the mock transcriptome.")
     parser.add_argument('--tax_table',
-                        help = "the taxonomy table to get the full classification of the organism, " +\
-                        "as assessed by the database being used.")
-    parser.add_argument('--sample_name', help = "The name of the original sample being assessed.")
+                        help = "the taxonomy table to get the full " +\
+                        "classification of the organism, as assessed by " +\
+                        "the database being used.")
+    parser.add_argument('--sample_name', help = "The name of the original "+\
+                        "sample being assessed.")
     parser.add_argument('--download_busco',action='store_true',
-                        help = "If specified, we download BUSCO file from the url in the next argument.")
+                        help = "If specified, we download BUSCO file from "+\
+                        "the url in the next argument.")
     parser.add_argument('--create_fasta',action='store_true',
                         help = "If specified, we create a 'transcriptome fasta'" +\
                                " when we query for the organisms.")
@@ -240,7 +257,8 @@ def queryBusco(args=None):
     parser.add_argument('--available_cpus',default=1)
     parser.add_argument('--busco_threshold',default=50)
     parser.add_argument('--write_transcript_file', default=False, action='store_true',
-                       help = "Whether to write an actual file with the subsetted transcriptome.")
+                       help = "Whether to write an actual file with the " +\
+                              "subsetted transcriptome.")
 
     if args != None:
         args = parser.parse_args(args)
@@ -266,7 +284,7 @@ def queryBusco(args=None):
               " taxonomic levels were specified.",flush=True)
         sys.exit(1)
 
-    if (args.individual_or_summary == "individual"):
+    if args.individual_or_summary == "individual":
         results_frame = Parallel(n_jobs=multiprocessing.cpu_count()) \
                                 (delayed(evaluate_organism)(organism[curr],
                                                             taxonomy[curr], tax_table,
@@ -284,8 +302,10 @@ def queryBusco(args=None):
         os.system("mkdir -p " + os.path.join(args.output_dir, "busco_assessment",
                                              args.sample_name, "individual"))
         results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, "busco_assessment",
-                                                        args.sample_name, "individual", "summary_" +\
-                                                        args.sample_name + ".tsv"), sep = "\t")
+                                                        args.sample_name, "individual",
+                                                        "summary_" +\
+                                                        args.sample_name + ".tsv"),
+                             sep = "\t")
     else:
         for taxonomy in level_hierarchy:
             taxonomy_file = pd.read_csv(args.taxonomy_file_prefix + "_all_" + str(taxonomy) +\
@@ -307,16 +327,20 @@ def queryBusco(args=None):
                                          for organism in organisms)
                 results_frame = pd.concat(results_frame)
             else:
-                results_frame = pd.DataFrame(columns = ["Organism","TaxonomicLevel","BuscoCompleteness",
+                results_frame = pd.DataFrame(columns = ["Organism","TaxonomicLevel",
+                                                        "BuscoCompleteness",
                                                         "NumberCovered","CtTwoCopies",
-                                                        "CtThreeCopies","CtFourCopies","CtFivePlusCopies",
+                                                        "CtThreeCopies","CtFourCopies",
+                                                        "CtFivePlusCopies",
                                                         "PercentageDuplicated"])
                
             os.system("mkdir -p " + os.path.join(args.output_dir, "busco_assessment", args.sample_name,
                                                  taxonomy + "_combined"))
             results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, "busco_assessment",
-                                                            args.sample_name, taxonomy + "_combined",
-                                                            "summary_" + taxonomy + "_" +  args.sample_name +\
+                                                            args.sample_name,
+                                                            taxonomy + "_combined",
+                                                            "summary_" + taxonomy + "_" + \
+                                                            args.sample_name +\
                                                             ".tsv"), sep = "\t")
        
     return 0

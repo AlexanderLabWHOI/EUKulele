@@ -18,7 +18,7 @@ def test_setup():
         config = yaml.load(f, Loader=yaml.FullLoader)
        
     config["mets_or_mags"] = "mags"
-    config["reference"] = os.path.join(base_dir, test_reference, "sample_ref")
+    config["reference"] = os.path.join(base_dir, test_reference, "sample_ref_MAG")
     config["samples"] = os.path.join(base_dir, test_reference, "samples_MAGs")
     config["subroutine"] = "setup"
     config["output"] = os.path.join(base_dir, "test_out_A")
@@ -31,7 +31,7 @@ def test_setup():
     
     config_path = os.path.join(base_dir, 'test_configs')
     os.system("mkdir -p " + config_path)
-    os.system("rm -r " + config["output"])
+    os.system("rm -rf " + config["output"])
     config_file = os.path.join(config_path, 'curr_config_setup.yaml')
     with open(config_file, 'w') as f:
         yaml.dump(config, f)

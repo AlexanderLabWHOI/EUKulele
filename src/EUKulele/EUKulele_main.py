@@ -24,7 +24,7 @@ def main(args_in):
     '''
     Main function for calling subfunctions and running EUKulele.
     '''
-   
+
     parser = argparse.ArgumentParser(
         description='Thanks for using EUKulele! EUKulele is a standalone taxonomic '+\
                     'annotation software.\n EUKulele is designed primarily for marine '+\
@@ -70,7 +70,8 @@ def main(args_in):
                         help = "The name of the database to be used to assess the reads.")
     parser.add_argument('-o', '--out_dir', '--output_dir', dest = "out_dir", default = "output",
                         help = "Folder where the output will be written.")
-    parser.add_argument('-s', '--sample_dir', required = False, dest = "sample_dir", default = "nan",
+    parser.add_argument('-s', '--sample_dir', required = False, dest = "sample_dir",
+                        default = "nan",
                         help = "Folder where the input data is located (the protein or "+\
                                "peptide files to be assessed).")
 
@@ -107,7 +108,8 @@ def main(args_in):
     ## OTHER USER CHOICES ##
     cutoff_file = "tax-cutoffs.yaml"
     parser.add_argument('--cutoff_file', default = cutoff_file)
-    parser.add_argument('--filter_metric', default = "evalue", choices = ["pid", "evalue", "bitscore"])
+    parser.add_argument('--filter_metric', default = "evalue",
+                        choices = ["pid", "evalue", "bitscore"])
     parser.add_argument('--consensus_cutoff', default = 0.75, type = float)
     parser.add_argument('--transdecoder_orfsize', default = 100, type = int)
 

@@ -28,7 +28,8 @@ def calc_max_jobs(num_files, size_in_bytes = 2147483648, max_mem_per_proc = 40, 
     size_in_gb = size_in_bytes / (1024*1024*1024)
     if size_in_gb == 0:
         size_in_gb = 0.01
-    max_jobs = math.floor(MEM_AVAIL_GB * perc_mem / (max_mem_per_proc * size_in_gb * num_files)) #48)
+    max_jobs = math.floor(MEM_AVAIL_GB * perc_mem / \
+                          (max_mem_per_proc * size_in_gb * num_files))
     if max_jobs == 0:
         max_jobs = 1
     return max_jobs
@@ -43,7 +44,7 @@ def readBuscoFile(individual_or_summary, busco_file, organisms, organisms_taxono
             organisms_taxonomy = list(busco_file_read.iloc[:,1])
             print("Organisms and their taxonomy levels for BUSCO analysis were read from file.")
 
-            if (len(organisms) != len(organisms_taxonomy)):
+            if len(organisms) != len(organisms_taxonomy):
                 print("Organisms and taxonomic specifications for BUSCO analysis "+\
                       "do not contain the same number of entries. " + \
                       "Please revise such that each organism flagged for "+\
@@ -53,7 +54,7 @@ def readBuscoFile(individual_or_summary, busco_file, organisms, organisms_taxono
         else:
             print("No BUSCO file specified/found; using argument-specified " +\
                   "organisms and taxonomy for BUSCO analysis.")
-        
+
     return organisms, organisms_taxonomy
 
 
@@ -83,7 +84,7 @@ def configRunBusco(output_dir, mets_or_mags, pep_ext, nt_ext, sample_dir, sample
         print("BUSCO initial configuration did not complete successfully.\n" +
               "Please check the BUSCO configuration log files in the log/ folder.", flush = True)
         sys.exit(1)
-            
+
 def configure_busco(busco_db,output_dir):
     busco_config_log = open(os.path.join(output_dir,"log",
                                          "busco_config.out"), "w+")
@@ -99,11 +100,11 @@ def configure_busco(busco_db,output_dir):
         rc1 = p1.returncode
     else:
         print("BUSCO lineage database already found; not re-downloaded.")
-    
+
     busco_config_log.close()
     busco_config_err.close()
     return rc1
-    
+
 def run_busco(sample_name, output_dir_busco, output_dir, busco_db,
               mets_or_mags, pep_ext, nt_ext, sample_dir):
     '''
@@ -127,7 +128,7 @@ def run_busco(sample_name, output_dir_busco, output_dir, busco_db,
     else:
         fastaname = os.path.join(sample_dir, sample_name + "." + pep_ext)
         busco_mode = "proteins"
-    
+
     busco_run_log = open(os.path.join(output_dir,"log","busco_run.out"), "w+")
     busco_run_err = open(os.path.join(output_dir,"log","busco_run.err"), "w+")
     p1 = subprocess.Popen(["run_busco.sh", str(sample_name), str(output_dir_busco),
@@ -184,7 +185,7 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples,
                   " in individual mode. Neither can be zero. "+\
                   "Please check inputs.")
             sys.exit(1)
-        
+
         for sample_name in samples:
             # the BUSCO table that we're interested in using that contains the
             # BUSCO matches and their level of completeness
@@ -196,7 +197,7 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples,
                       sample_name,". Check busco_run log for details.")
                 continue
             samples_complete.append(sample_name)
-        
+ 
             busco_table = os.path.join(output_dir, "busco", sample_name,
                                        "run_eukaryota_odb10", "full_table.tsv")
             missing_buscos = pd.read_csv(os.path.join(output_dir, "busco",
@@ -212,7 +213,7 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples,
             else:
                 print("No matches returned for sample",sample_name,
                       ". Assessment files will be empty.",flush=True)
-            # the prefix to specify where the taxonomy estimation 
+            # the prefix to specify where the taxonomy estimation
             # output files are located
             taxfile_stub = os.path.join(output_dir, "taxonomy_counts",
                                         output_dir.split("/")[-1])
@@ -268,7 +269,8 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples,
             busco_table = os.path.join(output_dir, "busco", sample_name,
                                        "run_eukaryota_odb10", "full_table.tsv")
             missing_buscos = pd.read_csv(os.path.join(output_dir, "busco", sample_name,
-                                                      "run_eukaryota_odb10", "missing_busco_list.tsv"),
+                                                      "run_eukaryota_odb10",
+                                                      "missing_busco_list.tsv"),
                                          sep = "\t", comment = "#", header = None)
             if len(missing_buscos.index) < 255:
                 print("At least one BUSCO present in sample",sample_name,
@@ -310,7 +312,7 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples,
             except:
                 print("Unexpected error:", sys.exc_info()[0])
                 rc = 1
-            
+
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__
 
@@ -322,7 +324,7 @@ def manageBuscoQuery(output_dir, individual_or_summary, samples,
                 sys.exit(1)
             else:
                 print("BUSCO query complete.")
-            
+   
     if len(samples_complete) == 0:
         print("No BUSCO matches found for any sample. ",
               "Check BUSCO run log for details. Exiting...")

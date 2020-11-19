@@ -18,11 +18,11 @@ output: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux
 protein_extension: .faa
 protein_map: prot-map.json
 ref_fasta: reference.pep.fa
-reference: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/sample_ref
+reference: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/sample_ref_MAG
 salmon_dir: 0
 samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/samples_MAGs
 scratch: scratch
-subroutine: setup
+subroutine: alignment
 tax_table: tax-table.txt
 taxonomy_organisms:
 - species
