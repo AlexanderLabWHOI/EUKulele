@@ -126,7 +126,7 @@ def main(args_in):
 
     parser.add_argument('--test', action='store_true', default=False,
                        help = "Whether we're just running a test and should not execute downloads.")
-          
+  
     args = parser.parse_args(list(filter(None, args_in.split(" "))))
     if (args.mets_or_mags == "") & (args.subroutine != "download") & (not args.version):
         print("METs or MAGs argument (-m/--mets_or_mags) is required with one of 'mets' or 'mags'.")
@@ -161,7 +161,7 @@ def main(args_in):
 
     use_salmon_counts = args.use_salmon_counts
     salmon_dir = args.salmon_dir
-    names_to_reads = os.path.join(reference_dir, str(args.names_to_reads))        
+    names_to_reads = os.path.join(reference_dir, str(args.names_to_reads))     
 
     organisms = args.organisms
     organisms_taxonomy = args.taxonomy_organisms
@@ -174,7 +174,7 @@ def main(args_in):
 
     download_choice = False
     setup_choice = False
-    alignment_choice = False
+    alignment_choice_select = False
     busco_choice = False
     core_genes = False
 
@@ -190,7 +190,8 @@ def main(args_in):
     if (args.subroutine == "all") | (args.subroutine == "setup"):
         setup_choice = True
     if (args.subroutine == "all") | (args.subroutine == "alignment"):
-        alignment_choice = True
+        
+        \= True
     if (args.subroutine == "all") | (args.subroutine == "busco"):
         busco_choice = True
     if (args.subroutine == "all") | (args.subroutine == "coregenes"):
@@ -198,7 +199,7 @@ def main(args_in):
 
     if test_var:
         setup_choice = False
-        alignment_choice = False
+        alignment_choice_select = False
         busco_choice = False
         core_genes = False
     else:
@@ -228,7 +229,7 @@ def main(args_in):
             tax_tab = os.path.join(reference_dir, "tax-table.txt")
             prot_tab = os.path.join(reference_dir, "prot-map.json")
 
-        ## Next, see whether there is a subdirectory of reference 
+        ## Next, see whether there is a subdirectory of reference
         ## directory containing folder for our DB name
         if (not os.path.isfile(os.path.join(reference_dir, ref_fasta))) | \
            (not os.path.isfile(tax_tab)) | \
@@ -254,7 +255,7 @@ def main(args_in):
                        alignment_choice = alignment_choice,
                        database_dir = reference_dir)
 
-    if alignment_choice:
+    if alignment_choice_select:
         ## First, we need to perform TransDecoder if needed
         manageEukulele(piece = "transdecode", mets_or_mags = mets_or_mags,
                        samples = samples, output_dir = output_dir,

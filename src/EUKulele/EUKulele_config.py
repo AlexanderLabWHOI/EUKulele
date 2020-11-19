@@ -39,7 +39,7 @@ def parseConfig(config_file):
     '''
     Process a user-defined configuration file.
     '''
-  
+
     with open(config_file, 'r') as configfile:
         config = yaml.safe_load(configfile)
 

@@ -1,13 +1,17 @@
+'''
+Script for handling taxonomic estimation.
+'''
+
 #!/usr/bin/env python
 import os
-import ujson
 import yaml
 import chardet
 import argparse
-import pandas as pd
-import numpy as np
 import multiprocessing
 from joblib import Parallel, delayed
+import ujson
+import pandas as pd
+import numpy as np
 
 import EUKulele
 
@@ -189,7 +193,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
 
     chunksize = 2 * 10 ** 6
     counter = 0
-  
+ 
     ## Return an empty dataframe if no matches made ##
     if os.stat(str(df)).st_size == 0:
         if namestoreads != 0:
@@ -200,7 +204,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
             return pd.DataFrame(columns=['transcript_name','classification_level',\
                                          'full_classification',
                                 'classification', 'max_pid', 'ambiguous'])
-      
+     
     for chunk in pd.read_csv(str(df), sep = '\t', header = None, chunksize=chunksize):
         chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch',
                          'gapopen', 'qstart','qend', 'sstart', 'send',
@@ -216,7 +220,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
             chunk['counts'] = [0] * len(chunk.qseqid)
             # if no reads dict, each count is just assumed to be 0 and isn't recorded later
             use_counts = 0
-          
+         
         if counter == 0:
             outdf = apply_parallel(chunk.groupby('qseqid'), match_maker,
                                    consensus_cutoff, tax_dict, use_counts, tax_cutoffs)
@@ -234,7 +238,7 @@ def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,
     if (os.path.isfile(outfile)) & (not rerun):
         print("Taxonomic placement already complete at", outfile + "; will not re-run step.")
         return pd.read_csv(outfile, sep = "\t")
-  
+ 
     tax_table = read_in_taxonomy(tax_file)
     tax_cutoffs = read_in_tax_cutoffs(os.path.join(os.path.dirname(\
         os.path.realpath(__file__)), "static", cutoff_file))

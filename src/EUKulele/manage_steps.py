@@ -18,23 +18,23 @@ from EUKulele.visualize_results import visualize_all_results
 
 from scripts.mag_stats import magStats
 
-mem_avail_gb = 0
-while mem_avail_gb == 0:
+MEM_AVAIL_GB = 0
+while MEM_AVAIL_GB == 0:
     try:
         os.system("free -m > free.csv")
-        mem_avail_gb = pd.read_csv("free.csv", sep = "\s+").free[0] / 10**3
+        MEM_AVAIL_GB = pd.read_csv("free.csv", sep = "\s+").free[0] / 10**3
     except:
         pass
 
 # 25 GB memory per GB file size
 # add a parameter that changes between the requirement per file size (reducing to 10 GB for now)
 # also add a parameter to EUKulele that decides whether you use 100% of available memory and scales
-# mem_avail_gb by that amount (default to 75%)
+# MEM_AVAIL_GB by that amount (default to 75%)
 def calc_max_jobs(num_files, size_in_bytes = 2147483648, max_mem_per_proc = 10, perc_mem = 0.75):
     size_in_gb = size_in_bytes / (1024*1024*1024)
     if size_in_gb == 0:
         size_in_gb = 0.01
-    max_jobs = math.floor(mem_avail_gb * perc_mem / (max_mem_per_proc * size_in_gb * num_files)) #48)
+    max_jobs = math.floor(MEM_AVAIL_GB * perc_mem / (max_mem_per_proc * size_in_gb * num_files)) #48)
     if max_jobs == 0:
         max_jobs = 1
     return max_jobs
@@ -135,7 +135,7 @@ def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir,
                          mets_or_mags = "mets", transdecoder_orf_size = 100,
                          nt_ext = ".fasta", pep_ext = ".faa", run_transdecoder = False):
     """
-    Use TransDecoder to convert input nucleotide metatranscriptomic 
+    Use TransDecoder to convert input nucleotide metatranscriptomic
     sequences to peptide sequences.
     """
 
@@ -187,12 +187,12 @@ def transdecodeToPeptide(sample_name, output_dir, rerun_rules, sample_dir,
         print("TransDecoder did not complete successfully for sample " +
               str(sample_name) + ". Check <output_dir>/log/ folder for details.")
         sys.exit(1)
-      
+
     merged_name = sample_name + nt_ext
-  
+
     os.system("mkdir -p " + os.path.join(output_dir, mets_or_mags))
     os.system("mkdir -p " + os.path.join(output_dir, mets_or_mags, "transdecoder"))
-  
+ 
     os.replace(merged_name + ".transdecoder.pep", os.path.join(output_dir, mets_or_mags,
                                                                sample_name + pep_ext))
     os.replace(merged_name + ".transdecoder.cds", os.path.join(output_dir, mets_or_mags,
@@ -217,16 +217,16 @@ def manageTrandecode(met_samples, output_dir, rerun_rules, sample_dir,
 
     if (not run_transdecoder):
         return 0
-  
+ 
     print("Running TransDecoder for MET samples...", flush = True)
     max_jobs = 1
-    max_jobs_SAMPS = [calc_max_jobs(len(met_samples),
+    max_jobs_sampss = [calc_max_jobs(len(met_samples),
                                     pathlib.Path(os.path.join(sample_dir,
                                                               sample + nt_ext)).stat().st_size,
                                     max_mem_per_proc = 48, perc_mem = perc_mem) \
                         for sample in met_samples  \
                         if os.path.isfile(os.path.join(sample_dir, sample + nt_ext))]
-    if len(max_jobs_SAMPS) > 0:
+    if len(max_jobs_samps) > 0:
         max_jobs = min([calc_max_jobs(len(met_samples),
                                       pathlib.Path(os.path.join(sample_dir,
                                                                 sample + nt_ext)).stat().st_size,
@@ -245,7 +245,7 @@ def manageTrandecode(met_samples, output_dir, rerun_rules, sample_dir,
         print("TransDecoder did not complete successfully; check log folder for details.")
         sys.exit(1)
     #rcodes = [os.remove(curr) for curr in glob.glob("pipeliner*")]
-     
+
 def setupEukulele(output_dir):
     '''
     Perform setup tasks, such as dependency and database download.
@@ -336,7 +336,7 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
     #for sample_name in samples:
     #    alignment_res.append(alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, ref_fasta,
     #                     mets_or_mags, database_dir, sample_dir, rerun_rules, nt_ext, pep_ext))
-  
+
     if any([((curr == None) | (curr == 1)) for curr in alignment_res]):
         print("Alignment did not complete successfully.")
         sys.exit(1)
@@ -350,7 +350,7 @@ def createAlignmentDatabase(ref_fasta, rerun_rules, output_dir, alignment_choice
     """
 
     rc2 = 0
- 
+
     output_log = os.path.join(output_dir, "log", "alignment_out.log")
     error_log = os.path.join(output_dir, "log", "alignment_err.log")
     if alignment_choice == "diamond":
@@ -392,7 +392,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
             if (pathlib.Path(diamond_out).stat().st_size != 0) & (not rerun_rules):
                 print("Diamond alignment file already detected; will not re-run step.")
                 return diamond_out
-      
+     
         align_db = os.path.join(database_dir, "diamond", ref_fasta.strip('.fa') + '.dmnd')
         alignment_method = "blastp"
         if (mets_or_mags == "mets") & (core == "full"):
@@ -415,7 +415,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
             if not os.path.isfile(fasta):
                 print("No BUSCO matches found for sample: " + sample_name)
                 return ""
-          
+
         other = "--outfmt 6 -k 100 -e 1e-5"
         outfmt = 6
         k = 100
@@ -466,7 +466,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
         if (os.path.isfile(blast_out)) & (not rerun_rules):
             print("BLAST alignment file already detected; will not re-run step.")
             return blast_out
-      
+     
         align_db = os.path.join(database_dir, "blast", ref_fasta.strip('.fa'), "database")
         alignment_method = "blastp"
         if mets_or_mags == "mets":
@@ -486,7 +486,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
             if not os.path.isfile(fasta):
                 print("No BUSCO matches found for sample: " + sample_name)
                 return ""
-          
+
         outfmt = 6 # tabular output format
         e = 1e-5
         os.system("export BLASTDB=" + align_db)
@@ -499,16 +499,20 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
             print("BLAST did not complete successfully.")
             return 1
         return blast_out
-  
-  
+
+
 def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
                         prot_tab, use_salmon_counts, names_to_reads, alignment_res,
                         rerun_rules, samples, sample_dir, pep_ext, nt_ext, perc_mem):
+    '''
+    Manage the taxonomic estimation arm of the EUKulele workflow.
+    '''
+
     print("Performing taxonomic estimation steps...", flush=True)
     os.system("mkdir -p " + os.path.join(output_dir, "taxonomy_estimation"))
     outfiles = [os.path.join(output_dir, "taxonomy_estimation", samp + \
                              "-estimated-taxonomy.out") for samp in samples]
-  
+
     if mets_or_mags == "mets":
         fastas = []
         for sample in samples:
@@ -520,7 +524,7 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
                 fastas.append(os.path.join(sample_dir, sample + "." + nt_ext))
     else:
         fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
-      
+     
     max_jobs = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size,
                                  max_mem_per_proc = 5, perc_mem = perc_mem) for sample in fastas])
     n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res), max(1, max_jobs))
@@ -540,14 +544,18 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
             print("Taxonomic estimation did not complete successfully. Check log file for details.")
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
-      
+
 def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
                             prot_tab, use_salmon_counts, names_to_reads, alignment_res,
                             rerun_rules, samples, sample_dir, pep_ext, nt_ext, perc_mem):
+    '''
+    Manage taxonomic estimation for core eukaryotic genes.
+    '''
+
     print("Performing taxonomic estimation steps...", flush=True)
     os.system("mkdir -p " + os.path.join(output_dir, "core_taxonomy_estimation"))
     outfiles = [os.path.join(output_dir, "core_taxonomy_estimation", samp + "-estimated-taxonomy.out") for samp in samples]
-  
+
     if mets_or_mags == "mets":
         fastas = []
         for sample in samples:
@@ -559,7 +567,7 @@ def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, cons
                 fastas.append(os.path.join(sample_dir, sample + "." + nt_ext))
     else:
         fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
-      
+     
     max_jobs = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size,
                                  max_mem_per_proc = 10, perc_mem = perc_mem) for sample in fastas])
     n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res), max_jobs)
@@ -576,7 +584,7 @@ def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, cons
             print("Taxonomic estimation for core genes did not complete successfully. Check log file for details.")
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
-      
+
 def manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules):
     print("Performing taxonomic visualization steps...", flush=True)
     out_prefix = output_dir.split("/")[-1]
@@ -586,7 +594,7 @@ def manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext
                           sample_dir, pep_ext, nt_ext, use_salmon_counts, rerun_rules)
     sys.stdout = sys.__stdout__
     sys.stderr = sys.__stderr__
-  
+
 def manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext, use_salmon_counts,
                                rerun_rules, core = False):
     print("Performing taxonomic visualization steps...", flush=True)
@@ -625,11 +633,11 @@ def manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir, pep_ext, 
         except:
             print("Taxonomic assignment did not complete successfully. Check log files for details.")
             sys.exit(1)
-      
+
         if sum(assign_res) != 0:
             print("Taxonomic assignment did not complete successfully. Check log files for details.")
             sys.exit(1)
-          
+
 def assignTaxonomy(sample_name, output_dir, est_dir, mets_or_mags, core = False):
     taxfile = os.path.join(output_dir, est_dir, sample_name + "-estimated-taxonomy.out")
     levels_directory = os.path.join(output_dir, "levels_mags")
@@ -637,10 +645,10 @@ def assignTaxonomy(sample_name, output_dir, est_dir, mets_or_mags, core = False)
     if core:
         levels_directory = os.path.join(output_dir, "core_levels_mags")
         max_dir = os.path.join(output_dir, "core_max_level_mags")
-      
+
     error_log = os.path.join(output_dir, "log", "_".join(est_dir.split("_")[0:1]) + "_assign_" + sample_name + ".err")
     out_log = os.path.join(output_dir, "log", "_".join(est_dir.split("_")[0:1]) + "_assign_" + sample_name + ".out")
-  
+ 
     sys.stdout = open(out_log, "w")
     sys.stderr = open(error_log, "w")
     try:

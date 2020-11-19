@@ -1,12 +1,13 @@
-import pandas as pd
+'''
+Create plots to convey taxonomy.
+'''
+
 import os
+import sys
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import math
-import sys
-import yaml
-import argparse
 
 #.loc[[name == curr for name in final_frame.loc[name_level]],["Sum"]]
 

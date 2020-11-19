@@ -16,10 +16,10 @@ matches to differentiate between multiple strains.'''
 import os
 import sys
 import argparse
+import multiprocessing
 import chardet
 import pandas as pd
 import numpy as np
-import multiprocessing
 from joblib import Parallel, delayed
 
 __author__ = "Arianna Krinos, Harriet Alexander"
@@ -88,7 +88,7 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta,
     Covered_IDs = list(good_buscos.BuscoID)
     total_buscos = len(set(list(busco_out_file.BuscoID)))
 
-    while (curr_level >= 0):
+    while curr_level >= 0:
 
         #### GET THE CURRENT LEVEL OF TAXONOMY FROM THE TAX TABLE FILE ####
         curr_tax_list = set(list(full_taxonomy[level_hierarchy[curr_level]]))
@@ -124,7 +124,7 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta,
         number_appearences = [BUSCOs_covered_all.count(curr_busco) for \
                               curr_busco in list(BUSCOs_covered)]
         multiples = [curr_appear for curr_appear in number_appearences if curr_appear >= 2]
-       
+  
         ## KEEP TRACK OF WHETHER DUPLICATES/TRIPLES/ETC. ARE COMMON ##
         number_covered.append(number_appearences)
         number_duplicated.append(number_appearences.count(2))
@@ -135,7 +135,7 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta,
         prop_duplicated = 0
         if len(BUSCOs_covered) > 0:
             prop_duplicated = len(multiples) / len(BUSCOs_covered) * 100
-           
+     
         percent_multiples.append(prop_duplicated)
 
         busco_completeness = len(BUSCOs_covered) / total_buscos * 100
@@ -203,16 +203,16 @@ def evaluate_organism(organism, taxonomy, tax_table, create_fasta,
 
 def read_in_taxonomy(infile):
     '''Read in the specified taxonomy file.'''
-    with open(infile, 'rb') as f:
-        result = chardet.detect(f.read())
+    with open(infile, 'rb') as file_curr:
+        result = chardet.detect(file_curr.read())
     tax_out = pd.read_csv(infile, sep='\t',encoding=result['encoding'])
     classes = ['supergroup','division','class','order','family',
                'genus','species']
-    for c in tax_out.columns:
-        if c.lower() in classes:
-            if (np.issubdtype(tax_out[str(c)].dtypes, np.number)) |\
-               (np.issubdtype(tax_out[str(c)].dtypes, np.float_)):
-                tax_out = tax_out.loc[:,~(tax_out.columns == c)]
+    for c_curr in tax_out.columns:
+        if c_curr.lower() in classes:
+            if (np.issubdtype(tax_out[str(c_curr)].dtypes, np.number)) |\
+               (np.issubdtype(tax_out[str(c_curr)].dtypes, np.float_)):
+                tax_out = tax_out.loc[:,~(tax_out.columns == c_curr)]
     tax_out.columns = tax_out.columns.str.lower()
     tax_out = tax_out.set_index('source_id')
     return tax_out
@@ -222,7 +222,7 @@ def queryBusco(args=None):
     Search through individual BUSCO outputs to find
     number of matches for each organism/taxonomic level.
     '''
-   
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--busco_out',default="busco",
                         help = "The output from the BUSCO run on the full sample file.")
@@ -260,11 +260,11 @@ def queryBusco(args=None):
                        help = "Whether to write an actual file with the " +\
                               "subsetted transcriptome.")
 
-    if args != None:
+    if args is not None:
         args = parser.parse_args(args)
     else:
         args = parser.parse_args()
-       
+
     organism = args.organism_group
     taxonomy = args.taxonomic_level
     tax_table = read_in_taxonomy(args.tax_table)
@@ -334,7 +334,8 @@ def queryBusco(args=None):
                                                         "CtFivePlusCopies",
                                                         "PercentageDuplicated"])
                
-            os.system("mkdir -p " + os.path.join(args.output_dir, "busco_assessment", args.sample_name,
+            os.system("mkdir -p " + os.path.join(args.output_dir, "busco_assessment",
+                                                 args.sample_name,
                                                  taxonomy + "_combined"))
             results_frame.to_csv(path_or_buf = os.path.join(args.output_dir, "busco_assessment",
                                                             args.sample_name,
@@ -342,8 +343,8 @@ def queryBusco(args=None):
                                                             "summary_" + taxonomy + "_" + \
                                                             args.sample_name +\
                                                             ".tsv"), sep = "\t")
-       
+
     return 0
-       
+
 if __name__ == "__main__":
     queryBusco()
