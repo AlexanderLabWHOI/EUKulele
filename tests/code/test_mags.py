@@ -1,4 +1,4 @@
-import pytes
+import pytest
 import sys
 from unittest import TestCase
 
