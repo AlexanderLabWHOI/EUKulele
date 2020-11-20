@@ -182,7 +182,7 @@ def test_busco():
 
     config["mets_or_mags"] = "mags"
     config["reference"] = os.path.join(base_dir, test_reference,
-                                       "sample_ref_MAG")
+                                       "sample_ref")
     config["samples"] = os.path.join(base_dir, test_reference,
                                      "samples_MAGs")
     config["cutoff"] = os.path.join("tax-cutoffs.yaml")
