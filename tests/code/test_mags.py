@@ -200,6 +200,13 @@ def test_busco():
     os.system("mkdir -p " + config_path)
     config_file = os.path.join(config_path,
                                'curr_config_busco_all.yaml')
+    
+    config["subroutine"] = "setup"
+
+    with open(config_file, 'w') as f:
+        yaml.dump(config, f)
+
+    eukulele(config=config_file)
 
     config["subroutine"] = "alignment"
 

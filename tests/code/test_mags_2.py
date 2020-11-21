@@ -274,4 +274,3 @@ def test_tester():
 #        successful_test = successful_test & (not os.path.isdir(os.path.join(config["output"])))
 #        successful_test = True
 #    assert successful_test
-       
