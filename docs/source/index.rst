@@ -51,7 +51,7 @@ Badging
 Flowchart
 ---------
 
-.. image:: eukulele_flowchart.png
+.. image:: eukulele_diagram_simplified.png
   :width: 400
   :alt: Flowchart of EUKulele overview
 
