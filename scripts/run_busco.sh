@@ -23,6 +23,9 @@ configini="EUKulele/static/config.ini"
 BUSCO_DIR="$(dirname $(which busco))"
 BUSCO_CONFIG_FILE="$BUSCO_DIR"/../config/config.ini
 CONFIG_DIR="$(dirname $CONFIG_LOC)"
+if [ ! -f "$BUSCO_CONFIG_FILE" ]; then
+    BUSCO_CONFIG_FILE="$(find "$CONDA_PREFIX" | grep busco_config.ini)" #"$CONDA_PREFIX"/config/config.ini
+fi
 busco_configurator.py $BUSCO_CONFIG_FILE $CONFIG_LOC
 echo "python3 busco_configurator.py $BUSCO_CONFIG_FILE $CONFIG_LOC"
 sed -i '/out = /c\out = '$SAMPLENAME $CONFIG_LOC # the name of the output files

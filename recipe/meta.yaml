@@ -12,7 +12,7 @@ requirements:
   build:
     - python>=3.6
     - numpy
-    - biopython
+    - biopython==1.77
     - pandas
     - seaborn
     - chardet
@@ -28,7 +28,7 @@ requirements:
     - pytest-cov
  
     - blast 
-    - busco==4.0.6 
+    - busco==4.1.4
     - diamond 
     - transdecoder
 
