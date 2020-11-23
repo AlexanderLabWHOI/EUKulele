@@ -1,13 +1,17 @@
-import pytest
+'''
+Test cases for MAG functionality.
+'''
+
+import os
 import sys
+import yaml
+import pytest
 from unittest import TestCase
 
 sys.path.insert(1, '..')
 sys.path.insert(1, '../src/EUKulele')
 import EUKulele
 from EUKulele.EUKulele_config import eukulele
-import yaml
-import os
 
 test_reference = "mmetsp"
 
@@ -17,7 +21,8 @@ def test_setup():
     '''
 
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
-    base_config = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config.yaml')
+    base_config = os.path.join(os.path.dirname(__file__), '..',
+                               'aux_data', 'config.yaml')
     with open(base_config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
@@ -53,8 +58,10 @@ def test_setup():
 
 #def test_alignment():
 #    base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
-#    base_config = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config.yaml')
-#    base_config_curr = os.path.join(os.path.dirname(__file__), '..', 'aux_data', 'config_B.yaml')
+#    base_config = os.path.join(os.path.dirname(__file__), '..',
+#    'aux_data', 'config.yaml')
+#    base_config_curr = os.path.join(os.path.dirname(__file__), '..',
+#    'aux_data', 'config_B.yaml')
 #    os.system("cp " + base_config + " " + base_config_curr)
 #    with open(base_config_curr) as f:
 #        config = yaml.load(f, Loader=yaml.FullLoader)
@@ -80,7 +87,8 @@ def test_setup():
 
 #    eukulele(config=config_file)
 #    outprefix = config["output"].split("/")[-1]
-#    assert os.path.isfile(os.path.join(config["output"], "taxonomy_counts", outprefix + "_all_species_counts.csv"))
+#    assert os.path.isfile(os.path.join(config["output"],
+#.   "taxonomy_counts", outprefix + "_all_species_counts.csv"))
 
 def test_setup_blast():
     '''
@@ -200,7 +208,7 @@ def test_busco():
     os.system("mkdir -p " + config_path)
     config_file = os.path.join(config_path,
                                'curr_config_busco_all.yaml')
-    
+
     config["subroutine"] = "setup"
 
     with open(config_file, 'w') as f:
@@ -226,4 +234,3 @@ def test_busco():
                              samplenames[0], "individual",
                              "summary_" + samplenames[0] + ".tsv")
     assert os.path.isfile(busco_out)
-  

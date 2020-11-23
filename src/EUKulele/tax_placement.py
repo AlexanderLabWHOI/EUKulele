@@ -4,6 +4,7 @@ Script for handling taxonomic estimation.
 
 #!/usr/bin/env python
 import os
+import sys
 import chardet
 import argparse
 import multiprocessing

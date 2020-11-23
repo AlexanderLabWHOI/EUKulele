@@ -45,7 +45,7 @@ def countClassifs(level, level_hierarchy, name_level, df):
     counts.extend(list(lostducklings.counts))
     transcript_names.extend(list(lostducklings.transcript_name))
     classifications.extend(["NoClassification"] * len(lostducklings.index))
-      
+
     classifications = [str(cr).strip().strip(""''"]['") for cr in classifications]
     full_list = classifications
     set_list.update(set(classifications))
@@ -92,12 +92,12 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
         correct_index = list(np.where([len(str(cr).split(";")) >= \
                                        abs(-1-(curr-match_loc)) \
                                        for cr in classification_curr])[0])
-      
+
         classification_curr = [classification_curr[cr2] for cr2 in correct_index]
         transcripts_curr = [transcripts_curr[cr2] for cr2 in correct_index]
         classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() \
                          for cr in classification_curr]
-      
+
         transcript_names.extend(transcripts_curr)
         classifications.extend(classifs_curr)
 
@@ -180,7 +180,7 @@ def createPlotDataFrame(curr_df_start, cutoff_relative = 0.1,
                          <= cutoff_relative]
     pivoted_agg = list(pivoted.iloc[:,chosen_cols_other].sum(axis = 1,\
                                                              skipna = True))
-  
+
     ## Modify the output dataframe accordingly ##
     pivoted = pivoted.iloc[:,chosen_cols]
     pivoted["Other"] = pivoted_agg
@@ -233,7 +233,7 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
                                                                     file_name),\
                                                        sep = "\t", index_col=0)
         good_samples = good_samples + 1
-          
+
     if (good_samples == 0) & (not core):
         print("No taxonomic estimation files found! Exiting...")
         sys.exit(1)
@@ -243,10 +243,12 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
 
     # characterizing by major classes
     for curr in results_frame.keys():
-        list_results[curr], frame_results[curr] = stripClassifData(results_frame[curr], use_counts)
+        list_results[curr], frame_results[curr] = stripClassifData(results_frame[curr],
+                                                                   use_counts)
 
     counts_all = dict()
-    level_hierarchy = ['supergroup','division','class','order','family','genus','species']
+    level_hierarchy = ['supergroup','division','class','order','family',
+                       'genus','species']
     for l_curr in level_hierarchy:
         counts_all[l_curr] = pd.DataFrame(columns = [l_curr.capitalize(),
                                                      "NumTranscripts",
@@ -268,8 +270,8 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
         counts_all[l].to_csv(os.path.join(results_counts_dir, prefix +\
                                           "_all_" + l + "_counts.csv"))
 
-        if (not os.path.isfile(os.path.join(results_counts_dir, prefix +\
-                                            "_all_" + l + "_counts.csv"))):
+        if not os.path.isfile(os.path.join(results_counts_dir, prefix +\
+                                            "_all_" + l + "_counts.csv")):
             print("Taxonomy counts were not successfully generated. Check log for details.")
             sys.exit(1)
 
@@ -317,7 +319,8 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
         fig = plt.figure(figsize=(15,7.5))
         if len(set(curr_df_start["OfInterest"])) == 0:
             continue
-        sns_palette = sns.palplot(sns.color_palette("Set1", n_colors=len(set(curr_df_start["OfInterest"]))))
+        sns_palette = sns.palplot(sns.color_palette("Set1",\
+                                                    n_colors=len(set(curr_df_start["OfInterest"]))))
 
         ### CREATE PLOTS ###
         if use_counts == False:
@@ -355,6 +358,7 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
             ax2.set_xticklabels(labels = [label.get_text()[0:20] for label in labels])
             plt.tight_layout()
             os.system("mkdir -p " + results_viz_dir)
-            plt.savefig(os.path.join(results_viz_dir, l + '_counts_and_transcripts.png'),dpi=100)
+            plt.savefig(os.path.join(results_viz_dir, l +\
+                                     '_counts_and_transcripts.png'),dpi=100)
             plt.show()
             plt.close()

@@ -1,13 +1,17 @@
-import pytest
+'''
+A second round of metagenomic test cases.
+'''
+
+import os
 import sys
+import yaml
+import pytest
 from unittest import TestCase
 
 sys.path.insert(1, '..')
 sys.path.insert(1, '../src/EUKulele')
 import EUKulele
 from EUKulele.EUKulele_config import eukulele
-import yaml
-import os
 
 test_reference = "mmetsp"
 
@@ -23,14 +27,18 @@ def test_individual():
     os.system("rm -rf " + output_dir)
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref_MAG")
 
-    string_arguments = " ".join(["all", "--database", "mmetsp", "--sample_dir", sample_dir,
-                                 "--mets_or_mags", "mags", "--out_dir", output_dir, "-i",
-                                 '--organisms', 'Chromera', '--taxonomy_organisms', 'genus',
+    string_arguments = " ".join(["all", "--database", "mmetsp",
+                                 "--sample_dir", sample_dir,
+                                 "--mets_or_mags", "mags",
+                                 "--out_dir", output_dir, "-i",
+                                 '--organisms', 'Chromera',
+                                 '--taxonomy_organisms', 'genus',
                                  "--reference_dir", reference_dir])
 
     eukulele(string_arguments=string_arguments)
     samplenames = [curr.split(".")[0] for curr in os.listdir(sample_dir)]
-    busco_out = os.path.join(output_dir, "busco_assessment", samplenames[0], "individual",
+    busco_out = os.path.join(output_dir, "busco_assessment",
+                             samplenames[0], "individual",
                              "summary_" + samplenames[0] + ".tsv")
     assert os.path.isfile(busco_out)
 
@@ -189,8 +197,12 @@ def test_busco_file():
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref_MAG")
 
     string_arguments = " ".join(["--database", "mmetsp", "--sample_dir", sample_dir,
-                                 "--mets_or_mags", "mags", "--out_dir", output_dir, "-i",
-                                 '--busco_file', os.path.join(base_dir, test_reference, "samples_MAGs", "test_busco.tsv"),
+                                 "--mets_or_mags", "mags", "--out_dir",
+                                 output_dir, "-i",
+                                 '--busco_file', os.path.join(base_dir,
+                                                              test_reference,
+                                                              "samples_MAGs",
+                                                              "test_busco.tsv"),
                                  "--reference_dir", reference_dir])
     error = 0
     eukulele(string_arguments=string_arguments)
@@ -199,9 +211,13 @@ def test_busco_file():
                              "summary_" + samplenames[0] + ".tsv")
     out_prefix = samplenames[0]
 
-    assert (os.path.isfile(busco_out))
+    assert os.path.isfile(busco_out)
 
 def test_all():
+    '''
+    Combined test case.
+    '''
+
     base_dir = os.path.join(os.path.dirname(__file__), '..',
                             'aux_data')
     base_config = os.path.join(os.path.dirname(__file__), '..',
@@ -237,22 +253,31 @@ def test_all():
 
     eukulele(string_arguments=" ".join(["--config",config_file]))
     samplenames = [curr.split(".")[0] for curr in os.listdir(config["samples"])]
-    busco_out = os.path.join(config["output"], "busco_assessment", samplenames[0], "species_combined",
+    busco_out = os.path.join(config["output"], "busco_assessment",
+                             samplenames[0], "species_combined",
                              "summary_species_" + samplenames[0] + ".tsv")
     out_prefix = samplenames[0]
-    mag_file = os.path.join(config["output"], "levels_mags", out_prefix + '.' + "species")
+    mag_file = os.path.join(config["output"], "levels_mags",
+                            out_prefix + '.' + "species")
     assert (os.path.isfile(busco_out)) & (os.path.isfile(mag_file))
 
 def test_tester():
+    '''
+    Tests the setup of the tests.
+    '''
+
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
     sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
     output_dir = os.path.join(base_dir, "test_out")
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")
     os.system("rm -rf " + output_dir)
 
-    string_arguments = " ".join(["setup", "--test", "--database", "mmetsp", "--sample_dir", sample_dir,
-                      "--mets_or_mags", "mags", "--out_dir", output_dir, "--ref_fasta",
-                      "reference.pep.fa", "--reference_dir", reference_dir])
+    string_arguments = " ".join(["setup", "--test", "--database",
+                                 "mmetsp", "--sample_dir", sample_dir,
+                                 "--mets_or_mags", "mags", "--out_dir",
+                                 output_dir, "--ref_fasta",
+                                 "reference.pep.fa", "--reference_dir",
+                                 reference_dir])
 
     eukulele(string_arguments=string_arguments)
     assert (not os.path.isdir(output_dir))
