@@ -146,19 +146,19 @@ def run_busco(sample_name, output_dir_busco, output_dir, busco_db,
     busco_run_err.close()
 
 
-    a_file = open(os.path.join(output_dir,"log","busco_run.err"))
+    #a_file = open(os.path.join(output_dir,"log","busco_run.err"))
 
-    lines = a_file.readlines()
-    print("BUSCO error log:")
-    for line in lines:
-        print(line)
+    #lines = a_file.readlines()
+    #print("BUSCO error log:")
+    #for line in lines:
+    #    print(line)
 
-    a_file = open(os.path.join(output_dir,"log","busco_run.out"))
+    #a_file = open(os.path.join(output_dir,"log","busco_run.out"))
 
-    lines = a_file.readlines()
-    print("BUSCO output log:")
-    for line in lines:
-        print(line)
+    #lines = a_file.readlines()
+    #print("BUSCO output log:")
+    #for line in lines:
+    #    print(line)
 
     return rc1
 
