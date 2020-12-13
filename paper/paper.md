@@ -19,7 +19,7 @@ authors:
     orcid: 0000-0003-1308-8008
     affiliation: "1" # (Multiple affiliations must be quoted)
 affiliations:
- - name: Biology Department, Woods Hole Oceanographic Institution
+ - name: Biology Department, Woods Hole Oceanographic Institution, Woods Hole, MA, USA
    index: 1
  - name: MIT-WHOI Joint Program in Oceanography, Cambridge and Woods Hole, MA, USA
    index: 2
