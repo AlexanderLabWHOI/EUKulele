@@ -12,7 +12,17 @@ REFERENCE_DIR=$4
 #mkdir -p ${PWD}/$REFERENCE_DIR/$DATABASE
 mkdir -p $REFERENCE_DIR/$DATABASE
 
-if [[ $DATABASE == "mmetsp" ]]; then
+if [[ $DATABASE == "marmmetsp" ]]; then
+    # Download MMETSP reference FASTA
+    wget -O $REFERENCE_DIR/$DATABASE/$REF_FASTA $REF_FASTA_URL
+    ALLEXITS=$(($ALLEXITS + $?))
+    
+    # Download MMETSP reference taxonomy table
+    wget -O $REFERENCE_DIR/$DATABASE/$REF_TABLE $REF_TABLE_URL
+    ALLEXITS=$(($ALLEXITS + $?))
+    
+    echo "All reference files for MarRef-MMETSP downloaded to $REFERENCE_DIR/$DATABASE"
+elif [[ $DATABASE == "mmetsp" ]]; then
     # Download MMETSP reference FASTA
     wget -O $REFERENCE_DIR/$DATABASE/$REF_FASTA $REF_FASTA_URL
     ALLEXITS=$(($ALLEXITS + $?))

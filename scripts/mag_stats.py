@@ -8,12 +8,12 @@ import argparse
 import pandas as pd
 import numpy as np
 
-level_dict = {'class':['supergroup','division','class'],
-              'order':['supergroup','division','class','order'],
-              'family':['supergroup','division','class','order','family'],
-              'genus': ['supergroup','division','class','order','family','genus'],
-              'species':['supergroup','division','class','order','family','genus','species']}
-levels = ['supergroup','division','class','order','family','genus','species']
+level_dict = {'class':['domain','supergroup','division','class'],
+              'order':['domain','supergroup','division','class','order'],
+              'family':['domain','supergroup','division','class','order','family'],
+              'genus': ['domain','supergroup','division','class','order','family','genus'],
+              'species':['domain','supergroup','division','class','order','family','genus','species'],}
+levels = ['domain','supergroup','division','class','order','family','genus','species']
 
 # bug with splitting based on the new taxonomy estimation
 def split_taxonomy(protein_estimate):
@@ -26,15 +26,17 @@ def split_taxonomy(protein_estimate):
     for curr_cl in range(len(split_tax_nan.index)):
         lineage = list(split_tax_nan.loc[:,'full_classification'])[curr_cl]
         for i,curr_level in enumerate(levels):
-            if isinstance(lineage,list):
-                if len(lineage) > i:
-                    new_col_dict[curr_level][curr_cl] = lineage[i]
+            if curr_level in new_col_dict:
+                if isinstance(lineage,list):
+                    if len(lineage) > i:
+                        new_col_dict[curr_level][curr_cl] = lineage[i]
+                    else:
+                        new_col_dict[curr_level][curr_cl] = np.nan
                 else:
                     new_col_dict[curr_level][curr_cl] = np.nan
-            else:
-                new_col_dict[curr_level][curr_cl] = np.nan
     for curr_level in levels:
-        outdf[str(curr_level)] = new_col_dict[curr_level]
+        if curr_level in new_col_dict:
+            outdf[str(curr_level)] = new_col_dict[curr_level]
     return outdf
 
 def create_tax_dictionary(split_taxonomy_df):
@@ -42,11 +44,12 @@ def create_tax_dictionary(split_taxonomy_df):
     tax_dict = {}
     total_len=len(split_taxonomy_df)
     for curr_level in levels:
-        tax_dict[curr_level]={}
-        # column_sum = split_taxonomy_df.groupby(l)[curr_level].sum()
-        column_count = split_taxonomy_df.groupby(curr_level)[curr_level].count()
-        norm_count=column_count/total_len
-        tax_dict[curr_level]=norm_count
+        if curr_level in split_taxonomy_df.columns:
+            tax_dict[curr_level]={}
+            # column_sum = split_taxonomy_df.groupby(l)[curr_level].sum()
+            column_count = split_taxonomy_df.groupby(curr_level)[curr_level].count()
+            norm_count=column_count/total_len
+            tax_dict[curr_level]=norm_count
     return tax_dict
 
 def get_max_levels(tax_dict):
@@ -91,10 +94,11 @@ def magStats(args=None):
         except:
             pass
     for curr_level in levels:
-        tax_dict[curr_level].to_csv(os.path.join(args.outdir,
-                                        args.out_prefix + '.' +\
-                                                 curr_level),
-                           header=False, sep='\t')
+        if curr_level in tax_dict:
+            tax_dict[curr_level].to_csv(os.path.join(args.outdir,
+                                            args.out_prefix + '.' +\
+                                                     curr_level),
+                               header=False, sep='\t')
     max_df.to_csv(os.path.join(args.max_out_dir,
                                args.out_prefix +\
                                '-max-level.csv'), sep='\t')

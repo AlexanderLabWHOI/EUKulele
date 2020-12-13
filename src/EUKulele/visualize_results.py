@@ -19,7 +19,9 @@ def countClassifs(level, level_hierarchy, name_level, df):
     classifications = list(df.loc[df["classification_level"] == level]["classification"])
     counts = list(df.loc[df["classification_level"] == level]["counts"])
     transcript_names = list(df.loc[df["classification_level"] == level]["transcript_name"])
+    print(level_hierarchy, flush=True)
     match_loc = int(np.where([curr == level for curr in level_hierarchy])[0])
+    print(match_loc, flush=True)
     for curr in range(match_loc + 1,len(level_hierarchy)):
         classification_curr = list(df.loc[df["classification_level"] == \
                                           level_hierarchy[curr]]["full_classification"])
@@ -81,7 +83,12 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
 
     classifications = list(df.loc[df["classification_level"] == level]["classification"])
     transcript_names = list(df.loc[df["classification_level"] == level]["transcript_name"])
+    print(level_hierarchy, flush=True)
+    print(level, flush=True)
+    if len(np.where([curr == level.lower() for curr in level_hierarchy])) == 0:
+        return None, None
     match_loc = int(np.where([curr == level.lower() for curr in level_hierarchy])[0])
+    print(match_loc, flush=True)
 
     for curr in range(match_loc + 1,len(level_hierarchy)):
         ## MAKE THE TWO CHANGES FROM ABOVE HERE!!
@@ -90,13 +97,16 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
         transcripts_curr = list(df.loc[df["classification_level"] == \
                                        level_hierarchy[curr]]["transcript_name"])
         correct_index = list(np.where([len(str(cr).split(";")) >= \
-                                       abs(-1-(curr-match_loc)) \
+                                       abs(match_loc) \
+                                       #abs(-1-(curr-match_loc)) \
                                        for cr in classification_curr])[0])
 
         classification_curr = [classification_curr[cr2] for cr2 in correct_index]
         transcripts_curr = [transcripts_curr[cr2] for cr2 in correct_index]
-        classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() \
+        classifs_curr = [str(cr).split(";")[match_loc].strip() \
                          for cr in classification_curr]
+        #classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() \
+        #                 for cr in classification_curr]
 
         transcript_names.extend(transcripts_curr)
         classifications.extend(classifs_curr)
@@ -120,11 +130,11 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
 
     return classifications, final_frame
 
-def stripClassifData(df, use_counts):
+def stripClassifData(df, use_counts, level_hierarchy):
     ''' Pull the classification data from the tokenized taxonomy file. '''
 
-    level_hierarchy = ['supergroup','division','class','order',\
-                       'family','genus','species']
+    #level_hierarchy = ['supergroup','division','class','order',\
+    #                   'family','genus','species']
 
     return_dict_list = dict()
     return_dict_frame = dict()
@@ -206,7 +216,7 @@ def makeConcatFrame(curr_df, new_df, level, sample_name, use_counts):
 
 def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
                           prot_extension, nucle_extension, use_counts,
-                          rerun, core = False):
+                          rerun, level_hierarchy, core = False):
     ''' Main visualization method. '''
 
     results_frame = dict()
@@ -244,11 +254,12 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
     # characterizing by major classes
     for curr in results_frame.keys():
         list_results[curr], frame_results[curr] = stripClassifData(results_frame[curr],
-                                                                   use_counts)
+                                                                   use_counts,
+                                                                   level_hierarchy)
 
     counts_all = dict()
-    level_hierarchy = ['supergroup','division','class','order','family',
-                       'genus','species']
+    #level_hierarchy = ['supergroup','division','class','order','family',
+    #                   'genus','species']
     for l_curr in level_hierarchy:
         counts_all[l_curr] = pd.DataFrame(columns = [l_curr.capitalize(),
                                                      "NumTranscripts",
@@ -256,6 +267,8 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
                                                      "Sample"])
 
     for curr in results_frame.keys():
+        if results_frame[curr] is None:
+            next
         sample_name = curr #curr.split("-")[0]
         for l in level_hierarchy:
             curr_df = counts_all[l]
@@ -326,11 +339,14 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
         if use_counts == False:
             fig = plt.figure(figsize=(15,7.5))
             fig.set_facecolor('white')
+            ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
             pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05,
                                           transcript_or_counts="NumTranscripts")
             pivoted.plot(kind='bar', stacked=True, color = sns_palette)
             locs, labels = plt.xticks()
-            plt.xticks(ticks = locs, labels = [label.get_text()[0:20] for label in labels])
+            ax.set_xticks(ticks = locs)
+            ax.set_xticklabels(labels = [label.get_text()[0:20] for label in labels])
+            plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.,title=None)
             plt.tight_layout()
             os.system("mkdir -p " + results_viz_dir)
             plt.savefig(os.path.join(results_viz_dir, l + '_transcripts.png'),dpi=100)
@@ -348,7 +364,11 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
             labels = ax1.get_xticklabels()
             ax1.set_xticks(locs)
             ax1.set_xticklabels([label.get_text()[0:20] for label in labels])
-            pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05,
+            ax1.legend(bbox_to_anchor=(1.1, 1.1),title=None)
+            handles, labels = ax1.get_legend_handles_labels()
+            lgd = ax1.legend(handles, labels, loc='upper center',\
+                             bbox_to_anchor=(0.5,-0.1),bbox_inches='tight', title=None)
+            pivoted = createPlotDataFrame(curr_dfs_start, cutoff_relative = 0.05,
                                           transcript_or_counts="Counts")
             pivoted.plot(kind='bar', stacked=True, width=1, color = sns_palette,
                          title="Counts", ax = ax2)
@@ -356,6 +376,10 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
             labels = ax2.get_xticklabels()
             ax2.set_xticks(ticks = locs)
             ax2.set_xticklabels(labels = [label.get_text()[0:20] for label in labels])
+            ax2.legend(bbox_to_anchor=(1.1, 1.1),title=None)
+            handles, labels = ax2.get_legend_handles_labels()
+            lgd = ax2.legend(handles, labels, loc='upper center',\
+                             bbox_to_anchor=(0.5,-0.1),bbox_inches='tight')
             plt.tight_layout()
             os.system("mkdir -p " + results_viz_dir)
             plt.savefig(os.path.join(results_viz_dir, l +\

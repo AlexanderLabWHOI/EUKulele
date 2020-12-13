@@ -6,6 +6,7 @@ import os
 import sys
 import argparse
 import multiprocessing
+import pandas as pd
 
 from EUKulele.download_database import downloadDatabase
 from EUKulele.manage_steps import manageEukulele
@@ -66,7 +67,7 @@ def main(args_in):
                         "from the salmon directory.")
 
     ## WHERE FILES ARE LOCATED ##
-    parser.add_argument('-d', '--database', default="mmetsp",
+    parser.add_argument('-d', '--database', default="marmmetsp",
                         help = "The name of the database to be used to assess the reads.")
     parser.add_argument('-o', '--out_dir', '--output_dir', dest = "out_dir", default = "output",
                         help = "Folder where the output will be written.")
@@ -283,6 +284,11 @@ def main(args_in):
                       "EUKulele will continue running without counts.")
                 use_salmon_counts = 0
 
+        tax_tab_read = pd.read_csv(tax_tab, sep = "\t")
+        levels_possible = ["domain","supergroup","kingdom","phylum","class","order","family","genus","species"]
+        levels_file_select = list(set([curr.lower() for curr in tax_tab_read.columns \
+                                          if (curr.lower() in levels_possible)]))
+        levels_file = [level_curr for level_curr in levels_possible if level_curr in levels_file_select]
         manageEukulele(piece = "estimate_taxonomy", output_dir = output_dir,
                        mets_or_mags = mets_or_mags,
                        tax_tab = tax_tab, cutoff_file = args.cutoff_file,
@@ -291,18 +297,21 @@ def main(args_in):
                        names_to_reads = names_to_reads, alignment_res = alignment_res,
                        rerun_rules = rerun_rules, samples = samples,
                        sample_dir = sample_dir, pep_ext = pep_ext,
-                       nt_ext = nt_ext, perc_mem = perc_mem)
+                       nt_ext = nt_ext, perc_mem = perc_mem,
+                       level_hierarchy = levels_file)
 
         ## Now to visualize the taxonomy ##
         manageEukulele(piece = "visualize_taxonomy", output_dir = output_dir,
                        mets_or_mags = mets_or_mags,
                        sample_dir = sample_dir, pep_ext = pep_ext, nt_ext = nt_ext,
-                       use_salmon_counts = use_salmon_counts, rerun_rules = rerun_rules)
+                       use_salmon_counts = use_salmon_counts, rerun_rules = rerun_rules,
+                       level_hierarchy = levels_file)
 
         ## Next to assign taxonomy ##
         manageEukulele(piece = "assign_taxonomy", samples = samples, mets_or_mags = mets_or_mags,
                        sample_dir = sample_dir, pep_ext = pep_ext,
-                       output_dir = output_dir)
+                       output_dir = output_dir,
+                       level_hierarchy = levels_file)
 
     busco_matched = True
     if busco_choice:

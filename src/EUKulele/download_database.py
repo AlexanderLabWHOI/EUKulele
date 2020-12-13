@@ -23,8 +23,9 @@ def downloadDatabase(database_name, alignment_choice, output_dir, reference_dir 
           "use an existing database folder, be sure a reference FASTA,",\
           "protein map, and taxonomy table " + \
           "are provided. Check the documentation for details.")
-    create_protein_table_args = []
-    if database_name == "mmetsp":
+    create_protein_table_args = []    
+    
+    if (database_name == "mmetsp") | (database_name == "marmmetsp"):
         column_id = "SOURCE_ID"
         delimiter = "/"
         sourceID = "Source_ID"

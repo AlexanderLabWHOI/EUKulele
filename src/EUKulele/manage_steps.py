@@ -51,7 +51,9 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
                    nt_ext = "", pep_ext = "",consensus_cutoff = 0.75,
                    tax_tab = "", prot_tab = "", use_salmon_counts = False,
                    names_to_reads = "", alignment_res = "", filter_metric = "evalue",
-                   run_transdecoder = False, transdecoder_orf_size = 100, perc_mem = 0.75):
+                   run_transdecoder = False, transdecoder_orf_size = 100, perc_mem = 0.75,
+                   level_hierarchy = ["domain","kingdom","phylum","class","order","family",
+                                      "genus","species"]):
 
     """
     This function diverts management tasks to the below helper functions.
@@ -83,7 +85,7 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
                             sample_dir, pep_ext, nt_ext, perc_mem)
     elif piece == "visualize_taxonomy":
         manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext,
-                               use_salmon_counts, rerun_rules)
+                               use_salmon_counts, rerun_rules, level_hierarchy)
     elif piece == "assign_taxonomy":
         manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir, pep_ext, core = False)
     elif piece == "core_align_to_db":
@@ -100,7 +102,7 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
                                 sample_dir, pep_ext, nt_ext, perc_mem)
     elif piece == "core_visualize_taxonomy":
         manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext,
-                               use_salmon_counts, rerun_rules, core = True)
+                               use_salmon_counts, rerun_rules, level_hierarchy, core = True)
     elif piece == "core_assign_taxonomy":
         manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir, pep_ext,
                             core = True)
@@ -625,7 +627,8 @@ def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, cons
         sys.stderr = sys.__stderr__
 
 def manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext,\
-                           nt_ext, use_salmon_counts, rerun_rules):
+                           nt_ext, use_salmon_counts, rerun_rules,
+                           level_hierarchy):
     '''
     Management function for taxonomic visualization steps.
     '''
@@ -637,13 +640,13 @@ def manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext,\
     visualize_all_results(out_prefix, output_dir,
                           os.path.join(output_dir, "taxonomy_estimation"),
                           sample_dir, pep_ext, nt_ext,
-                          use_salmon_counts, rerun_rules)
+                          use_salmon_counts, rerun_rules, level_hierarchy)
     sys.stdout = sys.__stdout__
     sys.stderr = sys.__stderr__
 
 def manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir,
                                pep_ext, nt_ext, use_salmon_counts,
-                               rerun_rules, core = False):
+                               rerun_rules, level_hierarchy, core = False):
     '''
     Taxonomic visualization management for core eukaryotic
     genes as identified by BUSCO.
@@ -657,7 +660,7 @@ def manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir,
                           est_dir = os.path.join(output_dir, "core_taxonomy_estimation"),
                           samples_dir = sample_dir, prot_extension = pep_ext,
                           nucle_extension = nt_ext, use_counts = use_salmon_counts,
-                          rerun = rerun_rules, core = core)
+                          rerun = rerun_rules, level_hierarchy = level_hierarchy, core = core)
     #except:
     #    print("Taxonomic visualization of core genes did not complete
     #.   successfully. Check log files for details.")
