@@ -1,6 +1,6 @@
 package:
   name: eukulele
-  version: 0.0.1
+  version: 1.0.1
 
 build:
   noarch: python
@@ -26,7 +26,8 @@ requirements:
     - pytest-runner   
     - python-coveralls
     - pytest-cov
- 
+    - pytest-xdist 
+
     - blast 
     - busco==4.1.4
     - diamond 
@@ -49,7 +50,7 @@ requirements:
     - pytest-runner
     - python-coveralls
     - pytest-cov
-
+    - pytest-xdist
     - blast 
     - busco==4.0.6 
     - diamond 

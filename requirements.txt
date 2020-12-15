@@ -16,6 +16,5 @@ pyyaml
 matplotlib
 pytest-cov
 pytest-xdist
-zenodo_get
-pytest-xdist
+#zenodo_get
 #pkgutil
