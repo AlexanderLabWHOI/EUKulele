@@ -10,7 +10,8 @@ Four databases can be downloaded and formatted automatically when invoking ``EUK
 
 - `PhyloDB <https://drive.google.com/drive/u/0/folders/0B-BsLZUMHrDQfldGeDRIUHNZMEREY0g3ekpEZFhrTDlQSjQtbm5heC1QX2V6TUxBeFlOejQ>`_
 - `EukProt <https://figshare.com/articles/EukProt_a_database_of_genome-scale_predicted_proteins_across_the_diversity_of_eukaryotic_life/12417881/2>`_
-- `MMETSP <https://zenodo.org/record/1212585#.Xw3PoJNKhTZ>`_ *Default*
+- `MMETSP <https://zenodo.org/record/1212585#.Xw3PoJNKhTZ>`_ 
+- `MMETSP <https://zenodo.org/record/1212585#.Xw3PoJNKhTZ>`_ and `MMETSP <https://mmp.sfb.uit.no/databases/marref/#/>`_ *Default*
 - `EukZoo <https://github.com/zxl124/EukZoo-database>`_
 
 Note that the MMETSP database is generated using cleaned MMETSP assemblies originally derived from, but not identical to, the assemblies stored in full at the link above. In order to download the cleaned assemblies used to create the ``EUKulele`` MMETSP database, please follow the instructions recorded in `this Github repository <https://github.com/shu251/download-cleaned-mmetsp>`_.
