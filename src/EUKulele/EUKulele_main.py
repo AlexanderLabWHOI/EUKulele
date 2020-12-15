@@ -7,6 +7,7 @@ import sys
 import argparse
 import multiprocessing
 import pandas as pd
+import datetime
 
 from EUKulele.download_database import downloadDatabase
 from EUKulele.manage_steps import manageEukulele
@@ -228,6 +229,10 @@ def main(args_in):
             os.system("mkdir -p " + reference_dir)
             tax_tab = os.path.join(reference_dir, "tax-table.txt")
             prot_tab = os.path.join(reference_dir, "prot-map.json")
+        f = open(os.path.join(output_dir, "README_DB.txt"), "a")
+        e = datetime.datetime.now()
+        f.write("Time finished was " + str(e) + " for database " + \
+                str(args.database.lower()))
 
         ## Next, see whether there is a subdirectory of reference
         ## directory containing folder for our DB name

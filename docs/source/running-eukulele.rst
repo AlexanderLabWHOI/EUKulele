@@ -26,6 +26,7 @@ A full list of parameters and customizations can be found here :ref:`Parameters 
 .. note::
     It is feasible to run ``EUKulele`` on metagenome derived contigs (not MAGs, those are discussed in detail below). If you wish to analyze metagenomic contigs as is described above for metatranscriptomes, we **STRONGLY RECOMMEND** that you provide predicted proteins from your metagenome rather than the nucleotide sequences from your metagenomic assembly. 
     Metagenomic contigs often consist of many proteins. ``EUKulele`` can predict proteins from metatranscriptomes with ``TransDecoder``, but this is **NOT** advised for metagenomic contigs. Additionally, a ``blastx``-style search will no be optimal for metagenomic contigs. It is up to the user to provide predicted proteins from their metagenomic contigs, as this can be a complex process (particularly for eukaryotic metagenomes) and is not within the scope of ``EUKulele``.
+    Note that this is a problem in particular for eukaryotic sequences, where protein calling is more complicated due to the presence of introns.
 
 Metagenome Assembled Genomes (MAGs)
 ===================================

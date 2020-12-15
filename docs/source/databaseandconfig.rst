@@ -141,5 +141,5 @@ By default, ``EUKulele`` uses the following percent identity cutoffs to determin
     order: 50
     class: 30
     
-To change these cutoffs, simply create a YAML file containing these entries exactly as written above, and provide this cutoff file as input to ``EUKulele`` via ``--cutoff_file <name of YAML file you created>``.
+To change these cutoffs, simply create a YAML file containing these entries exactly as written above, and provide this cutoff file as input to ``EUKulele`` via ``--cutoff_file <name of YAML file you created>``. A YAML file is a Markdown document that can be used to quickly parse and deliver new variables to a script. In order to produce this YAML file, you would create a text file containing exactly the text above (i.e., line 1 would be "species: 95", or whatever you desire as a cutoff, and so on), and then save the file with the YAML extension.
 

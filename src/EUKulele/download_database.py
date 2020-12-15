@@ -6,6 +6,7 @@ import os
 import sys
 import subprocess
 import yaml
+import datetime
 
 import EUKulele
 from EUKulele.manage_steps import createAlignmentDatabase
@@ -62,6 +63,14 @@ def downloadDatabase(database_name, alignment_choice, output_dir, reference_dir 
         print("Download of database " + database_name +\
               " did not complete correctly.")
         sys.exit(1)
+        
+    e = datetime.datetime.now()
+    f = open(os.path.join(output_dir, "README_DB.txt"), "w")
+    f.write("EUKulele was run at the following time, using the following file locations:")
+    f.write("Time was " + str(e) + " and database " + str(database_name) + " was downloaded.")
+    f.write("The reference URL was: " + str(database_ref_url) + \
+            " and the URL of the taxonomy table was: " + str(database_tab_url))
+    f.close()
 
     fasta_name = "reference.pep.fa" #os.path.join(database_name,"reference.pep.fa")
     orig_tax_name = os.path.join(reference_dir, database_name,"taxonomy-table.txt")
