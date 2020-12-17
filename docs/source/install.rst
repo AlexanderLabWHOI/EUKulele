@@ -10,6 +10,26 @@ Installing with ``conda``
     
 Eventually, the :code:`-c akrinos` designation will be replaced, when ``EUKulele`` becomes a ``bioconda`` package, at which point it may be installed from that channel (and this documentation will be updated). 
 
+To ensure you have the most recent version of ``EUKulele``, you can run ``conda update EUKulele``, or you can check the ``EUKulele`` landing page on Anaconda Cloud to check the most recent version number.
+
+If you find that the ``conda`` install is running slowly, you may also, alternatively, follow the steps below to install with ``mamba``.
+
+Installing with ``mamba``
+------------------------
+
+:code:`EUKulele` can be installed more rapidly remotely using ``mamba``, a parallelized fast installer that is obtainable via ``conda``. In order to install via ``mamba``, the following steps are necessary. 
+
+- Create a ``conda`` environment
+- Install ``mamba``, using::
+    
+    conda install mamba -c conda-forge
+
+- Install the package as before, but using ``mamba`` as the installer, rather than ``conda``::
+
+    mamba install -c akrinos -c bioconda -c conda-forge EUKulele
+
+This should provide a considerable speedup as compared to ``conda``.
+
 Installing with Pip
 -------------------
 

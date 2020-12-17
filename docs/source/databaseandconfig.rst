@@ -1,5 +1,5 @@
 .. _databases:
-=====================================================
+   =====================================================
 Installing Databases and Creating Configuration Files
 =====================================================
 
@@ -32,7 +32,7 @@ Several databases are automatically provided and formatted for ``EUKulele`` in o
 Note that databases provided through ``EUKulele`` include the taxonomic structure used for the creation of the database. Therefore, the structure of the taxonomic assignment varies database to database. For instance, PhyloDB includes other microbial domains classified under "Supergroup", while the other databases only include eukaryotic references. Users should take note when they compiled downstream results from different databases. 
 
 .. list-table:: Broad overview of each database.
-   :widths: 25 12 25 13 25
+      :widths: 25 12 25 13 25
    :header-rows: 1
 
    * - Database
@@ -62,19 +62,19 @@ Note that databases provided through ``EUKulele`` include the taxonomic structur
      - Supergroup_UniEuk, Taxogroup_UniEuk, Epithet_UniEuk, Genus_UniEuk, Strain
      
 .. image:: mmetsp-doughnut.png
-  :width: 400
+     :width: 400
   :alt: Breakdown of MMETSP database composition.
   
 .. image:: phylodb-doughnut.png
-  :width: 400
+     :width: 400
   :alt: Breakdown of PhyloDB database composition.
   
 .. image:: eukprot-doughnut.png
-  :width: 400
+     :width: 400
   :alt: Breakdown of EukProt database composition.
   
 .. image:: eukzoo-doughnut.png
-  :width: 400
+     :width: 400
   :alt: Breakdown of EukZoo database composition.
   
 Recommendations for Database Usage

@@ -54,6 +54,11 @@ Flowchart
 .. image:: eukulele_diagram_simplified.png
   :width: 400
   :alt: Flowchart of EUKulele overview
+ 
+Caveats
+-------
+
+See :ref:`Using EUKulele<usingeukulele>` for caveats about the use of predicted proteins, rather than nucleotide contigs, for metagenomic sequences. 
 
 
 Indices and tables
