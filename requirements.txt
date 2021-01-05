@@ -16,5 +16,6 @@ pyyaml
 matplotlib
 pytest-cov
 pytest-xdist
+sphinxcontrib-bibtex<2.0.0
 #zenodo_get
 #pkgutil
