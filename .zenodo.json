@@ -1,0 +1,39 @@
+{
+    "description": "<p>First GitHub release of <code>EUKulele</code>. Features new default MMETSP-MarRef database, and debuts the tool as a solution for taxonomic annotation of microbial eukaryotes.</p>", 
+    "license": "other-open", 
+    "title": "AlexanderLabWHOI/EUKulele: v1.0.2", 
+    "version": "v1.0.2", 
+    "upload_type": "software", 
+    "publication_date": "2021-01-05", 
+    "creators": [
+        {
+            "affiliation": "MIT-WHOI Joint Program in Oceanography, Cambridge and Woods Hole, MA, USA", 
+            "name": "Arianna I. Krinos"
+        },
+        {
+            "affiliation": "Marine Chemistry and Geochemistry, Woods Hole Oceanographic Institution, Woods Hole, MA, USA",
+            "name": "Sarah K. Hu"
+        }, 
+        {
+            "affiliation": "Marine Chemistry and Geochemistry, Woods Hole Oceanographic Institution, Woods Hole, MA, USA",
+            "name": "Natalie R. Cohen"
+        },
+        {
+            "affiliation": "Department of Biology, Woods Hole Oceanographic Institution, Woods Hole, MA, USA",
+            "name": "Harriet Alexander"
+        }
+    ], 
+    "access_right": "open", 
+    "related_identifiers": [
+        {
+            "scheme": "url", 
+            "identifier": "https://github.com/AlexanderLabWHOI/EUKulele/tree/v1.0.2", 
+            "relation": "isSupplementTo"
+        }, 
+        {
+            "scheme": "doi", 
+            "identifier": "10.5281/zenodo.4419893", 
+            "relation": "isVersionOf"
+        }
+    ]
+}
