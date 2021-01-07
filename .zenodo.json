@@ -1,10 +1,10 @@
 {
-    "description": "<p>First GitHub release of <code>EUKulele</code>. Features new default MMETSP-MarRef database, and debuts the tool as a solution for taxonomic annotation of microbial eukaryotes.</p>", 
+    "description": "<p>First GitHub release of <code>EUKulele</code>, modified for Zenodo. Features new default MMETSP-MarRef database, and debuts the tool as a solution for taxonomic annotation of microbial eukaryotes.</p>", 
     "license": "other-open", 
-    "title": "AlexanderLabWHOI/EUKulele: v1.0.2", 
-    "version": "v1.0.2", 
+    "title": "AlexanderLabWHOI/EUKulele: v1.0.2b", 
+    "version": "v1.0.2b", 
     "upload_type": "software", 
-    "publication_date": "2021-01-05", 
+    "publication_date": "2021-01-06", 
     "creators": [
         {
             "affiliation": "MIT-WHOI Joint Program in Oceanography, Cambridge and Woods Hole, MA, USA", 
@@ -27,13 +27,8 @@
     "related_identifiers": [
         {
             "scheme": "url", 
-            "identifier": "https://github.com/AlexanderLabWHOI/EUKulele/tree/v1.0.2", 
+            "identifier": "https://github.com/AlexanderLabWHOI/EUKulele/tree/v1.0.2b", 
             "relation": "isSupplementTo"
-        }, 
-        {
-            "scheme": "doi", 
-            "identifier": "10.5281/zenodo.4419893", 
-            "relation": "isVersionOf"
-        }
+        } 
     ]
 }
