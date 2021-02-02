@@ -1,6 +1,6 @@
 package:
   name: eukulele
-  version: 1.0.1
+  version: 1.0.3
 
 build:
   noarch: python

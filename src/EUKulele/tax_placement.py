@@ -21,18 +21,21 @@ def tax_placement(pident, tax_cutoffs):
 
     if pident >= tax_cutoffs['species']:
         out = 'species'
-        level = 7
+        level = 8
     elif pident >= tax_cutoffs['genus']:
         out = 'genus'
-        level = 6
+        level = 7
     elif pident >= tax_cutoffs['family']:
         out = 'family'
-        level = 5
+        level = 6
     elif pident >= tax_cutoffs['order']:
         out = 'order'
-        level = 4
+        level = 5
     elif pident >= tax_cutoffs['class']:
         out = 'class'
+        level = 4
+    elif pident >= tax_cutoffs['division']:
+        out = 'division'
         level = 3
     elif pident >= tax_cutoffs['supergroup']:
         out = 'supergroup'
@@ -85,6 +88,7 @@ def gen_dict(tax_table,classes):
     tax_table["Classification"] = ""
     tax_table = tax_table.loc[:,~tax_table.columns.duplicated()]
     for c in classes:
+        tax_table.loc[tax_table[c] != tax_table[c], c] = "No " + c
         if all([str(curr).lower() != "nan" for curr in list(tax_table[c])]):
             if str(tax_table["Classification"][0]) != "":
                 tax_table["Classification"] = tax_table["Classification"] +\
