@@ -4,6 +4,7 @@ EUKulele step manager.
 
 import os
 import sys
+from sys import platform
 import subprocess
 import multiprocessing
 import math
@@ -21,8 +22,12 @@ from scripts.mag_stats import magStats
 MEM_AVAIL_GB = 0
 while MEM_AVAIL_GB == 0:
     try:
-        os.system("free -m > free.csv")
-        MEM_AVAIL_GB = pd.read_csv("free.csv", sep = "\s+").free[0] / 10**3
+        if platform == "linux" or platform == "linux2":
+            os.system("free -m > free.csv")
+            MEM_AVAIL_GB = pd.read_csv("free.csv", sep = "\s+").free[0] / 10**3
+        else:
+            print("This is not a Linux machine; allowing 10 GB memory.")
+            MEM_AVAIL_GB = 10
     except:
         pass
 

@@ -27,13 +27,10 @@ __copyright__ = "EUKulele"
 __license__ = "MIT"
 __email__ = "akrinos@mit.edu"
 
-level_hierarchy = ['supergroup','division','class','order',
-                   'family','genus','species']
-
 def evaluate_organism(organism, taxonomy, tax_table, create_fasta,
                       write_transcript_file, busco_out,
                       taxonomy_file_prefix, busco_threshold,
-                      output_dir, sample_name, fasta_file):
+                      output_dir, sample_name, fasta_file, level_hierarchy):
     '''Check the BUSCO completeness of the specified taxonomic group.'''
 
     organism_format = organism
@@ -206,16 +203,18 @@ def read_in_taxonomy(infile):
     with open(infile, 'rb') as file_curr:
         result = chardet.detect(file_curr.read())
     tax_out = pd.read_csv(infile, sep='\t',encoding=result['encoding'])
-    classes = ['supergroup','division','class','order','family',
-               'genus','species']
+    levels_possible = ["domain","supergroup","kingdom","phylum","class",\
+                       "order","family","genus","species"]
+    level_hierarchy = []
     for c_curr in tax_out.columns:
-        if c_curr.lower() in classes:
+        if c_curr.lower() in levels_possible:
             if (np.issubdtype(tax_out[str(c_curr)].dtypes, np.number)) |\
                (np.issubdtype(tax_out[str(c_curr)].dtypes, np.float_)):
                 tax_out = tax_out.loc[:,~(tax_out.columns == c_curr)]
+                level_hierarchy.append(c_curr)
     tax_out.columns = tax_out.columns.str.lower()
     tax_out = tax_out.set_index('source_id')
-    return tax_out
+    return tax_out, level_hierarchy
 
 def queryBusco(args=None):
     '''
@@ -267,7 +266,7 @@ def queryBusco(args=None):
 
     organism = args.organism_group
     taxonomy = args.taxonomic_level
-    tax_table = read_in_taxonomy(args.tax_table)
+    tax_table, level_hierarchy = read_in_taxonomy(args.tax_table)
 
     if (args.individual_or_summary == "individual") &\
        ((len(args.organism_group) == 0) | \
@@ -295,7 +294,8 @@ def queryBusco(args=None):
                                                             float(args.busco_threshold),
                                                             args.output_dir,
                                                             args.sample_name,
-                                                            args.fasta_file) \
+                                                            args.fasta_file,
+                                                            level_hierarchy) \
                                  for curr in range(len(organism)))
         print(results_frame,flush=True)
         results_frame = pd.concat(results_frame)
@@ -323,7 +323,8 @@ def queryBusco(args=None):
                                                                     args.busco_threshold,
                                                                     args.output_dir,
                                                                     args.sample_name,
-                                                                    args.fasta_file) \
+                                                                    args.fasta_file,
+                                                                    level_hierarchy) \
                                          for organism in organisms)
                 results_frame = pd.concat(results_frame)
             else:
