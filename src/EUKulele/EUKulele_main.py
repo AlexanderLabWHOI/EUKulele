@@ -320,7 +320,7 @@ def main(args_in):
 
     busco_matched = True
     if busco_choice:
-    	print("Performing BUSCO steps...", flush=True)
+        print("Performing BUSCO steps...", flush=True)
         configRunBusco(output_dir = output_dir, mets_or_mags = mets_or_mags, pep_ext = pep_ext,
                        nt_ext = nt_ext, sample_dir = sample_dir, samples = samples)
 

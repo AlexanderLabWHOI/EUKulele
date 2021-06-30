@@ -125,18 +125,22 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts, tax_cutoffs, classes
     ''' Manages decision between multiple matches. '''
 
     ambiguous = 0 # we assume unambiguous
-    md = dd.pident.max()
+    md = dd.bitscore.max() #dd.pident.max()
     transcript_name = set(list(dd["qseqid"]))
     if len(transcript_name) > 1:
         print("More than 1 transcript name included in the group.", flush = True)
     transcript_name = list(transcript_name)[0]
-    ds = list(set(dd[dd.pident==md]['ssqid_TAXID']))
-    counts = list(set(dd[dd.pident==md]['counts']))
+    #ds = list(set(dd[dd.pident==md]['ssqid_TAXID']))
+    #counts = list(set(dd[dd.pident==md]['counts']))
+    ds = list(set(dd[dd.bitscore==md]['ssqid_TAXID']))
+    counts = list(set(dd[dd.bitscore==md]['counts']))
+    maxpident = max(list(set(dd[dd.bitscore==md]['pident'])))
+
     if len(counts) >= 1:
         chosen_count = counts[0]
     else:
         chosen_count = 0
-    assignment, level = tax_placement(md, tax_cutoffs)
+    assignment, level = tax_placement(maxpident, tax_cutoffs) #tax_placement(md, tax_cutoffs)
                         # most specific taxonomic level assigned
     if len(ds)==1:
         if ds[0] not in tax_dict:
@@ -246,9 +250,12 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
             outdf = apply_parallel(chunk.groupby('qseqid'), match_maker,
                                    consensus_cutoff, tax_dict, use_counts, tax_cutoffs, classes)
         else:
-            outdf = pd.concat([outdf, apply_parallel(chunk.groupby('qseqid'),
-                                                     match_maker, consensus_cutoff, tax_dict,
-                                                     use_counts, tax_cutoffs, classes)], axis = 0)
+            # run apply parallel on current chunk
+            candidate_df = apply_parallel(chunk.groupby('qseqid'),
+                                          match_maker, consensus_cutoff, tax_dict,
+                                          use_counts, tax_cutoffs, classes)
+            # account for if better maximum percent identity previously achieved
+            outdf = pd.concat([outdf, candidate_df], axis = 0)
         counter = counter + 1
     return outdf
 

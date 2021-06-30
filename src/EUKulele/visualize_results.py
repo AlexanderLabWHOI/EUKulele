@@ -367,8 +367,9 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
             ax1.legend(bbox_to_anchor=(1.1, 1.1),title=None)
             handles, labels = ax1.get_legend_handles_labels()
             lgd = ax1.legend(handles, labels, loc='upper center',\
-                             bbox_to_anchor=(0.5,-0.1),bbox_inches='tight', title=None)
-            pivoted = createPlotDataFrame(curr_dfs_start, cutoff_relative = 0.05,
+                             bbox_to_anchor=(0.5,-0.1),title=None)
+            #bbox_inches='tight', title=None)
+            pivoted = createPlotDataFrame(curr_df_start, cutoff_relative = 0.05,
                                           transcript_or_counts="Counts")
             pivoted.plot(kind='bar', stacked=True, width=1, color = sns_palette,
                          title="Counts", ax = ax2)
@@ -379,7 +380,7 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
             ax2.legend(bbox_to_anchor=(1.1, 1.1),title=None)
             handles, labels = ax2.get_legend_handles_labels()
             lgd = ax2.legend(handles, labels, loc='upper center',\
-                             bbox_to_anchor=(0.5,-0.1),bbox_inches='tight')
+                             bbox_to_anchor=(0.5,-0.1))
             plt.tight_layout()
             os.system("mkdir -p " + results_viz_dir)
             plt.savefig(os.path.join(results_viz_dir, l +\
