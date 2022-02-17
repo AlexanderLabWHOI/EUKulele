@@ -21,6 +21,8 @@ USAGE:
     create_protein_table.py --infile_peptide reference.pep.fa --infile_taxonomy
     taxonomy-table.txt --outfile_json prot-map.json --output tax-table.txt
     --delim "/" --col_source_id strain_name --taxonomy_col_id taxonomy --column 2
+    
+    create_protein_table.py --infile_peptide reference.pep.fa --infile_taxonomy taxonomy-table.txt --outfile_json prot-map.json --output tax-table.txt --delim "/" --col_source_id Source_ID --taxonomy_col_id taxonomy --colum SOURCE_ID
 
     python
     /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/scripts/create_protein_table.py

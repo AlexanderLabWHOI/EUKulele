@@ -125,16 +125,17 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts, tax_cutoffs, classes
     ''' Manages decision between multiple matches. '''
 
     ambiguous = 0 # we assume unambiguous
-    md = dd.bitscore.max() #dd.pident.max()
+    md = dd.bitscore.max() * 0.90 #dd.bitscore.max() #dd.pident.max()
     transcript_name = set(list(dd["qseqid"]))
     if len(transcript_name) > 1:
         print("More than 1 transcript name included in the group.", flush = True)
     transcript_name = list(transcript_name)[0]
-    #ds = list(set(dd[dd.pident==md]['ssqid_TAXID']))
-    #counts = list(set(dd[dd.pident==md]['counts']))
-    ds = list(set(dd[dd.bitscore==md]['ssqid_TAXID']))
-    counts = list(set(dd[dd.bitscore==md]['counts']))
-    maxpident = max(list(set(dd[dd.bitscore==md]['pident'])))
+    ds = list(set(dd[dd.bitscore>=md]['ssqid_TAXID']))
+    counts = list(set(dd[dd.bitscore>=md]['counts']))
+    #maxpident = md #max(list(set(dd[dd.pident==md]['pident'])))
+    #ds = list(set(dd[dd.bitscore==md]['ssqid_TAXID']))
+    #counts = list(set(dd[dd.bitscore==md]['counts']))
+    maxpident = max(list(set(dd[dd.bitscore>=md]['pident'])))
 
     if len(counts) >= 1:
         chosen_count = counts[0]
