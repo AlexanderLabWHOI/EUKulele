@@ -53,7 +53,7 @@ max_jobs = max(1, calc_max_jobs(1))
 def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
                    output_dir = "", ref_fasta = "", alignment_choice = "diamond",
                    rerun_rules = False, cutoff_file = "", sample_dir = "",
-                   nt_ext = "", pep_ext = "",consensus_cutoff = 0.75,
+                   nt_ext = "", pep_ext = "",consensus_cutoff = 0.75, consensus_proportion=1,
                    tax_tab = "", prot_tab = "", use_salmon_counts = False,
                    names_to_reads = "", alignment_res = "", filter_metric = "evalue",
                    run_transdecoder = False, transdecoder_orf_size = 100, perc_mem = 0.75,
@@ -85,7 +85,7 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
                                core = "full",perc_mem = perc_mem)
     elif piece == "estimate_taxonomy":
         manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file,
-                            consensus_cutoff, prot_tab, use_salmon_counts,
+                            consensus_cutoff, consensus_proportion, prot_tab, use_salmon_counts,
                             names_to_reads, alignment_res, rerun_rules, samples,
                             sample_dir, pep_ext, nt_ext, perc_mem)
     elif piece == "visualize_taxonomy":
@@ -102,7 +102,7 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
         return alignment_res
     elif piece == "core_estimate_taxonomy":
         manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file,
-                                consensus_cutoff, prot_tab, use_salmon_counts,
+                                consensus_cutoff, consensus_proportion, prot_tab, use_salmon_counts,
                                 names_to_reads, alignment_res, rerun_rules, samples,
                                 sample_dir, pep_ext, nt_ext, perc_mem)
     elif piece == "core_visualize_taxonomy":
@@ -538,7 +538,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
             return 1
         return blast_out
 
-def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
+def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff, consensus_proportion,
                         prot_tab, use_salmon_counts, names_to_reads, alignment_res,
                         rerun_rules, samples, sample_dir, pep_ext, nt_ext, perc_mem):
     '''
@@ -578,7 +578,7 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
             sys.stderr = open(os.path.join(output_dir, "log", "tax_est_" +
                                            alignment_res[t].split("/")[-1].split(".")[0] +\
                                            ".err"), "w")
-            curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
+            curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff, consensus_proportion,\
                                                     prot_tab, use_salmon_counts, names_to_reads,\
                                                     alignment_res[t], outfiles[t], rerun_rules)
         except:
@@ -623,7 +623,7 @@ def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, cons
                                            alignment_res[t].split("/")[-1].split(".")[0] + ".err"),
                               "w")
             curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
-                                                    prot_tab, use_salmon_counts, names_to_reads,\
+                                                    consensus_proportion, prot_tab, use_salmon_counts, names_to_reads,\
                                                     alignment_res[t], outfiles[t], rerun_rules)
         except:
             print("Taxonomic estimation for core genes did not complete successfully.",

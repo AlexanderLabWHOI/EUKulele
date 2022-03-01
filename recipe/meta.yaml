@@ -29,7 +29,7 @@ requirements:
     - pytest-xdist 
 
     - blast 
-    - busco==4.1.4
+#    - busco==4.1.4
     - diamond 
     - transdecoder
 
@@ -52,7 +52,7 @@ requirements:
     - pytest-cov
     - pytest-xdist
     - blast 
-    - busco==4.0.6 
+ #   - busco==4.0.6 
     - diamond 
     - transdecoder
 

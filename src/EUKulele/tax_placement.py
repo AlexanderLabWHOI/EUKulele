@@ -121,11 +121,12 @@ def lca(full_classifications,classes):
                    "; ".join(full_classifications_split[0][0:(l+1)])
     return "","","" # if there are no common ancestors
 
-def match_maker(dd, consensus_cutoff, tax_dict, use_counts, tax_cutoffs, classes):
+def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts, tax_cutoffs, classes):
     ''' Manages decision between multiple matches. '''
 
     ambiguous = 0 # we assume unambiguous
-    md = dd.bitscore.max() * 0.90 #dd.bitscore.max() #dd.pident.max()
+    md = dd.bitscore.max() * consensus_proportion #0.97 
+    #dd.bitscore.max() #dd.pident.max()
     transcript_name = set(list(dd["qseqid"]))
     if len(transcript_name) > 1:
         print("More than 1 transcript name included in the group.", flush = True)
@@ -201,10 +202,11 @@ def match_maker(dd, consensus_cutoff, tax_dict, use_counts, tax_cutoffs, classes
                        columns=['transcript_name', 'classification_level', 'full_classification',
                                 'classification', 'max_pid', 'ambiguous'])
 
-def apply_parallel(grouped_data, match_maker, consensus_cutoff, tax_dict, use_counts, tax_cutoffs, classes):
+def apply_parallel(grouped_data, match_maker, consensus_cutoff, consensus_proportion, tax_dict, use_counts, tax_cutoffs, classes):
     resultdf = Parallel(n_jobs=multiprocessing.cpu_count(),
                         prefer="threads")(delayed(match_maker)(group,
                                                                consensus_cutoff,
+                                                               consensus_proportion,
                                                                tax_dict,
                                                                use_counts,
                                                                tax_cutoffs,
@@ -213,7 +215,7 @@ def apply_parallel(grouped_data, match_maker, consensus_cutoff, tax_dict, use_co
     return pd.concat(resultdf)
 
 def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
-                               consensus_cutoff, tax_cutoffs, classes):
+                               consensus_cutoff, consensus_proportion, tax_cutoffs, classes):
     ''' Parallel implementation of the taxonomic classication process. '''
 
     chunksize = 2 * 10 ** 6
@@ -249,7 +251,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
 
         if counter == 0:
             outdf = apply_parallel(chunk.groupby('qseqid'), match_maker,
-                                   consensus_cutoff, tax_dict, use_counts, tax_cutoffs, classes)
+                                   consensus_cutoff, consensus_proportion, tax_dict, use_counts, tax_cutoffs, classes)
         else:
             # run apply parallel on current chunk
             candidate_df = apply_parallel(chunk.groupby('qseqid'),
@@ -260,7 +262,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
         counter = counter + 1
     return outdf
 
-def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,
+def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,consensus_proportion,prot_map_file,
                    use_counts,names_to_reads,diamond_file,outfile,rerun):
     ''' Find predicted taxonomy using alignment matches. '''
 
@@ -277,9 +279,9 @@ def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,prot_map_file,
     if int(use_counts) == 1:
         reads_dict = gen_reads_dict(names_to_reads)
         classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, reads_dict,
-                                                       pdict, consensus_cutoff, tax_cutoffs, classes)
+                                                       pdict, consensus_cutoff, consensus_proportion, tax_cutoffs, classes)
     else:
         classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, 0, pdict,
-                                                       consensus_cutoff, tax_cutoffs, classes)
+                                                       consensus_cutoff, consensus_proportion, tax_cutoffs, classes)
     classification_df.to_csv(outfile, sep='\t')
     return outfile
