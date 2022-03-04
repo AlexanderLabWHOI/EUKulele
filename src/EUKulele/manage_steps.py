@@ -584,6 +584,7 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
         except:
             print("Taxonomic estimation did not complete successfully.",
                   "Check log file for details.")
+            print(curr_out)
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
 

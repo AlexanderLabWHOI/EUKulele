@@ -255,7 +255,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
         else:
             # run apply parallel on current chunk
             candidate_df = apply_parallel(chunk.groupby('qseqid'),
-                                          match_maker, consensus_cutoff, tax_dict,
+                                          match_maker, consensus_cutoff, consensus_proportion, tax_dict,
                                           use_counts, tax_cutoffs, classes)
             # account for if better maximum percent identity previously achieved
             outdf = pd.concat([outdf, candidate_df], axis = 0)
