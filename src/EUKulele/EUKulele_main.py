@@ -46,7 +46,7 @@ def main(args_in):
     parser.add_argument('-m', '--mets_or_mags', dest = "mets_or_mags", required = False,
                         default = "")
     parser.add_argument('--n_ext', '--nucleotide_extension', dest = "nucleotide_extension",
-                        default = ".fasta")
+                        default = ".fna")
     parser.add_argument('--p_ext', '--protein_extension',
                         dest = "protein_extension",
                         default = ".faa")
