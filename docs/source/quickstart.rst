@@ -46,7 +46,7 @@ Metatranscriptomic (MET) annotation
 
 ``EUKulele --sample_dir /output_directory -m mets``
 
-where ``output_directory`` contains one or more assembly fasta files with the extension ``.fasta``. See Parameters for other file extension accommodations. This will annotate the input assemblies using the MMETSP database (default) and DIAMOND aligner (default).
+where ``output_directory`` contains one or more assembly fasta files with the extension ``.fna``. See Parameters for other file extension accommodations. This will annotate the input assemblies using the MMETSP database (default) and DIAMOND aligner (default).
 
 Useful output files will be located in:
 

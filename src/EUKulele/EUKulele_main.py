@@ -46,7 +46,7 @@ def main(args_in):
     parser.add_argument('-m', '--mets_or_mags', dest = "mets_or_mags", required = False,
                         default = "")
     parser.add_argument('--n_ext', '--nucleotide_extension', dest = "nucleotide_extension",
-                        default = ".fasta")
+                        default = ".fna")
     parser.add_argument('--p_ext', '--protein_extension',
                         dest = "protein_extension",
                         default = ".faa")
@@ -110,6 +110,7 @@ def main(args_in):
     ## OTHER USER CHOICES ##
     cutoff_file = "tax-cutoffs.yaml"
     parser.add_argument('--cutoff_file', default = cutoff_file)
+    parser.add_argument('--consensus_proportion', default = 1, type = float)
     parser.add_argument('--filter_metric', default = "evalue",
                         choices = ["pid", "evalue", "bitscore"])
     parser.add_argument('--consensus_cutoff', default = 0.75, type = float)
@@ -117,6 +118,8 @@ def main(args_in):
 
     parser.add_argument('--CPUs', default=multiprocessing.cpu_count())
     parser.add_argument('--busco_threshold', default=50)
+    parser.add_argument('--no_busco', action='store_true', default=False,
+                       help = "When true, BUSCO steps are not run.")
     parser.add_argument('--create_fasta', action='store_true', default=False,
                        help = "Whether to create FASTA files containing ID'd transcripts "+\
                               "during BUSCO analysis.")
@@ -140,6 +143,7 @@ def main(args_in):
     ## VARIABLES ##
     test_var = args.test
     consensus_cutoff = args.consensus_cutoff
+    consensus_proportion = args.consensus_proportion
     reference_dir = args.reference_dir
     output_dir = args.out_dir
     sample_dir = args.sample_dir
@@ -193,9 +197,9 @@ def main(args_in):
         setup_choice = True
     if (args.subroutine == "all") | (args.subroutine == "alignment"):
         alignment_choice_select = True
-    if (args.subroutine == "all") | (args.subroutine == "busco"):
+    if ((args.subroutine == "all") | (args.subroutine == "busco")) & (not args.no_busco):
         busco_choice = True
-    if (args.subroutine == "all") | (args.subroutine == "coregenes"):
+    if ((args.subroutine == "all") | (args.subroutine == "coregenes")) & (not args.no_busco):
         core_genes = True
 
     if test_var:
@@ -296,7 +300,7 @@ def main(args_in):
         levels_file = [level_curr for level_curr in levels_possible if level_curr in levels_file_select]
         manageEukulele(piece = "estimate_taxonomy", output_dir = output_dir,
                        mets_or_mags = mets_or_mags,
-                       tax_tab = tax_tab, cutoff_file = args.cutoff_file,
+                       tax_tab = tax_tab, cutoff_file = args.cutoff_file,consensus_proportion=consensus_proportion,
                        consensus_cutoff = consensus_cutoff, prot_tab = prot_tab,
                        use_salmon_counts = use_salmon_counts,
                        names_to_reads = names_to_reads, alignment_res = alignment_res,
@@ -344,7 +348,7 @@ def main(args_in):
         if len(alignment_res) > 0:
             manageEukulele(piece = "core_estimate_taxonomy", output_dir = output_dir,
                            mets_or_mags = mets_or_mags,
-                           tax_tab = tax_tab, cutoff_file = args.cutoff_file,
+                           tax_tab = tax_tab, cutoff_file = args.cutoff_file,consensus_proportion=consensus_proportion,
                            consensus_cutoff = consensus_cutoff, prot_tab = prot_tab,
                            use_salmon_counts = use_salmon_counts,
                            names_to_reads = names_to_reads, alignment_res = alignment_res,
