@@ -578,9 +578,16 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
             sys.stderr = open(os.path.join(output_dir, "log", "tax_est_" +
                                            alignment_res[t].split("/")[-1].split(".")[0] +\
                                            ".err"), "w")
+            err_file=os.path.join(output_dir, "log", "tax_est_" +
+                                           alignment_res[t].split("/")[-1].split(".")[0] +\
+                                           ".err")
+            out_file=os.path.join(output_dir, "log", "tax_est_" +
+                                           alignment_res[t].split("/")[-1].split(".")[0] +\
+                                           ".out")
             curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff, consensus_proportion,\
                                                     prot_tab, use_salmon_counts, names_to_reads,\
-                                                    alignment_res[t], outfiles[t], rerun_rules)
+                                                    alignment_res[t], outfiles[t], rerun_rules,
+                                      err_file,out_file)
         except:
             print("Taxonomic estimation did not complete successfully.",
                   "Check log file for details.")

@@ -212,6 +212,7 @@ def apply_parallel(grouped_data, match_maker, consensus_cutoff, consensus_propor
                                                                tax_cutoffs,
                                                                classes)
                                           for name, group in grouped_data)
+    sys.stdout.flush()
     return pd.concat(resultdf)
 
 def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
@@ -255,7 +256,7 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
         else:
             # run apply parallel on current chunk
             candidate_df = apply_parallel(chunk.groupby('qseqid'),
-                                          match_maker, consensus_cutoff, tax_dict,
+                                          match_maker, consensus_cutoff, consensus_proportion, tax_dict,
                                           use_counts, tax_cutoffs, classes)
             # account for if better maximum percent identity previously achieved
             outdf = pd.concat([outdf, candidate_df], axis = 0)
@@ -263,9 +264,11 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
     return outdf
 
 def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,consensus_proportion,prot_map_file,
-                   use_counts,names_to_reads,diamond_file,outfile,rerun):
+                   use_counts,names_to_reads,diamond_file,outfile,rerun,err_file="tax_assign.err",
+                   out_file="tax_assign.out"):
     ''' Find predicted taxonomy using alignment matches. '''
-
+    sys.stdout = open(out_file,"w")
+    sys.stderr = open(err_file,"w") 
     if (os.path.isfile(outfile)) & (not rerun):
         print("Taxonomic placement already complete at", outfile + "; will not re-run step.")
         return pd.read_csv(outfile, sep = "\t")
