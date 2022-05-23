@@ -1,6 +1,6 @@
 package:
   name: eukulele
-  version: 2.0.2
+  version: 2.0.3
 
 build:
   noarch: python
@@ -31,6 +31,7 @@ requirements:
 #    - busco==4.1.4
     - diamond 
     - transdecoder
+    - wget
 
   run:
     - python>=3.6
@@ -54,6 +55,7 @@ requirements:
  #   - busco==4.0.6 
     - diamond 
     - transdecoder
+    - wget
 
 about:
   home: https://github.com/AlexanderLabWHOI/EUKulele
