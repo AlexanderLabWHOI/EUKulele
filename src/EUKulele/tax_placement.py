@@ -63,8 +63,10 @@ def read_in_taxonomy(infile):
             if (np.issubdtype(tax_out[str(c)].dtypes, np.number)) | \
                (np.issubdtype(tax_out[str(c)].dtypes, np.float_)):
                 tax_out = tax_out.loc[:,~(tax_out.columns == c)]
-            classes_out.append(c.lower())
+            else:
+                classes_out.append(c.lower())
     tax_out.columns = tax_out.columns.str.lower()
+    tax_out.source_id = tax_out.source_id.astype(str)
     tax_out = tax_out.set_index('source_id')
     return tax_out, classes_out
 
@@ -96,6 +98,8 @@ def gen_dict(tax_table,classes):
             else:
                 tax_table["Classification"] = tax_table["Classification"] +\
                                               tax_table[c]
+    
+    print(tax_table["Classification"],flush=True)
     return dict(zip(tax_table.index, tax_table["Classification"]))
 
 def gen_reads_dict(names_to_reads):
@@ -162,7 +166,7 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
                 return(pd.DataFrame(columns=['transcript_name','classification_level',
                                              'full_classification','classification',
                                              'max_pid','counts','ambiguous']))
-            d_full_class = str(tax_dict[d]).split(";")[0:level]
+            d_full_class = str(tax_dict[str(d)]).split(";")[0:level]
             classification_0.append(d_full_class[len(d_full_class) - 1])
                         # the most specific taxonomic level we can classify by
             full_classification_0.append('; '.join(d_full_class))
@@ -267,8 +271,8 @@ def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,consensus_proportion,pr
                    use_counts,names_to_reads,diamond_file,outfile,rerun,err_file="tax_assign.err",
                    out_file="tax_assign.out"):
     ''' Find predicted taxonomy using alignment matches. '''
-    sys.stdout = open(out_file,"w")
-    sys.stderr = open(err_file,"w") 
+    sys.stdout = open(out_file,"a")
+    sys.stderr = open(err_file,"a") 
     if (os.path.isfile(outfile)) & (not rerun):
         print("Taxonomic placement already complete at", outfile + "; will not re-run step.")
         return pd.read_csv(outfile, sep = "\t")
@@ -287,4 +291,6 @@ def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,consensus_proportion,pr
         classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, 0, pdict,
                                                        consensus_cutoff, consensus_proportion, tax_cutoffs, classes)
     classification_df.to_csv(outfile, sep='\t')
+    sys.stdout.close()
+    sys.stderr.close()
     return outfile

@@ -10,6 +10,7 @@ import multiprocessing
 import math
 import shutil
 import pathlib
+import traceback
 from joblib import Parallel, delayed
 import pandas as pd
 
@@ -572,25 +573,23 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
         #                                        prot_tab, use_salmon_counts, names_to_reads,\
         #                                        alignment_res[t], outfiles[t], rerun_rules)
         try:
-            sys.stdout = open(os.path.join(output_dir, "log", "tax_est_" +
-                                           alignment_res[t].split("/")[-1].split(".")[0] +\
-                                           ".out"), "w")
-            sys.stderr = open(os.path.join(output_dir, "log", "tax_est_" +
-                                           alignment_res[t].split("/")[-1].split(".")[0] +\
-                                           ".err"), "w")
-            err_file=os.path.join(output_dir, "log", "tax_est_" +
-                                           alignment_res[t].split("/")[-1].split(".")[0] +\
-                                           ".err")
-            out_file=os.path.join(output_dir, "log", "tax_est_" +
+            est_out_file = os.path.join(output_dir, "log", "tax_est_" +
                                            alignment_res[t].split("/")[-1].split(".")[0] +\
                                            ".out")
+            est_err_file = os.path.join(output_dir, "log", "tax_est_" +
+                                           alignment_res[t].split("/")[-1].split(".")[0] +\
+                                           ".err")
+            sys.stdout = open(est_out_file, "w")
+            sys.stderr = open(est_err_file, "w")
             curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff, consensus_proportion,\
                                                     prot_tab, use_salmon_counts, names_to_reads,\
                                                     alignment_res[t], outfiles[t], rerun_rules,
-                                      err_file,out_file)
-        except:
+                                      est_err_file,est_out_file)
+        except Exception as e:
+            traceback.print_exc()
             print("Taxonomic estimation did not complete successfully.",
                   "Check log file for details.")
+            print(repr(e),flush=True)
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
 
