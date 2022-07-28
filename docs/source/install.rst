@@ -6,10 +6,8 @@ Installing with ``conda``
 
 :code:`EUKulele` may also be downloaded as a :code:`conda` package, which will eventually become the easiest option, as `conda` automatically installs all dependencies for the user. The package can currently be downloaded via::
 
-    conda install -c akrinos -c bioconda -c conda-forge EUKulele
+    conda install -c bioconda -c conda-forge EUKulele
     
-Eventually, the :code:`-c akrinos` designation will be replaced, when ``EUKulele`` becomes a ``bioconda`` package, at which point it may be installed from that channel (and this documentation will be updated). 
-
 To ensure you have the most recent version of ``EUKulele``, you can run ``conda update EUKulele``, or you can check the ``EUKulele`` landing page on Anaconda Cloud to check the most recent version number.
 
 If you find that the ``conda`` install is running slowly, you may also, alternatively, follow the steps below to install with ``mamba``.
