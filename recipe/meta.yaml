@@ -10,9 +10,9 @@ source:
 
 requirements:
   build:
-    - python>=3.6
+    - python >=3.6
     - numpy
-    - biopython==1.77
+    - biopython ==1.77
     - pandas
     - seaborn
     - chardet
@@ -26,15 +26,15 @@ requirements:
     - pytest-runner   
     - python-coveralls
     - pytest-cov
-    - pytest-xdist 
-    - blast 
+    - pytest-xdist
+    - blast
 #    - busco==4.1.4
     - diamond 
     - transdecoder
     - wget
 
   run:
-    - python>=3.6
+    - python >=3.6
     - numpy
     - biopython
     - pandas
