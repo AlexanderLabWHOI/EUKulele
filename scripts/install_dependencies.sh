@@ -37,26 +37,26 @@ fi
 ALLEXITS=$(($ALLEXITS + $?))
 
 # INSTALL BUSCO
-busco --version
-if [ $? -ne 0 ]; then
-    rm -rf busco
-    git clone https://gitlab.com/ezlab/busco.git
-    mv -vn busco references_bins/
-    shopt -s expand_aliases
-    alias busco=""$DEST_DIR"busco/bin/busco"
-    origdir=$(pwd)
-    cd "$DEST_DIR"busco
-    python3 setup.py install --user
-    ./scripts/busco_configurator.py config/config.ini config/myconfig.ini
+#busco --version
+#if [ $? -ne 0 ]; then
+#    rm -rf busco
+#    git clone https://gitlab.com/ezlab/busco.git
+#    mv -vn busco references_bins/
+#    shopt -s expand_aliases
+#    alias busco=""$DEST_DIR"busco/bin/busco"
+#    origdir=$(pwd)
+#    cd "$DEST_DIR"busco
+#    python3 setup.py install --user
+#    ./scripts/busco_configurator.py config/config.ini config/myconfig.ini
     
-    cp config/config.ini ../../EUKulele/static/config.ini
-    cd $origdir
-    export PATH=$PATH:"$DEST_DIR"busco/bin/busco
-    export PATH=$PATH:"$DEST_DIR"busco >> ~/.bashrc
-    rm -rf busco
-    rm -rf busco*.log
-    busco --version
-fi
+#    cp config/config.ini ../../EUKulele/static/config.ini
+#    cd $origdir
+#    export PATH=$PATH:"$DEST_DIR"busco/bin/busco
+#    export PATH=$PATH:"$DEST_DIR"busco >> ~/.bashrc
+#    rm -rf busco
+#    rm -rf busco*.log
+#    busco --version
+#fi
 #ALLEXITS=$(($ALLEXITS + $?))
 
 # INSTALL TRANSDECODER

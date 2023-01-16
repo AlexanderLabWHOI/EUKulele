@@ -5,7 +5,7 @@ biopython
 pandas
 seaborn
 chardet
-argparse
+#argparse
 multiprocess
 #subprocess
 #shutil

@@ -32,6 +32,16 @@ elif [[ $DATABASE == "mmetsp" ]]; then
     ALLEXITS=$(($ALLEXITS + $?))
     
     echo "All reference files for MMETSP downloaded to $REFERENCE_DIR/$DATABASE"
+elif [[ $DATABASE == "gtdb" ]]; then
+    # Download MMETSP reference FASTA
+    wget -O $REFERENCE_DIR/$DATABASE/$REF_FASTA "$REF_FASTA_URL"
+    ALLEXITS=$(($ALLEXITS + $?))
+    
+    # Download MMETSP reference taxonomy table
+    wget -O $REFERENCE_DIR/$DATABASE/$REF_TABLE "$REF_TABLE_URL"
+    ALLEXITS=$(($ALLEXITS + $?))
+    
+    echo "All reference files for GTDB downloaded to $REFERENCE_DIR/$DATABASE"
 elif [[ $DATABASE == "eukprot" ]]; then
     # Download tar of all EukProt files 
     wget -O $REFERENCE_DIR/$DATABASE/$DATABASE.tgz "$REF_FASTA_URL"

@@ -35,6 +35,10 @@ def downloadDatabase(database_name, alignment_choice, output_dir, reference_dir 
         delimiter = "\t"
         create_protein_table_args.append("--euk-prot")
         sourceID = "EukProt_ID"
+    elif database_name == "gtdb":
+        column_id = "SOURCE_ID"
+        delimiter = "/"
+        sourceID = "Source_ID"
     elif database_name == "phylodb":
         column_id = 2
         delimiter = "\t"
@@ -66,8 +70,8 @@ def downloadDatabase(database_name, alignment_choice, output_dir, reference_dir 
         
     e = datetime.datetime.now()
     f = open(os.path.join(output_dir, "README_DB.txt"), "w")
-    f.write("EUKulele was run at the following time, using the following file locations:")
-    f.write("Time was " + str(e) + " and database " + str(database_name) + " was downloaded.")
+    f.write("EUKulele was run at the following time, using the following file locations:\n")
+    f.write("Time was " + str(e) + " and database " + str(database_name) + " was downloaded.\n")
     f.write("The reference URL was: " + str(database_ref_url) + \
             " and the URL of the taxonomy table was: " + str(database_tab_url))
     f.close()
