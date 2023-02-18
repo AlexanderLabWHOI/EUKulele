@@ -383,7 +383,8 @@ def createAlignmentDatabase(ref_fasta, rerun_rules, output_dir,
             os.system("mkdir -p " + os.path.join(database_dir, "diamond"))
             db = os.path.join(database_dir, "diamond", ref_fasta.strip('.fa'))
             rc_2 = os.system("diamond makedb --in " + \
-                            os.path.join(database_dir, ref_fasta) + " --db " + db + " -p " + cpus +\
+                            os.path.join(database_dir, ref_fasta) + \
+                            " --db " + db + " -p " + str(cpus) +\
                             " 1> " + output_log + " 2> " + error_log)
         else:
             print("Diamond database file already created; will not re-create database.",
@@ -477,7 +478,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
             rc_1 = subprocess.Popen(["diamond", alignment_method,
                                      "--db", align_db, "-q", fasta, "-o",
                                      diamond_out, "--outfmt", str(outfmt),
-                                     "-p",cpus,
+                                     "-p",str(cpus),
                                      "-k", str(k), "-e", str(e), '-b3.0'],
                                     stdout = diamond_log,
                                     stderr = diamond_err).wait()
