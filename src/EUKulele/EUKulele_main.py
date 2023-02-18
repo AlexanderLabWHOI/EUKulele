@@ -116,7 +116,7 @@ def main(args_in):
     parser.add_argument('--consensus_cutoff', default = 0.75, type = float)
     parser.add_argument('--transdecoder_orfsize', default = 100, type = int)
 
-    parser.add_argument('--CPUs', default=multiprocessing.cpu_count())
+    parser.add_argument('--CPUs', default=multiprocessing.cpu_count(), dest="CPUs")
     parser.add_argument('--busco_threshold', default=50)
     parser.add_argument('--no_busco', action='store_true', default=False,
                        help = "When true, BUSCO steps are not run.")
@@ -149,6 +149,7 @@ def main(args_in):
     sample_dir = args.sample_dir
     ref_fasta = args.ref_fasta
     perc_mem = args.perc_mem
+    cpus = args.CPUs
 
     alignment_choice = args.alignment_choice
     transdecoder_orf_size=args.transdecoder_orfsize
@@ -262,7 +263,7 @@ def main(args_in):
         manageEukulele(piece = "setup_databases", ref_fasta = ref_fasta,
                        rerun_rules = rerun_rules, output_dir = output_dir,
                        alignment_choice = alignment_choice,
-                       database_dir = reference_dir)
+                       database_dir = reference_dir, cpus=cpus)
 
     if alignment_choice_select:
         ## First, we need to perform TransDecoder if needed
@@ -280,7 +281,7 @@ def main(args_in):
                                        output_dir = output_dir, ref_fasta = ref_fasta,
                                        mets_or_mags = mets_or_mags, database_dir = reference_dir,
                                        sample_dir = sample_dir, rerun_rules = rerun_rules,
-                                       nt_ext = nt_ext, pep_ext = pep_ext, perc_mem = perc_mem)
+                                       nt_ext = nt_ext, pep_ext = pep_ext, perc_mem = perc_mem, cpus=cpus)
 
         ## Next to do salmon counts estimation. ##
         if use_salmon_counts:
