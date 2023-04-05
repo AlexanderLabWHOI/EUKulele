@@ -1,15 +1,9 @@
 numpy
-wget
 biopython
-#conda
 pandas
 seaborn
 chardet
-#argparse
 multiprocess
-#subprocess
-#shutil
-#glob
 joblib
 ujson
 python-coveralls
@@ -18,5 +12,3 @@ matplotlib
 pytest-cov
 pytest-xdist
 sphinxcontrib-bibtex==1.0.0
-#zenodo_get
-#pkgutil
