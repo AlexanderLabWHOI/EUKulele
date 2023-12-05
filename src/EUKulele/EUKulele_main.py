@@ -236,8 +236,12 @@ def main(args_in):
             prot_tab = os.path.join(reference_dir, "prot-map.json")
         f = open(os.path.join(output_dir, "README_DB.txt"), "a")
         e = datetime.datetime.now()
+        filename = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                "static", "VERSION")
+        file_read = open(filename, "r")
+        f.write("The version of EUKulele was "+str(file_read.read())+".\n")
         f.write("Time finished was " + str(e) + " for database " + \
-                str(args.database.lower()))
+                str(args.database.lower())+"\n")
 
         ## Next, see whether there is a subdirectory of reference
         ## directory containing folder for our DB name

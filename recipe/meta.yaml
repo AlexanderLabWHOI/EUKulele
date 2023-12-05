@@ -1,6 +1,6 @@
 package:
   name: eukulele
-  version: 2.0.5
+  version: 2.0.7
 
 build:
   noarch: python
@@ -28,7 +28,6 @@ requirements:
     - pytest-cov
     - pytest-xdist
     - blast
-#    - busco==4.1.4
     - diamond 
     - transdecoder
     - wget
@@ -52,7 +51,6 @@ requirements:
     - pytest-cov
     - pytest-xdist
     - blast 
- #   - busco==4.0.6 
     - diamond 
     - transdecoder
     - wget

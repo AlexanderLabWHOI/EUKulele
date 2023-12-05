@@ -130,16 +130,12 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
 
     ambiguous = 0 # we assume unambiguous
     md = dd.bitscore.max() * consensus_proportion #0.97 
-    #dd.bitscore.max() #dd.pident.max()
     transcript_name = set(list(dd["qseqid"]))
     if len(transcript_name) > 1:
         print("More than 1 transcript name included in the group.", flush = True)
     transcript_name = list(transcript_name)[0]
     ds = list(set(dd[dd.bitscore>=md]['ssqid_TAXID']))
     counts = list(set(dd[dd.bitscore>=md]['counts']))
-    #maxpident = md #max(list(set(dd[dd.pident==md]['pident'])))
-    #ds = list(set(dd[dd.bitscore==md]['ssqid_TAXID']))
-    #counts = list(set(dd[dd.bitscore==md]['counts']))
     maxpident = max(list(set(dd[dd.bitscore>=md]['pident'])))
 
     if len(counts) >= 1:
@@ -150,7 +146,10 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
                         # most specific taxonomic level assigned
     if len(ds)==1:
         if ds[0] not in tax_dict:
-            return pd.DataFrame(columns=['transcript_name','classification_level',
+            return pd.DataFrame([[transcript_name, assignment,\
+                              "MissingFromTaxDict", "MissingFromTaxDict", md,\
+                              chosen_count, ambiguous]],
+                                columns=['transcript_name','classification_level',
                                          'full_classification','classification',
                                          'max_pid','counts','ambiguous'])
         full_classification = str(tax_dict[ds[0]]).split(";")[0:level]
@@ -163,9 +162,11 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
         full_classification_0 = []
         for d in ds:
             if d not in tax_dict:
-                return(pd.DataFrame(columns=['transcript_name','classification_level',
-                                             'full_classification','classification',
-                                             'max_pid','counts','ambiguous']))
+                classification_0.append("MissingFromTaxDict")
+                full_classification_0.append("MissingFromTaxDict")
+                #return(pd.DataFrame(columns=['transcript_name','classification_level',
+                #                             'full_classification','classification',
+                #                             'max_pid','counts','ambiguous']))
             d_full_class = str(tax_dict[str(d)]).split(";")[0:level]
             classification_0.append(d_full_class[len(d_full_class) - 1])
                         # the most specific taxonomic level we can classify by
