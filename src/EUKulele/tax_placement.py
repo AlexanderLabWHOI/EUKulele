@@ -134,7 +134,7 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
     if len(transcript_name) > 1:
         print("More than 1 transcript name included in the group.", flush = True)
     transcript_name = list(transcript_name)[0]
-    ds = list(set(dd[dd.bitscore>=md]['ssqid_TAXID']))
+    ds = [curr.replace(".","N") for curr in list(set(dd[dd.bitscore>=md]['ssqid_TAXID']))]
     counts = list(set(dd[dd.bitscore>=md]['counts']))
     maxpident = max(list(set(dd[dd.bitscore>=md]['pident'])))
 
@@ -144,10 +144,13 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
         chosen_count = 0
     assignment, level = tax_placement(maxpident, tax_cutoffs) #tax_placement(md, tax_cutoffs)
                         # most specific taxonomic level assigned
+    database_match=''
+    database_dict=dict()
     if len(ds)==1:
+        database_match=ds[0]
         if ds[0] not in tax_dict:
             return pd.DataFrame([[transcript_name, assignment,\
-                              "MissingFromTaxDict", "MissingFromTaxDict", md,\
+                              ";".join(["MissingFromTaxDict"]*level), "MissingFromTaxDict", md,\
                               chosen_count, ambiguous]],
                                 columns=['transcript_name','classification_level',
                                          'full_classification','classification',
@@ -155,7 +158,7 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
         full_classification = str(tax_dict[ds[0]]).split(";")[0:level]
         best_classification = full_classification[len(full_classification) - 1]
                             # the most specific taxonomic level we can classify by
-        full_classification = '; '.join(full_classification)
+        full_classification = ';'.join(full_classification)
                               # the actual assignments based on that
     else:
         classification_0 = []
@@ -163,17 +166,27 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
         for d in ds:
             if d not in tax_dict:
                 classification_0.append("MissingFromTaxDict")
-                full_classification_0.append("MissingFromTaxDict")
+                full_classification_0.append(";".join(["MissingFromTaxDict"]*level))
+                if ";".join(["MissingFromTaxDict"]*level) not in database_dict:
+                    database_dict[";".join(["MissingFromTaxDict"]*level)] = str(d)
+                else:
+                    database_dict[";".join(["MissingFromTaxDict"]*level)] = database_dict[";".join(["MissingFromTaxDict"]*level)] + ";" + str(d)
+                continue
                 #return(pd.DataFrame(columns=['transcript_name','classification_level',
                 #                             'full_classification','classification',
                 #                             'max_pid','counts','ambiguous']))
             d_full_class = str(tax_dict[str(d)]).split(";")[0:level]
             classification_0.append(d_full_class[len(d_full_class) - 1])
                         # the most specific taxonomic level we can classify by
-            full_classification_0.append('; '.join(d_full_class))
+            full_classification_0.append(';'.join(d_full_class))
                         # the actual assignments based on that
+            if ';'.join(d_full_class) not in database_dict:
+                database_dict[';'.join(d_full_class)] = str(d)
+            else:
+                database_dict[';'.join(d_full_class)] = database_dict[';'.join(d_full_class)] + ";" + str(d)
         entries = list(set(full_classification_0))
         if len(entries) == 1:
+            database_match=database_dict[full_classification_0[0]]
             best_classification = classification_0[0]
             full_classification = full_classification_0[0]
         else:
@@ -185,6 +198,7 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
                 curr_frac = len(np.where(full_classification_0 == e)) / \
                             len(full_classification_0)
                 if (isinstance(curr_frac, float)) & (curr_frac > best_frac):
+                    database_match=database_dict[e]
                     best_frac = curr_frac
                     best_full_class = e
                     best_one_class = str(e.split(";")[len(e.split(";")) - 1]).strip()
@@ -198,14 +212,14 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
     if use_counts == 1:
         return pd.DataFrame([[transcript_name, assignment,\
                               full_classification, best_classification, md,\
-                              chosen_count, ambiguous]],\
+                              chosen_count, ambiguous, database_match]],\
                        columns=['transcript_name','classification_level', 'full_classification',
-                                'classification', 'max_pid', 'counts', 'ambiguous'])
+                                'classification', 'max_pid', 'counts', 'ambiguous', 'database'])
     else:
         return pd.DataFrame([[transcript_name, assignment, full_classification,\
-                              best_classification, md, ambiguous]],\
+                              best_classification, md, ambiguous, database_match]],\
                        columns=['transcript_name', 'classification_level', 'full_classification',
-                                'classification', 'max_pid', 'ambiguous'])
+                                'classification', 'max_pid', 'ambiguous', 'database'])
 
 def apply_parallel(grouped_data, match_maker, consensus_cutoff, consensus_proportion, tax_dict, use_counts, tax_cutoffs, classes):
     resultdf = Parallel(n_jobs=multiprocessing.cpu_count(),
@@ -232,11 +246,11 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
         if namestoreads != 0:
             return pd.DataFrame(columns=['transcript_name','classification_level',
                                          'full_classification',
-                                'classification', 'max_pid', 'counts', 'ambiguous'])
+                                'classification', 'max_pid', 'counts', 'ambiguous', 'database'])
         else:
             return pd.DataFrame(columns=['transcript_name','classification_level',\
                                          'full_classification',
-                                'classification', 'max_pid', 'ambiguous'])
+                                'classification', 'max_pid', 'ambiguous', 'database'])
 
     for chunk in pd.read_csv(str(df), sep = '\t', header = None, chunksize=chunksize):
         chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch',
