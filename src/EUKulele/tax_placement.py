@@ -19,6 +19,18 @@ import EUKulele
 def tax_placement(pident, tax_cutoffs):
     ''' Decide which level of taxonomy is appropriate. '''
 
+    tax_levels = list(tax_cutoffs.keys())
+    out = 'unclassified'
+    level = 0
+    curr_level = len(tax_levels) + 1
+    for tax_level in tax_levels:
+        if pident >= tax_cutoffs[tax_level]:
+            out = tax_level
+            level = curr_level
+            break
+        curr_level = curr_level - 1
+       
+    '''Example classification for default case.
     if pident >= tax_cutoffs['species']:
         out = 'species'
         level = 8
@@ -46,7 +58,8 @@ def tax_placement(pident, tax_cutoffs):
     else:
         out = 'unclassified'
         level = 0
-        
+    '''
+    
     return out, level
 
 def read_in_taxonomy(infile):
@@ -100,7 +113,7 @@ def gen_dict(tax_table,classes):
                                               tax_table[c]
     
     print(tax_table["Classification"],flush=True)
-    return dict(zip(tax_table.index, tax_table["Classification"]))
+    return dict(zip([curr.replace(".","N") for curr in tax_table.index], tax_table["Classification"]))
 
 def gen_reads_dict(names_to_reads):
     names_to_reads = pd.read_csv(names_to_reads,header=0,sep="\t")
@@ -117,6 +130,8 @@ def lca(full_classifications,classes):
     if len(set(length_classes)) != 1:
         print("Error: not all classifications at at the same taxonomic level.",
               flush = True)
+        print(full_classifications,flush=True)
+        print(full_classifications_split,flush=True)
         sys.exit(1)
     for l in reversed(range(length_classes[0])):
         set_classifications = [curr[l] for curr in full_classifications_split]
@@ -134,7 +149,7 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
     if len(transcript_name) > 1:
         print("More than 1 transcript name included in the group.", flush = True)
     transcript_name = list(transcript_name)[0]
-    ds = [curr.replace(".","N") for curr in list(set(dd[dd.bitscore>=md]['ssqid_TAXID']))]
+    ds = [str(curr).replace(".","N") for curr in list(set(dd[dd.bitscore>=md]['ssqid_TAXID']))]
     counts = list(set(dd[dd.bitscore>=md]['counts']))
     maxpident = max(list(set(dd[dd.bitscore>=md]['pident'])))
 
@@ -154,8 +169,8 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
                               chosen_count, ambiguous]],
                                 columns=['transcript_name','classification_level',
                                          'full_classification','classification',
-                                         'max_pid','counts','ambiguous'])
-        full_classification = str(tax_dict[ds[0]]).split(";")[0:level]
+                                         'max_score','counts','ambiguous'])
+        full_classification = [curr.strip() for curr in str(tax_dict[ds[0]]).split(";")[0:level]]
         best_classification = full_classification[len(full_classification) - 1]
                             # the most specific taxonomic level we can classify by
         full_classification = ';'.join(full_classification)
@@ -164,7 +179,7 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
         classification_0 = []
         full_classification_0 = []
         for d in ds:
-            if d not in tax_dict:
+            if str(d) not in tax_dict:
                 classification_0.append("MissingFromTaxDict")
                 full_classification_0.append(";".join(["MissingFromTaxDict"]*level))
                 if ";".join(["MissingFromTaxDict"]*level) not in database_dict:
@@ -174,7 +189,7 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
                 continue
                 #return(pd.DataFrame(columns=['transcript_name','classification_level',
                 #                             'full_classification','classification',
-                #                             'max_pid','counts','ambiguous']))
+                #                             'max_score','counts','ambiguous']))
             d_full_class = str(tax_dict[str(d)]).split(";")[0:level]
             classification_0.append(d_full_class[len(d_full_class) - 1])
                         # the most specific taxonomic level we can classify by
@@ -214,12 +229,12 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
                               full_classification, best_classification, md,\
                               chosen_count, ambiguous, database_match]],\
                        columns=['transcript_name','classification_level', 'full_classification',
-                                'classification', 'max_pid', 'counts', 'ambiguous', 'database'])
+                                'classification', 'max_score', 'counts', 'ambiguous', 'database'])
     else:
         return pd.DataFrame([[transcript_name, assignment, full_classification,\
                               best_classification, md, ambiguous, database_match]],\
                        columns=['transcript_name', 'classification_level', 'full_classification',
-                                'classification', 'max_pid', 'ambiguous', 'database'])
+                                'classification', 'max_score', 'ambiguous', 'database'])
 
 def apply_parallel(grouped_data, match_maker, consensus_cutoff, consensus_proportion, tax_dict, use_counts, tax_cutoffs, classes):
     resultdf = Parallel(n_jobs=multiprocessing.cpu_count(),
@@ -246,11 +261,11 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
         if namestoreads != 0:
             return pd.DataFrame(columns=['transcript_name','classification_level',
                                          'full_classification',
-                                'classification', 'max_pid', 'counts', 'ambiguous', 'database'])
+                                'classification', 'max_score', 'counts', 'ambiguous', 'database'])
         else:
             return pd.DataFrame(columns=['transcript_name','classification_level',\
                                          'full_classification',
-                                'classification', 'max_pid', 'ambiguous', 'database'])
+                                'classification', 'max_score', 'ambiguous', 'database'])
 
     for chunk in pd.read_csv(str(df), sep = '\t', header = None, chunksize=chunksize):
         chunk.columns = ['qseqid', 'sseqid', 'pident', 'length', 'mismatch',
@@ -293,8 +308,11 @@ def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,consensus_proportion,pr
         return pd.read_csv(outfile, sep = "\t")
  
     tax_table, classes = read_in_taxonomy(tax_file)
-    tax_cutoffs = read_in_tax_cutoffs(os.path.join(os.path.dirname(\
-        os.path.realpath(__file__)), "static", cutoff_file))
+    if cutoff_file == "default_in_static":
+        tax_cutoffs = read_in_tax_cutoffs(os.path.join(os.path.dirname(\
+            os.path.realpath(__file__)), "static", "tax-cutoffs.yaml"))
+    else:
+        tax_cutoffs = read_in_tax_cutoffs(cutoff_file)
     pdict = read_in_protein_map(prot_map_file)
     tax_dict = gen_dict(tax_table,classes)
     consensus_cutoff = float(consensus_cutoff)

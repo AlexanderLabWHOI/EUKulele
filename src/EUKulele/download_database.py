@@ -26,7 +26,7 @@ def downloadDatabase(database_name, alignment_choice, output_dir, reference_dir 
           "are provided. Check the documentation for details.")
     create_protein_table_args = []    
     
-    if (database_name == "mmetsp") | (database_name == "marmmetsp"):
+    if (database_name == "mmetsp") | (database_name == "marmmetsp") | (database_name == "eukprot"):
         column_id = "SOURCE_ID"
         delimiter = "/"
         sourceID = "Source_ID"
@@ -76,7 +76,10 @@ def downloadDatabase(database_name, alignment_choice, output_dir, reference_dir 
             " and the URL of the taxonomy table was: " + str(database_tab_url))
     f.close()
 
-    fasta_name = "reference.pep.fa" #os.path.join(database_name,"reference.pep.fa")
+    if "gz" in database_ref_url:
+        fasta_name = "reference.pep.fa.gz"
+    else:
+        fasta_name = "reference.pep.fa" #os.path.join(database_name,"reference.pep.fa")
     orig_tax_name = os.path.join(reference_dir, database_name,"taxonomy-table.txt")
 
     tax_table = os.path.join(reference_dir, database_name,"tax-table.txt")

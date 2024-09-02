@@ -17,7 +17,7 @@ from EUKulele.busco_runner import manageBuscoQuery
 
 from scripts.names_to_reads import namesToReads
 
-__author__ = "Harriet Alexander, Arianna Krinos"
+__author__ = "Arianna Krinos, Harriet Alexander"
 __copyright__ = "EUKulele"
 __license__ = "MIT"
 __email__ = "akrinos@mit.edu"
@@ -26,7 +26,7 @@ def main(args_in):
     '''
     Main function for calling subfunctions and running EUKulele.
     '''
-
+    
     parser = argparse.ArgumentParser(
         description='Thanks for using EUKulele! EUKulele is a standalone taxonomic '+\
                     'annotation software.\n EUKulele is designed primarily for marine '+\
@@ -35,14 +35,14 @@ def main(args_in):
               '[sample_directory] --reference_dir [reference_database_location] ' +\
               '[all other options]')
 
+    parser.add_argument('-v', '--version', dest = "version", default=False,
+                        action='store_true')
     parser.add_argument('subroutine', metavar="subroutine", nargs='?', type=str,
                         default="all",
                         choices = ["","all","download","setup","alignment",
                                    "busco","coregenes"],
                         help='Choice of subroutine to run.')
-
-    parser.add_argument('-v', '--version', dest = "version", default=False,
-                        action='store_true')
+    
     parser.add_argument('-m', '--mets_or_mags', dest = "mets_or_mags", required = False,
                         default = "")
     parser.add_argument('--n_ext', '--nucleotide_extension', dest = "nucleotide_extension",
@@ -108,7 +108,7 @@ def main(args_in):
                         help = "Taxonomic level of organisms specified in organisms tag.")
 
     ## OTHER USER CHOICES ##
-    cutoff_file = "tax-cutoffs.yaml"
+    cutoff_file = "default_in_static" # this will cause cutoff file to be read from folder
     parser.add_argument('--cutoff_file', default = cutoff_file)
     parser.add_argument('--consensus_proportion', default = 1, type = float)
     parser.add_argument('--filter_metric', default = "evalue",
@@ -120,6 +120,10 @@ def main(args_in):
     parser.add_argument('--busco_threshold', default=50)
     parser.add_argument('--no_busco', action='store_true', default=False,
                        help = "When true, BUSCO steps are not run.")
+    
+    parser.add_argument('--create_euk_fasta', action='store_true', default=False,
+                       help = "Whether to create FASTA files containing sequences identified "+\
+                              "to be eukaryotic.")
     parser.add_argument('--create_fasta', action='store_true', default=False,
                        help = "Whether to create FASTA files containing ID'd transcripts "+\
                               "during BUSCO analysis.")
@@ -133,6 +137,15 @@ def main(args_in):
                        help = "Whether we're just running a test and should not execute downloads.")
   
     args = parser.parse_args(list(filter(None, args_in.split(" "))))
+    
+    if args.version:
+        test_var = True
+        filename = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                "static", "VERSION")
+        file_read = open(filename, "r")
+        print("The current EUKulele version is",file_read.read())
+        sys.exit(0)
+    
     if (args.mets_or_mags == "") & (args.subroutine != "download") & (not args.version):
         print("METs or MAGs argument (-m/--mets_or_mags) is required with one of 'mets' or 'mags'.")
         sys.exit(1)
@@ -175,6 +188,7 @@ def main(args_in):
     busco_file = args.busco_file
     rerun_rules = args.force_rerun
     run_transdecoder = args.run_transdecoder
+    create_euk_fasta = args.create_euk_fasta
 
     organisms, organisms_taxonomy = readBuscoFile(individual_or_summary, busco_file,
                                                   organisms, organisms_taxonomy)
@@ -185,10 +199,9 @@ def main(args_in):
     busco_choice = False
     core_genes = False
 
-    if args.version:
-        test_var = True
-        filename = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                "static", "VERSION")
+    filename = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                            "static", "VERSION")
+    if os.path.isfile(filename):
         file_read = open(filename, "r")
         print("The current EUKulele version is",file_read.read())
 
@@ -242,17 +255,21 @@ def main(args_in):
         f.write("The version of EUKulele was "+str(file_read.read())+".\n")
         f.write("Time finished was " + str(e) + " for database " + \
                 str(args.database.lower())+"\n")
-
+        
+        if os.path.isfile(os.path.join(reference_dir, ref_fasta+".gz")) & \
+           (not os.path.isfile(os.path.join(reference_dir, ref_fasta))):
+            ref_fasta = ref_fasta + ".gz"
+        
         ## Next, see whether there is a subdirectory of reference
         ## directory containing folder for our DB name
-        if (not os.path.isfile(os.path.join(reference_dir, ref_fasta))) | \
+        if (not (os.path.isfile(os.path.join(reference_dir, ref_fasta)))) | \
            (not os.path.isfile(tax_tab)) | \
            (not os.path.isfile(prot_tab)):
             ref_fasta, tax_tab, prot_tab = downloadDatabase(args.database.lower(),
                                                             alignment_choice, output_dir,
                                                             "/".join(reference_dir.
                                                                      split("/")[0:-1]))
-            if (not os.path.isfile(os.path.join(reference_dir, ref_fasta))) | \
+            if (not (os.path.isfile(os.path.join(reference_dir, ref_fasta)))) | \
                (not os.path.isfile(tax_tab)) | \
                (not os.path.isfile(prot_tab)):
                 print("Download and formatting did not complete successfully. " +\
@@ -327,6 +344,11 @@ def main(args_in):
                        output_dir = output_dir,
                        level_hierarchy = levels_file)
 
+        if create_euk_fasta:
+            manageEukulele(piece = "dump_euks", samples = samples, mets_or_mags = mets_or_mags,
+                       sample_dir = sample_dir, pep_ext = pep_ext,
+                       output_dir = output_dir,
+                       level_hierarchy = levels_file)
     busco_matched = True
     if busco_choice:
         print("Performing BUSCO steps...", flush=True)

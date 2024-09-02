@@ -1,14 +1,22 @@
 mmetsp_ref: https://www.dropbox.com/s/vwid6dbnk1qcdnw/reference-pep.fa?dl=1
 mmetsp_tab: https://www.dropbox.com/s/kkxamsatcswsq5e/taxonomy-table.txt?dl=1
-marmmetsp_ref: https://www.dropbox.com/s/fnsg4bq6o95pwjb/reference.pep.fa.gz?dl=1
+marmmetsp_ref: https://www.dropbox.com/scl/fi/qt3h8wmuvzsju5xammx9x/reference.pep.fa.gz?rlkey=u3kqc7i1ygnht7ozc13okygfz
 marmmetsp_tab: https://www.dropbox.com/s/w1uv1j9qr63z3ac/taxonomy_table.txt?dl=1
 gtdb_ref: https://www.dropbox.com/s/dh839ah2hu0m2r4/reference.pep.fa.gz?dl=1
 gtdb_tab: https://www.dropbox.com/s/3vwo1r7cbm3tn35/tax-table.txt?dl=1
-eukprot_ref: https://ndownloader.figshare.com/files/23580944
-eukprot_tab: https://ndownloader.figshare.com/files/23580767
-phylodb_ref: https://www.dropbox.com/s/ahpqdkmjg6xekwg/phylodb_1.076.pep.fa.gz?dl=1 
+eukprot_ref: https://www.dropbox.com/scl/fi/15o5usthueoafou0mx40e/reference_prot_2.pep.fa.gz?rlkey=9cwwk97szoz71ashu8jnqtnbj
+#https://www.dropbox.com/scl/fi/c26efpra9rc4xln8j9t39/reference_prot.pep.fa?rlkey=4fr8mg4ja4slddejzxqq0vsdp
+#https://www.dropbox.com/scl/fi/z5un17a9a5818qyj0tdrt/reference.pep.fa?rlkey=7sywawzt9y8jre1aytwu9w19p&st=zhk3907i
+#https://figshare.com/ndownloader/files/34434377
+#https://ndownloader.figshare.com/files/23580944
+eukprot_tab: https://www.dropbox.com/scl/fi/jbl6qvneu2um83zrcsp91/tax-table.txt?rlkey=byj14w3t8nqro6s0uz4ksv1xh
+#https://www.dropbox.com/scl/fi/jbl6qvneu2um83zrcsp91/tax-table.txt?rlkey=byj14w3t8nqro6s0uz4ksv1xh&st=qzfml7bh
+#https://ndownloader.figshare.com/files/23580767
+phylodb_ref: https://www.dropbox.com/scl/fi/rcklsd5b5tfzvnin8obvi/phylodb_1.076.pep.fa.gz?rlkey=gs66kut2hcxvjo8rzd36yugpx
+#https://www.dropbox.com/s/ahpqdkmjg6xekwg/phylodb_1.076.pep.fa.gz?dl=1 
 ##0B609upjBX8xGUWZrakZLNmp1X2M
-phylodb_tab: https://www.dropbox.com/s/ak76j4po9tdcbof/phylodb_1.076.taxonomy.txt.gz?dl=1 
+phylodb_tab: https://www.dropbox.com/scl/fi/eeh1w9dncbf3n9nocwdb9/phylodb_1.076_external_taxonomy.txt?rlkey=7x4pei9lsax8wd5yvbv7phx87
+#https://www.dropbox.com/s/ak76j4po9tdcbof/phylodb_1.076.taxonomy.txt.gz?dl=1 
 #0B609upjBX8xGTGh3aTJnS3NJXzA
 eukzoo_ref: https://zenodo.org/record/1476236/files/EukZoo_v_0.2.faa?download=1
 eukzoo_tab: https://zenodo.org/record/1476236/files/EukZoo_taxonomy_table_v_0.2.tsv?download=1

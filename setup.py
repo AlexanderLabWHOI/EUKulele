@@ -17,7 +17,7 @@ setup(
     version=version,
     description = ("A package to make the process of taxonomically classifying "
                    "microbial eukaryotes easier."),
-    keywords = "eukaryote taxonomy classification",
+    keywords = "eukaryotic taxonomy classification",
     conda_buildnum=1,
     url="https://github.com/AlexanderLabWHOI/EUKulele",
     author="Arianna Krinos",

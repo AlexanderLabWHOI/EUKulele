@@ -113,6 +113,11 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
     elif piece == "core_assign_taxonomy":
         manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir, pep_ext,
                             core = True)
+    elif piece == "dump_euks":
+        manageDumpEukaryoticFasta(output_dir, mets_or_mags, tax_tab, cutoff_file,
+                                  consensus_cutoff, consensus_proportion, prot_tab, use_salmon_counts,
+                                  names_to_reads, alignment_res, rerun_rules, samples,
+                                  sample_dir, pep_ext, nt_ext, perc_mem)
     else:
         print("Not a supported management function.")
         sys.exit(1)
@@ -598,6 +603,32 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
 
+def manageDumpEukaryoticFasta(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff, consensus_proportion,
+                        prot_tab, use_salmon_counts, names_to_reads, alignment_res,
+                        rerun_rules, samples, sample_dir, pep_ext, nt_ext, perc_mem):
+    print("Outputting sequences predicted to be eukaryotic...", flush=True)
+    
+    os.system("mkdir -p " + os.path.join(output_dir, "eukaryote_fastas"))
+    
+    taxonomy_est_files = [os.path.join(output_dir, "taxonomy_estimation", samp + \
+                          "-estimated-taxonomy.out") for samp in samples]
+    
+    euk_dump_files = [os.path.join(output_dir, "eukaryote_fastas", samp + \
+                      "-eukaryote.fasta") for samp in samples]
+    euk_dump_codes = [os.path.join(output_dir, "eukaryote_fastas", samp + \
+                      "-eukaryote.list") for samp in samples]
+        
+    rc_2 = 0
+
+    output_log = os.path.join(output_dir, "log", "eukdump_out.log")
+    error_log = os.path.join(output_dir, "log", "eukdump_err.log")
+    for curr_tax,curr_dump,curr_sample,curr_codes in zip(taxonomy_est_files,euk_dump_files,samples,euk_dump_codes):
+        rc_2 = rc_2 + os.system("grep 'Eukaryota' " + curr_tax + " | cut -f2  > " + curr_codes )
+        rc_2 = rc_2 + os.system("bash remove_newlines.sh " + curr_sample +\
+                                " | grep -A 1 -f "+ curr_codes + " > " + curr_dump + \
+                                " 1> " + output_log + " 2> " + error_log)
+    return rc_2
+    
 def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
                             prot_tab, use_salmon_counts, names_to_reads, alignment_res,
                             rerun_rules, samples, sample_dir, pep_ext, nt_ext, perc_mem):

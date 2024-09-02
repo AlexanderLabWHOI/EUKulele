@@ -43,8 +43,12 @@ USAGE:
 import os
 import argparse
 import json
+import gzip
 from Bio import SeqIO
 import pandas as pd
+
+def iz_gz(path):
+    return path.endswith(".gz")
 
 def createProteinTable(args=None):
     '''
@@ -85,41 +89,52 @@ def createProteinTable(args=None):
     odict = {}
     for curr_pepfile in list(args.infile_peptide):
         pepfile = "".join(curr_pepfile)
-        for record in SeqIO.parse(pepfile, "fasta"):
-            header = record.description
-            rid = record.id.replace(".","N") #record.id.split(".")[0] #record.id.replace(".","N")
-            counter = 2
-            while rid in odict:
-                if "_" in rid:
-                    rid = "_".join(rid.split("_")[0:-1]) + "_" + str(counter)
+        
+        open_fn = gzip.open if iz_gz(pepfile) else open
+        with open_fn(pepfile, "rt") as handle:
+            for record in SeqIO.parse(handle, "fasta"):
+                header = record.description
+                rid = record.id.replace(".","N") #record.id.split(".")[0] #record.id.replace(".","N")
+                counter = 2
+                while rid in odict:
+                    if "_" in rid:
+                        rid = "_".join(rid.split("_")[0:-1]) + "_" + str(counter)
+                    else:
+                        rid = rid + "_" + str(counter)
+                    counter = counter + 1
+                if 't' in args.delim: # why is this tab thing not working otherwise?? even the equality
+                    tester = "".join(list(str(header))).replace('\t', '    ')
+                    hlist = tester.split("    ")
                 else:
-                    rid = rid + "_" + str(counter)
-                counter = counter + 1
-            if 't' in args.delim: # why is this tab thing not working otherwise?? even the equality
-                tester = "".join(list(str(header))).replace('\t', '    ')
-                hlist = tester.split("    ")
-            else:
-                header = str(header).replace(args.delim, "hello")
-                hlist = header.split("hello")
-            if len(args.infile_peptide) > 1:
-                # if there is a list of files, use the filename as the ID
-                sid = pepfile.split("/")[-1].split("_")[0]
-                odict[rid] = sid
-            elif args.column.isdigit():
-                sid = hlist[int(args.column)]
-                odict[rid] = sid
-            else:
-                for h_curr in hlist:
-                    if args.column in h_curr: #h.startswith(args.column):
-                        sid = h_curr.split('=')[1].strip()
-                        odict[rid] = sid
-                        break
+                    header = str(header).replace(args.delim, "hello")
+                    hlist = header.split("hello")
+                if len(args.infile_peptide) > 1:
+                    # if there is a list of files, use the filename as the ID
+                    sid = pepfile.split("/")[-1].split("_")[0]
+                    odict[rid] = sid
+                elif args.column.isdigit():
+                    sid = hlist[int(args.column)]
+                    odict[rid] = sid
+                else:
+                    for h_curr in hlist:
+                        if args.column in h_curr: #h.startswith(args.column):
+                            sid = h_curr.split('=')[1].strip()
+                            odict[rid] = sid
+                            break
 
-        print("Modifying...",pepfile,flush=True)
-        os.system("cut -f 1 " + str(pepfile) + " > " + str(pepfile) + ".tester.pep.fa")
-        os.system("perl -i -pe 's/$/_$seen{$_}/ if ++$seen{$_}>1 and /^>/; ' " + \
-                  str(pepfile) + ".tester.pep.fa")
-        os.system("mv " + str(pepfile) + ".tester.pep.fa " + str(pepfile))
+        if not iz_gz(pepfile):
+            print("Modifying...",pepfile,flush=True)
+            os.system("cut -f 1 " + str(pepfile) + " > " + str(pepfile) + ".tester.pep.fa")
+            os.system("perl -i -pe 's/$/_$seen{$_}/ if ++$seen{$_}>1 and /^>/; ' " + \
+                      str(pepfile) + ".tester.pep.fa")
+            os.system("mv " + str(pepfile) + ".tester.pep.fa " + str(pepfile))
+        else:
+            print("Modifying zipped pepfile...",pepfile,flush=True)
+            #os.system("zcat " + str(pepfile) + " | cut -f 1 " + " > " + str(pepfile) + ".tester.pep.fa")
+            #os.system("perl -i -pe 's/$/_$seen{$_}/ if ++$seen{$_}>1 and /^>/; ' " + \
+            #          str(pepfile) + ".tester.pep.fa")
+            #os.system("gzip -c "+str(pepfile) + ".tester.pep.fa > "+str(pepfile) + ".tester.pep.fa.gz") 
+            #os.system("mv " + str(pepfile) + ".tester.pep.fa.gz " + str(pepfile))
 
     tax_file = pd.read_csv(args.infile_taxonomy, sep = "\t", encoding='latin-1')
 
@@ -136,7 +151,7 @@ def createProteinTable(args=None):
                 elif len(curr_row) > (len(colnames_tax)):
                     curr_row = curr_row[0:7] + [curr_row[8]]
                 add_series = pd.Series(curr_row, index = colnames_tax)
-                tax_out = tax_out.append(add_series, ignore_index=True)
+                tax_out = pd.concat([tax_out,add_series], ignore_index=True)
             else:
                 curr_row = [tax_file[args.col_source_id][i]] + [""] * 7
                 full_taxonomy = tax_file[args.taxonomy_col_id][i].split(";")
@@ -150,7 +165,7 @@ def createProteinTable(args=None):
                 curr_row[6] = tax_file["Genus_UniEuk"][i]
                 curr_row[7] = genus_and_species
                 add_series = pd.Series(curr_row, index = colnames_tax)
-                tax_out = tax_out.append(add_series, ignore_index=True)
+                tax_out = pd.concat([tax_out,add_series], ignore_index=True)
 
         tax_file = tax_out
     tax_file.to_csv(args.output,sep="\t")

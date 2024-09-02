@@ -51,6 +51,9 @@ A full list of parameters can be found in the table at the bottom of this page. 
    * - ``--use_salmon_counts`` 
      - use_salmon_counts 
      - If included in a command line argument or set to 1 in a configuration file, this argument causes classifications to be made based both on number of classified transcripts and by counts.
+   * - ``--create_euk_fasta`` 
+     - create_euk_fasta 
+     - If ``--create_euk_fasta`` is included in a command line argument or set to 1 in a configuration file, FASTA files will be created containing the nucleotide or protein sequences predicted to be eukaryotic by ``EUKulele``.
    * - ``--salmon_dir`` 
      - salmon_dir 
      - If ``--use_salmon_counts`` is true, this must be specified, which is the directory location of the ``salmon`` output/quantification files.
@@ -65,7 +68,7 @@ A full list of parameters can be found in the table at the bottom of this page. 
      - A choice of aligner to use, currently ``BLAST`` or ``DIAMOND``.
    * - ``--cutoff_file`` 
      - cutoff_file 
-     - A ``YAML`` file, provided in ``src/EUKulele/static/``, that contains the percent identity cutoffs for various taxonomic classifications. Any path may be provided here to a user-specified file.
+     - A ``YAML`` file, with a default provided in ``src/EUKulele/static/``, that contains the percent identity cutoffs for various taxonomic classifications. Any path may be provided here to a user-specified file - if no absolute path is specified, the default file will be used instead.
    * - ``--filter_metric`` 
      - filter_metric 
      - Either evalue, pid, or bitscore (default evalue) - the metric to be used to filter hits based on their quality prior to taxonomic estimation. 
