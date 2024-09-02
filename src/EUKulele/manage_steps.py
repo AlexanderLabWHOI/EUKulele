@@ -608,6 +608,20 @@ def manageDumpEukaryoticFasta(output_dir, mets_or_mags, tax_tab, cutoff_file, co
                         rerun_rules, samples, sample_dir, pep_ext, nt_ext, perc_mem):
     print("Outputting sequences predicted to be eukaryotic...", flush=True)
     
+    if mets_or_mags == "mets":
+        fastas = []
+        for sample in samples:
+            if os.path.isfile(os.path.join(output_dir, mets_or_mags,
+                                           sample + "." + pep_ext)):
+                fastas.append(os.path.join(output_dir, mets_or_mags,
+                                           sample + "." + pep_ext))
+            elif os.path.isfile(os.path.join(sample_dir, sample + "." + pep_ext)):
+                fastas.append(os.path.join(sample_dir, sample + "." + pep_ext))
+            else:
+                fastas.append(os.path.join(sample_dir, sample + "." + nt_ext))
+    else:
+        fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
+        
     os.system("mkdir -p " + os.path.join(output_dir, "eukaryote_fastas"))
     
     taxonomy_est_files = [os.path.join(output_dir, "taxonomy_estimation", samp + \
@@ -622,11 +636,11 @@ def manageDumpEukaryoticFasta(output_dir, mets_or_mags, tax_tab, cutoff_file, co
 
     output_log = os.path.join(output_dir, "log", "eukdump_out.log")
     error_log = os.path.join(output_dir, "log", "eukdump_err.log")
-    for curr_tax,curr_dump,curr_sample,curr_codes in zip(taxonomy_est_files,euk_dump_files,samples,euk_dump_codes):
+    for curr_tax,curr_dump,curr_sample,curr_codes in zip(taxonomy_est_files,euk_dump_files,fastas,euk_dump_codes):
         rc_2 = rc_2 + os.system("grep 'Eukaryota' " + curr_tax + " | cut -f2  > " + curr_codes )
-        rc_2 = rc_2 + os.system("bash remove_newlines.sh " + curr_sample +\
-                                " | grep -A 1 -f "+ curr_codes + " > " + curr_dump + \
-                                " 1> " + output_log + " 2> " + error_log)
+        rc_2 = rc_2 + os.system("remove_newlines.sh " + curr_sample +\
+                                " | grep -A 1 -f "+ curr_codes + " 1> " + curr_dump + \
+                                " 2> " + error_log)
     return rc_2
     
 def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff,
