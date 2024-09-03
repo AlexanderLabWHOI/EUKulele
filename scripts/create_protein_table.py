@@ -87,6 +87,8 @@ def createProteinTable(args=None):
     # one - ultimately we want to know which MMETSP or whatever it came from
 
     odict = {}
+    source_id = args.col_source_id
+    print(source_id,flush=True)
     for curr_pepfile in list(args.infile_peptide):
         pepfile = "".join(curr_pepfile)
         
@@ -130,6 +132,10 @@ def createProteinTable(args=None):
             os.system("mv " + str(pepfile) + ".tester.pep.fa " + str(pepfile))
         else:
             print("Modifying zipped pepfile...",pepfile,flush=True)
+            if source_id == "strain_name":
+                print("Removing tab fields for databases like phylodb...",pepfile,flush=True)
+                os.system("zcat " + str(pepfile) + " | cut -f 1 | gzip -c > " + str(pepfile)+".tester.pep.fa.gz")
+                os.system("mv " + str(pepfile) + ".tester.pep.fa.gz " + str(pepfile))
             #os.system("zcat " + str(pepfile) + " | cut -f 1 " + " > " + str(pepfile) + ".tester.pep.fa")
             #os.system("perl -i -pe 's/$/_$seen{$_}/ if ++$seen{$_}>1 and /^>/; ' " + \
             #          str(pepfile) + ".tester.pep.fa")
@@ -139,34 +145,57 @@ def createProteinTable(args=None):
     tax_file = pd.read_csv(args.infile_taxonomy, sep = "\t", encoding='latin-1')
 
     if args.reformat:
-        colnames_tax = ["Source_ID","Supergroup","Division","Class",
+        colnames_tax = ["Source_ID","Domain","Supergroup","Division","Class",
                         "Order","Family","Genus","Species"]
         tax_out = pd.DataFrame(columns=colnames_tax)
-        for i in range(0,len(tax_file.index)):
-            if not args.eukprot:
-                curr_row = [tax_file[args.col_source_id][i]] + \
-                           tax_file[args.taxonomy_col_id][i].split(";")
-                if len(curr_row) < (len(colnames_tax)):
-                    curr_row = curr_row + [""] * ((len(colnames_tax) + 1) - len(curr_row))
-                elif len(curr_row) > (len(colnames_tax)):
-                    curr_row = curr_row[0:7] + [curr_row[8]]
-                add_series = pd.Series(curr_row, index = colnames_tax)
-                tax_out = pd.concat([tax_out,add_series], ignore_index=True)
-            else:
-                curr_row = [tax_file[args.col_source_id][i]] + [""] * 7
-                full_taxonomy = tax_file[args.taxonomy_col_id][i].split(";")
-                genus_and_species = tax_file["Name_to_Use"][i].replace("_", " ")
-                curr_row[1] = full_taxonomy[0]
-                # this is generally the "supergroup" the way we have used it thus far.
-                curr_row[2] = tax_file["Supergroup_UniEuk"][i]
-                # this is closest to the division
-                curr_row[4] = tax_file["Taxogroup_UniEuk"][i]
-                # this is closest to the order
-                curr_row[6] = tax_file["Genus_UniEuk"][i]
-                curr_row[7] = genus_and_species
-                add_series = pd.Series(curr_row, index = colnames_tax)
-                tax_out = pd.concat([tax_out,add_series], ignore_index=True)
-
+        split_tax_file = tax_file[args.taxonomy_col_id].str.split(';', expand=True)
+        split_tax_file.columns = ["col_"+str(curr) for curr in list(range(len(split_tax_file.columns)))]
+        max_col="col_" + str(len(split_tax_file.columns)-1)
+        missing_cols = [curr for curr,col7 in zip(split_tax_file.index,split_tax_file[max_col]) if col7 is None]
+        present_cols = [curr for curr,col7 in zip(split_tax_file.index,split_tax_file[max_col]) if col7 is not None]
+        
+        split_tax_file["Source_ID"] = tax_file[source_id]
+        split_tax_file = split_tax_file.fillna("")
+        
+        missing_df = split_tax_file.iloc[missing_cols,:]
+        present_df = split_tax_file.iloc[present_cols,:]
+        
+        missing_df.columns = ["Domain","Division","Class",
+                        "Order","Family","Genus","Species","Missing","Source_ID"]
+        missing_df["Supergroup"] = list(missing_df["Domain"])
+        present_df.columns = ["Domain","Supergroup","Division","Class",
+                        "Order","Family","Genus","Species","Source_ID"]
+        present_df["Supergroup"] = list(present_df["Domain"])
+        merged_tax_file=pd.concat([missing_df.drop("Missing",axis="columns"),present_df])
+        
+        tax_out = merged_tax_file[colnames_tax]
+        '''
+            for i in range(0,len(tax_file.index)):
+                if not args.eukprot:
+                    curr_row = [tax_file[args.col_source_id][i]] + \
+                               tax_file[args.taxonomy_col_id][i].split(";")
+                    if len(curr_row) < (len(colnames_tax)):
+                        curr_row = curr_row + [""] * ((len(colnames_tax) + 1) - len(curr_row))
+                    elif len(curr_row) > (len(colnames_tax)):
+                        curr_row = curr_row[0:7] + [curr_row[8]]
+                    add_series = pd.Series(curr_row, index = colnames_tax)
+                    tax_out = pd.concat([tax_out,add_series], ignore_index=True)
+                else:
+                    curr_row = [tax_file[args.col_source_id][i]] + [""] * 7
+                    full_taxonomy = tax_file[args.taxonomy_col_id][i].split(";")
+                    genus_and_species = tax_file["Name_to_Use"][i].replace("_", " ")
+                    curr_row[1] = full_taxonomy[0]
+                    # this is generally the "supergroup" the way we have used it thus far.
+                    curr_row[2] = tax_file["Supergroup_UniEuk"][i]
+                    # this is closest to the division
+                    curr_row[4] = tax_file["Taxogroup_UniEuk"][i]
+                    # this is closest to the order
+                    curr_row[6] = tax_file["Genus_UniEuk"][i]
+                    curr_row[7] = genus_and_species
+                    add_series = pd.Series(curr_row, index = colnames_tax)
+                    tax_out = pd.concat([tax_out,add_series], ignore_index=True)
+            '''
+        
         tax_file = tax_out
     tax_file.to_csv(args.output,sep="\t")
     with open(args.outfile_json, 'w') as file_out:
