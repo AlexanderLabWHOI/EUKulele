@@ -19,12 +19,14 @@ import EUKulele
 def tax_placement(pident, tax_cutoffs):
     ''' Decide which level of taxonomy is appropriate. '''
 
-    tax_levels = list(tax_cutoffs.keys())
+    
+    tax_cutoffs_sort = dict(sorted(tax_cutoffs.items(), key=lambda item: item[1]))
+    tax_levels = list(tax_cutoffs_sort.keys())
     out = 'unclassified'
     level = 0
-    curr_level = len(tax_levels) + 1
+    curr_level = len(tax_levels)
     for tax_level in tax_levels:
-        if pident >= tax_cutoffs[tax_level]:
+        if pident >= tax_cutoffs_sort[tax_level]:
             out = tax_level
             level = curr_level
             break
@@ -137,7 +139,7 @@ def lca(full_classifications,classes):
         set_classifications = [curr[l] for curr in full_classifications_split]
         if len(set(set_classifications)) == 1:
             return classes[l], set_classifications[0], \
-                   "; ".join(full_classifications_split[0][0:(l+1)])
+                   ";".join(full_classifications_split[0][0:(l+1)])
     return "","","" # if there are no common ancestors
 
 def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts, tax_cutoffs, classes):
@@ -210,7 +212,7 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
             best_one_class = 0
             best_full_class = 0
             for e in entries:
-                curr_frac = len(np.where(full_classification_0 == e)) / \
+                curr_frac = len(np.where(np.atleast_1d(full_classification_0) == e)) / \
                             len(full_classification_0)
                 if (isinstance(curr_frac, float)) & (curr_frac > best_frac):
                     database_match=database_dict[e]
