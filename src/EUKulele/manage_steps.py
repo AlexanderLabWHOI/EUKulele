@@ -128,26 +128,18 @@ def getSamples(mets_or_mags, sample_dir, nt_ext, pep_ext):
     Get the names of the metagenomic or metatranscriptomic samples from the provided folder.
     """
 
-    if mets_or_mags == "mets":
-        samples_nt = [".".join(curr.split(".")[0:-1]) for \
-                      curr in os.listdir(sample_dir) if \
-                      curr.split(".")[-1] == nt_ext]
-        samples_pep = [".".join(curr.split(".")[0:-1]) for \
-                       curr in os.listdir(sample_dir) if \
-                       curr.split(".")[-1] == pep_ext]
-        samples = list(set(samples_nt + samples_pep))
-        print(samples)
-        if len(samples) == 0:
-            print("No samples found in sample directory with",
-                  "specified nucleotide or peptide extension.")
-            sys.exit(1)
-    else:
-        samples = [".".join(curr.split(".")[0:-1]) for curr \
-                   in os.listdir(sample_dir) if curr.split(".")[-1] == pep_ext]
-        if len(samples) == 0:
-            print("No samples found in sample directory with",
-                  "specified peptide extension.")
-            sys.exit(1)
+    samples_nt = [".".join(curr.split(".")[0:-1]) for \
+                    curr in os.listdir(sample_dir) if \
+                    curr.split(".")[-1] == nt_ext]
+    samples_pep = [".".join(curr.split(".")[0:-1]) for \
+                    curr in os.listdir(sample_dir) if \
+                    curr.split(".")[-1] == pep_ext]
+    samples = list(set(samples_nt + samples_pep))
+    print(samples)
+    if len(samples) == 0:
+        print("No samples found in sample directory with",
+                "specified nucleotide or peptide extension.")
+        sys.exit(1)
 
     return samples
 
@@ -301,47 +293,44 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
     """
 
     print("Aligning to reference database...")
-    if mets_or_mags == "mets":
-        fastas = []
-        for sample in samples:
-            if os.path.isfile(os.path.join(output_dir, mets_or_mags,
-                                           sample + "." + pep_ext)):
-                fp = open(os.path.join(output_dir, mets_or_mags,
-                                       sample + "." + pep_ext))
-                for i, line in enumerate(fp):
-                    if i == 2:
-                        chars = set(list(line))
-                        if len(chars) <= 5:
-                            print("Peptide extension used, but this file, " +
-                                  str(os.path.join(output_dir, mets_or_mags,
-                                                   sample + "." + pep_ext)) +
-                                  ", does not appear to be a peptide file.")
-                            break
-                    elif i > 2:
-                        fastas.append(os.path.join(output_dir, mets_or_mags,
-                                                   sample + "." + pep_ext))
+    fastas = []
+    for sample in samples:
+        if os.path.isfile(os.path.join(output_dir, mets_or_mags,
+                                        sample + "." + pep_ext)):
+            fp = open(os.path.join(output_dir, mets_or_mags,
+                                    sample + "." + pep_ext))
+            for i, line in enumerate(fp):
+                if i == 2:
+                    chars = set(list(line))
+                    if len(chars) <= 5:
+                        print("Peptide extension used, but this file, " +
+                                str(os.path.join(output_dir, mets_or_mags,
+                                                sample + "." + pep_ext)) +
+                                ", does not appear to be a peptide file.")
                         break
-                fp.close()
-            elif os.path.isfile(os.path.join(sample_dir, sample + "." + pep_ext)):
-                fp = open(os.path.join(sample_dir, sample + "." + pep_ext))
-                for i, line in enumerate(fp):
-                    if i == 2:
-                        chars = set(list(line))
-                        if len(chars) <= 5:
-                            print("Peptide extension used, but this file, " +
-                                  str(os.path.join(sample_dir, sample + "." +\
-                                                   pep_ext)) +
-                                  ", does not appear to be a peptide file.")
-                            break
-                    elif i > 2:
-                        fastas.append(os.path.join(sample_dir, sample + "." +\
-                                                   pep_ext))
+                elif i > 2:
+                    fastas.append(os.path.join(output_dir, mets_or_mags,
+                                                sample + "." + pep_ext))
+                    break
+            fp.close()
+        elif os.path.isfile(os.path.join(sample_dir, sample + "." + pep_ext)):
+            fp = open(os.path.join(sample_dir, sample + "." + pep_ext))
+            for i, line in enumerate(fp):
+                if i == 2:
+                    chars = set(list(line))
+                    if len(chars) <= 5:
+                        print("Peptide extension used, but this file, " +
+                                str(os.path.join(sample_dir, sample + "." +\
+                                                pep_ext)) +
+                                ", does not appear to be a peptide file.")
                         break
-                fastas.append(os.path.join(sample_dir, sample + "." + pep_ext))
-            else:
-                fastas.append(os.path.join(sample_dir, sample + "." + nt_ext))
-    else:
-        fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
+                elif i > 2:
+                    fastas.append(os.path.join(sample_dir, sample + "." +\
+                                                pep_ext))
+                    break
+            fastas.append(os.path.join(sample_dir, sample + "." + pep_ext))
+        else:
+            fastas.append(os.path.join(sample_dir, sample + "." + nt_ext))
 
 
     max_jobs = 1
@@ -512,7 +501,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
 
         align_db = os.path.join(database_dir, "blast", ref_fasta.strip('.fa'), "database")
         alignment_method = "blastp"
-        if mets_or_mags == "mets":
+        if core == "full":
             if os.path.isfile(os.path.join(output_dir, mets_or_mags,
                                            sample_name + "." + pep_ext)):
                 fasta = os.path.join(output_dir, mets_or_mags,
@@ -522,8 +511,6 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
             else:
                 fasta = os.path.join(sample_dir, sample_name + "." + nt_ext)
                 alignment_method = "blastx"
-        elif core == "full":
-            fasta = os.path.join(sample_dir, sample_name + "." + pep_ext)
         elif core == "core":
             # now concatenate the BUSCO output
             fasta = os.path.join(output_dir, sample_name + "_busco" + "." + pep_ext)
@@ -566,19 +553,16 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
     outfiles = [os.path.join(output_dir, "taxonomy_estimation", samp + \
                              "-estimated-taxonomy.out") for samp in samples]
 
-    if mets_or_mags == "mets":
-        fastas = []
-        for sample in samples:
-            if os.path.isfile(os.path.join(output_dir, mets_or_mags,
-                                           sample + "." + pep_ext)):
-                fastas.append(os.path.join(output_dir, mets_or_mags,
-                                           sample + "." + pep_ext))
-            elif os.path.isfile(os.path.join(sample_dir, sample + "." + pep_ext)):
-                fastas.append(os.path.join(sample_dir, sample + "." + pep_ext))
-            else:
-                fastas.append(os.path.join(sample_dir, sample + "." + nt_ext))
-    else:
-        fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
+    fastas = []
+    for sample in samples:
+        if os.path.isfile(os.path.join(output_dir, mets_or_mags,
+                                        sample + "." + pep_ext)):
+            fastas.append(os.path.join(output_dir, mets_or_mags,
+                                        sample + "." + pep_ext))
+        elif os.path.isfile(os.path.join(sample_dir, sample + "." + pep_ext)):
+            fastas.append(os.path.join(sample_dir, sample + "." + pep_ext))
+        else:
+            fastas.append(os.path.join(sample_dir, sample + "." + nt_ext))
 
     sequence_id_list = [return_seq_ids(curr) for curr in fastas]
     max_jobs = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size,
@@ -615,19 +599,16 @@ def manageDumpEukaryoticFasta(output_dir, mets_or_mags, tax_tab, cutoff_file, co
                         rerun_rules, samples, sample_dir, pep_ext, nt_ext, perc_mem):
     print("Outputting sequences predicted to be eukaryotic...", flush=True)
     
-    if mets_or_mags == "mets":
-        fastas = []
-        for sample in samples:
-            if os.path.isfile(os.path.join(output_dir, mets_or_mags,
-                                           sample + "." + pep_ext)):
-                fastas.append(os.path.join(output_dir, mets_or_mags,
-                                           sample + "." + pep_ext))
-            elif os.path.isfile(os.path.join(sample_dir, sample + "." + pep_ext)):
-                fastas.append(os.path.join(sample_dir, sample + "." + pep_ext))
-            else:
-                fastas.append(os.path.join(sample_dir, sample + "." + nt_ext))
-    else:
-        fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
+    fastas = []
+    for sample in samples:
+        if os.path.isfile(os.path.join(output_dir, mets_or_mags,
+                                        sample + "." + pep_ext)):
+            fastas.append(os.path.join(output_dir, mets_or_mags,
+                                        sample + "." + pep_ext))
+        elif os.path.isfile(os.path.join(sample_dir, sample + "." + pep_ext)):
+            fastas.append(os.path.join(sample_dir, sample + "." + pep_ext))
+        else:
+            fastas.append(os.path.join(sample_dir, sample + "." + nt_ext))
         
     os.system("mkdir -p " + os.path.join(output_dir, "eukaryote_fastas"))
     
@@ -662,17 +643,14 @@ def manageCoreTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, cons
     outfiles = [os.path.join(output_dir, "core_taxonomy_estimation",
                              samp + "-estimated-taxonomy.out") for samp in samples]
 
-    if mets_or_mags == "mets":
-        fastas = []
-        for sample in samples:
-            if os.path.isfile(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext)):
-                fastas.append(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext))
-            elif os.path.isfile(os.path.join(sample_dir, sample + "." + pep_ext)):
-                fastas.append(os.path.join(sample_dir, sample + "." + pep_ext))
-            else:
-                fastas.append(os.path.join(sample_dir, sample + "." + nt_ext))
-    else:
-        fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
+    fastas = []
+    for sample in samples:
+        if os.path.isfile(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext)):
+            fastas.append(os.path.join(output_dir, mets_or_mags, sample + "." + pep_ext))
+        elif os.path.isfile(os.path.join(sample_dir, sample + "." + pep_ext)):
+            fastas.append(os.path.join(sample_dir, sample + "." + pep_ext))
+        else:
+            fastas.append(os.path.join(sample_dir, sample + "." + nt_ext))
 
     max_jobs = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size,
                                  max_mem_per_proc = 10, perc_mem = perc_mem) for sample in fastas])

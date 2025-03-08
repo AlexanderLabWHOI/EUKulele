@@ -76,7 +76,7 @@ def read_in_taxonomy(infile):
     for c in tax_out.columns:
         if c.lower() in classes:
             if (np.issubdtype(tax_out[str(c)].dtypes, np.number)) | \
-               (np.issubdtype(tax_out[str(c)].dtypes, np.float_)):
+               (np.issubdtype(tax_out[str(c)].dtypes, np.float64)):
                 tax_out = tax_out.loc[:,~(tax_out.columns == c)]
             else:
                 classes_out.append(c.lower())
