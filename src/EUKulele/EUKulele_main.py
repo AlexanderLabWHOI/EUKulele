@@ -50,6 +50,11 @@ def main(args_in):
     parser.add_argument('--p_ext', '--protein_extension',
                         dest = "protein_extension",
                         default = ".faa")
+    
+    parser.add_argument('-x', '--proteins_or_nt',
+                        dest = "proteins_or_nt",
+                        default = "both")
+    
     parser.add_argument('-f', '--force_rerun', action='store_true', default=False)
     parser.add_argument('--scratch', default = '../scratch',
                         help = "The scratch location to store intermediate files.")
@@ -168,6 +173,13 @@ def main(args_in):
     transdecoder_orf_size=args.transdecoder_orfsize
     nt_ext = args.nucleotide_extension.strip('.')
     pep_ext = args.protein_extension.strip('.')
+    proteins_or_nt = args.proteins_or_nt
+    
+    if proteins_or_nt == "proteins":
+        nt_ext="ignore"
+    elif proteins_or_nt == "nt":
+        pep_ext="ignore"
+        
     mets_or_mags = args.mets_or_mags.lower()
     individual_or_summary = args.individual_or_summary
     if args.individual_tag:

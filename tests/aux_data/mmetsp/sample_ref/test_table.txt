@@ -1,4 +1,4 @@
-	Unnamed: 0	Unnamed: 0.1	Unnamed: 0.1.1	Unnamed: 0.1.1.1	ORDER	CYVERSE_PATH	Source_ID_dup	REF_STATUS	Source_ID	Strain	Supergroup	Division	Class	Order	Family	Genus	Species	Notes
+	Unnamed: 0.2	Unnamed: 0	Unnamed: 0.1	Unnamed: 0.1.1	ORDER	CYVERSE_PATH	Source_ID_dup	REF_STATUS	Source_ID	Strain	Supergroup	Division	Class	Order	Family	Genus	Species	Notes
 0	0	0	0	0	150.0	2225.0	MMETSP0290	Clean	MMETSP0290	CCMP2878	Alveolata	Apicomplexa	Colpodellidea	Colpodellida	Chromeraceae	Chromera	Chromera velia	Curated by J. del Campo (PR2)
 1	1	1	1	1	149.0	2224.0	MMETSP0288	Clean	MMETSP0288	CCMP3155	Alveolata	Apicomplexa	Colpodellidea	Vitrelladida	Vitrellaceae	Vitrella	Vitrella brassicaformis	Adl et al. 2019; Curated by J. del Campo and Vaulot D. (PR2)
 2	2	2	2	2	659.0	2282.0	MMETSP1451	Clean	MMETSP1451	CCMP3346	Alveolata	Apicomplexa	Colpodellidea	Vitrelladida	Vitrellaceae	Vitrella	Vitrella brassicaformis	Adl et al. 2019; Curated by J. del Campo and Vaulot D. (PR2)

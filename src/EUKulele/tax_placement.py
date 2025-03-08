@@ -300,7 +300,9 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
     return outdf
 
 def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,consensus_proportion,prot_map_file,
-                   use_counts,names_to_reads,diamond_file,outfile,rerun,err_file="tax_assign.err",
+                   use_counts,names_to_reads,diamond_file,outfile,rerun,
+                   
+                   err_file="tax_assign.err",
                    out_file="tax_assign.out"):
     ''' Find predicted taxonomy using alignment matches. '''
     sys.stdout = open(out_file,"a")

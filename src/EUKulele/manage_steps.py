@@ -83,7 +83,7 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
     elif piece == "align_to_db":
         return manageAlignment(alignment_choice, samples, filter_metric,
                                output_dir, ref_fasta,mets_or_mags, database_dir,
-                               sample_dir, rerun_rules, nt_ext, pep_ext,
+                               sample_dir, rerun_rules, nt_ext, pep_ext, cpus=cpus,
                                core = "full",perc_mem = perc_mem)
     elif piece == "estimate_taxonomy":
         manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file,
@@ -98,7 +98,7 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
     elif piece == "core_align_to_db":
         alignment_res = manageAlignment(alignment_choice, samples, filter_metric,
                                         output_dir, ref_fasta, mets_or_mags, database_dir,
-                                        sample_dir, rerun_rules, nt_ext, pep_ext,
+                                        sample_dir, rerun_rules, nt_ext, pep_ext, cpus=cpus,
                                         core = "core", perc_mem = perc_mem)
         alignment_res = [curr for curr in alignment_res if curr != ""]
         return alignment_res
@@ -294,6 +294,7 @@ def setupEukulele(output_dir):
 
 def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fasta,
                     mets_or_mags, database_dir, sample_dir, rerun_rules, nt_ext, pep_ext,
+                    cpus = multiprocessing.cpu_count(),
                     core = "full",perc_mem = 0.75):
     """
     Manage the multithreaded management of aligning to either BLAST or DIAMOND database.
@@ -427,7 +428,7 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
 
         align_db = os.path.join(database_dir, "diamond", ref_fasta.strip('.fa') + '.dmnd')
         alignment_method = "blastp"
-        if (mets_or_mags == "mets") & (core == "full"):
+        if (core == "full"):
             if os.path.isfile(os.path.join(output_dir, mets_or_mags,
                                            sample_name + "." + pep_ext)):
                 fasta = os.path.join(output_dir, mets_or_mags,
@@ -438,8 +439,6 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
             else:
                 fasta = os.path.join(sample_dir, sample_name + "." + nt_ext)
                 alignment_method = "blastx"
-        elif core == "full":
-            fasta = os.path.join(sample_dir, sample_name + "." + pep_ext)
         elif core == "core":
             # now concatenate the BUSCO output
             fasta = os.path.join(output_dir, sample_name + "_busco" + "." + pep_ext)
@@ -542,12 +541,18 @@ def alignToDatabase(alignment_choice, sample_name, filter_metric, output_dir, re
                                       "blast_align_" + sample_name + ".err"), "w+")
         rc_1 = subprocess.Popen([alignment_method, "-query", fasta, "-db",
                                 align_db, "-out",blast_out,"-outfmt",str(outfmt),
-                                "-evalue", str(e)], stdout = blast_log,
-                               stderr = blast_err).wait()
+                                "-evalue", str(e),"-num_threads",str(cpus)],
+                                stdout = blast_log,
+                                stderr = blast_err).wait()
         if rc_1 != 0:
             print("BLAST did not complete successfully.")
             return 1
         return blast_out
+    
+def return_seq_ids(fasta_file):
+    with open(fasta_file, 'r') as file:
+        seq_ids = [str(line).split(" ")[0] for line in file if line.startswith('>')]
+    return seq_ids
 
 def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff, consensus_proportion,
                         prot_tab, use_salmon_counts, names_to_reads, alignment_res,
@@ -575,13 +580,11 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
     else:
         fastas = [os.path.join(sample_dir, sample + "." + pep_ext) for sample in samples]
 
+    sequence_id_list = [return_seq_ids(curr) for curr in fastas]
     max_jobs = min([calc_max_jobs(len(fastas), pathlib.Path(sample).stat().st_size,
                                  max_mem_per_proc = 5, perc_mem = perc_mem) for sample in fastas])
     n_jobs_align = min(multiprocessing.cpu_count(), len(alignment_res), max(1, max_jobs))
     for t in range(len(alignment_res)):
-        #curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff,\
-        #                                        prot_tab, use_salmon_counts, names_to_reads,\
-        #                                        alignment_res[t], outfiles[t], rerun_rules)
         try:
             est_out_file = os.path.join(output_dir, "log", "tax_est_" +
                                            alignment_res[t].split("/")[-1].split(".")[0] +\
@@ -591,6 +594,10 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
                                            ".err")
             sys.stdout = open(est_out_file, "w")
             sys.stderr = open(est_err_file, "w")
+            if len(sequence_id_list) != len(alignment_res):
+                print("Number of fastas detected does not match number of DIAMOND search outputs."+\
+                      "Possibly affected by serial execution of EUKulele. Try cleaning up taxonomy "+\
+                      "estimation directory.",flush=True)
             curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff, consensus_proportion,\
                                                     prot_tab, use_salmon_counts, names_to_reads,\
                                                     alignment_res[t], outfiles[t], rerun_rules,
@@ -701,7 +708,8 @@ def manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext,\
     visualize_all_results(out_prefix, output_dir,
                           os.path.join(output_dir, "taxonomy_estimation"),
                           sample_dir, pep_ext, nt_ext,
-                          use_salmon_counts, rerun_rules, level_hierarchy)
+                          use_salmon_counts, rerun_rules, level_hierarchy,
+                          mets_or_mags)
     sys.stdout = sys.__stdout__
     sys.stderr = sys.__stderr__
 
@@ -721,7 +729,8 @@ def manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir,
                           est_dir = os.path.join(output_dir, "core_taxonomy_estimation"),
                           samples_dir = sample_dir, prot_extension = pep_ext,
                           nucle_extension = nt_ext, use_counts = use_salmon_counts,
-                          rerun = rerun_rules, level_hierarchy = level_hierarchy, core = core)
+                          rerun = rerun_rules, level_hierarchy = level_hierarchy,
+                          mets_or_mags = mets_or_mags, core = core)
     #except:
     #    print("Taxonomic visualization of core genes did not complete
     #.   successfully. Check log files for details.")

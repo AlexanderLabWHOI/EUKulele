@@ -216,7 +216,9 @@ def makeConcatFrame(curr_df, new_df, level, sample_name, use_counts):
 
 def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
                           prot_extension, nucle_extension, use_counts,
-                          rerun, level_hierarchy, core = False):
+                          rerun, level_hierarchy, 
+                          mets_or_mags,
+                          core = False):
     ''' Main visualization method. '''
 
     results_frame = dict()
@@ -232,7 +234,8 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
     for s_curr in samples:
         file_name = ".".join(s_curr.split(".")[0:-1]) + "-estimated-taxonomy.out"
         if (prot_extension in s_curr.split(".")[-1]) | \
-           (nucle_extension in s_curr.split(".")[-1]):
+           ((nucle_extension in s_curr.split(".")[-1])&\
+            (mets_or_mags=="mets")):
             if not os.path.isfile(os.path.join(est_dir, file_name)):
                 print("One of the files, " + s_curr + \
                       ", in the sample directory did not complete successfully.")

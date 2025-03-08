@@ -14,13 +14,13 @@ nucleotide_extension: .fna
 organisms:
 - Phaeocystis;antarctica
 original_tax_table: taxonomy-table.txt
-output: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/test_out_A
+output: /proj/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/test_out_A
 protein_extension: .faa
 protein_map: prot-map.json
 ref_fasta: reference.pep.fa
-reference: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/sample_ref_MAG
+reference: /proj/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/sample_ref_MAG
 salmon_dir: 0
-samples: /vortexfs1/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/samples_MAGs
+samples: /proj/omics/alexander/akrinos/remodeling/EUKulele/tests/code/../aux_data/mmetsp/samples_MAGs
 scratch: scratch
 subroutine: alignment
 tax_table: tax-table.txt
