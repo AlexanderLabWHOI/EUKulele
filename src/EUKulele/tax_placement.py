@@ -20,18 +20,20 @@ def tax_placement(pident, tax_cutoffs):
     ''' Decide which level of taxonomy is appropriate. '''
 
     
-    tax_cutoffs_sort = dict(sorted(tax_cutoffs.items(), key=lambda item: item[1]))
+    tax_cutoffs_sort = dict(sorted(tax_cutoffs.items(), key=lambda item: item[1], reverse=True))
     tax_levels = list(tax_cutoffs_sort.keys())
     out = 'unclassified'
     level = 0
-    curr_level = len(tax_levels)
+    curr_level = 0
     for tax_level in tax_levels:
         if pident >= tax_cutoffs_sort[tax_level]:
             out = tax_level
-            level = curr_level
+            level = len(tax_levels) - curr_level
             break
-        curr_level = curr_level - 1
-       
+        curr_level = curr_level + 1
+    if curr_level >= len(tax_levels):
+        out = "unclassified"
+        level = 0
     '''Example classification for default case.
     if pident >= tax_cutoffs['species']:
         out = 'species'

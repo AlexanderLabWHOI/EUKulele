@@ -79,7 +79,7 @@ def downloadDatabase(database_name, alignment_choice, output_dir, reference_dir 
     if "gz" in database_ref_url:
         fasta_name = "reference.pep.fa.gz"
     else:
-        fasta_name = "reference.pep.fa" #os.path.join(database_name,"reference.pep.fa")
+        fasta_name = "reference.pep.fa"
     orig_tax_name = os.path.join(reference_dir, database_name,"taxonomy-table.txt")
 
     tax_table = os.path.join(reference_dir, database_name,"tax-table.txt")
