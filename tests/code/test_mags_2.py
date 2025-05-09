@@ -71,7 +71,7 @@ def test_error_required_input():
     '''
 
     base_dir = os.path.join(os.path.dirname(__file__), '..', 'aux_data')
-    sample_dir = os.path.join(base_dir, test_reference, "samples_MAGs")
+    sample_dir = os.path.join(base_dir, test_reference, "samples_MAG")
     output_dir = os.path.join(base_dir, "test_out_G")
     os.system("rm -rf " + output_dir)
     reference_dir = os.path.join(base_dir, test_reference, "sample_ref")

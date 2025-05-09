@@ -8,6 +8,7 @@ from sys import platform
 import subprocess
 import multiprocessing
 import math
+import yaml
 import shutil
 import pathlib
 import traceback
@@ -51,6 +52,13 @@ max_jobs = max(1, calc_max_jobs(1))
 # So for the default value of -b2.0, the memory usage will be about 12 GB.
 # So we want alignment to have -b6.0
 
+def read_in_tax_cutoffs(yamlfile):
+    ''' Read taxonomic cutoff YAML file.'''
+
+    with open(yamlfile, 'r') as stream:
+        co_out = yaml.safe_load(stream)
+    return co_out
+
 def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
                    output_dir = "", ref_fasta = "", alignment_choice = "diamond",
                    rerun_rules = False, cutoff_file = "", sample_dir = "",
@@ -65,6 +73,7 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
     """
     This function diverts management tasks to the below helper functions.
     """
+    
 
     if piece == "setup_eukulele":
         setupEukulele(output_dir)
@@ -91,10 +100,32 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
                             names_to_reads, alignment_res, rerun_rules, samples,
                             sample_dir, pep_ext, nt_ext, perc_mem)
     elif piece == "visualize_taxonomy":
+        if cutoff_file == "default_in_static":
+            tax_cutoffs = read_in_tax_cutoffs(os.path.join(os.path.dirname(\
+                os.path.realpath(__file__)), "static", "tax-cutoffs.yaml"))
+        else:
+            tax_cutoffs = read_in_tax_cutoffs(cutoff_file)
+        tax_cutoffs_sort = dict(sorted(tax_cutoffs.items(), key=lambda item: item[1], reverse=False))
+        level_hierarchy = list(set([curr.lower() for curr in tax_cutoffs_sort.keys()]).\
+                            intersection(set([curr.lower() for curr in \
+                                                   pd.read_csv(tax_tab,sep="\t").columns])))
+    
         manageTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext,
                                use_salmon_counts, rerun_rules, level_hierarchy)
+        
     elif piece == "assign_taxonomy":
-        manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir, pep_ext, core = False)
+        if cutoff_file == "default_in_static":
+            tax_cutoffs = read_in_tax_cutoffs(os.path.join(os.path.dirname(\
+                os.path.realpath(__file__)), "static", "tax-cutoffs.yaml"))
+        else:
+            tax_cutoffs = read_in_tax_cutoffs(cutoff_file)
+        tax_cutoffs_sort = dict(sorted(tax_cutoffs.items(), key=lambda item: item[1], reverse=False))
+        level_hierarchy = list(set([curr.lower() for curr in tax_cutoffs_sort.keys()]).\
+                            intersection(set([curr.lower() for curr in \
+                                                   pd.read_csv(tax_tab,sep="\t").columns])))
+        
+        manageTaxAssignment(samples, mets_or_mags, output_dir, level_hierarchy,
+                            sample_dir, pep_ext, core = False)
     elif piece == "core_align_to_db":
         alignment_res = manageAlignment(alignment_choice, samples, filter_metric,
                                         output_dir, ref_fasta, mets_or_mags, database_dir,
@@ -111,7 +142,8 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
         manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir, pep_ext, nt_ext,
                                use_salmon_counts, rerun_rules, level_hierarchy, core = True)
     elif piece == "core_assign_taxonomy":
-        manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir, pep_ext,
+        manageTaxAssignment(samples, mets_or_mags, output_dir, level_hierarchy,
+                            sample_dir, pep_ext,
                             core = True)
     elif piece == "dump_euks":
         manageDumpEukaryoticFasta(output_dir, mets_or_mags, tax_tab, cutoff_file,
@@ -715,7 +747,8 @@ def manageCoreTaxVisualization(output_dir, mets_or_mags, sample_dir,
     sys.stdout = sys.__stdout__
     sys.stderr = sys.__stderr__
 
-def manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir,
+def manageTaxAssignment(samples, mets_or_mags, output_dir, level_hierarchy, 
+                        sample_dir,
                         pep_ext, core = False, perc_mem = 0.75):
     '''
     Management of taxonomic assignment process.
@@ -735,6 +768,7 @@ def manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir,
             if core:
                 assign_res = Parallel(n_jobs=n_jobs_viz,
                                       prefer="threads")(delayed(assignTaxonomy)(samp, output_dir,
+                                                                                level_hierarchy,
                                                                                 "core_taxonomy_estimation",
                                                                                 mets_or_mags,
                                                                                 core = True) \
@@ -742,6 +776,7 @@ def manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir,
             else:
                 assign_res = Parallel(n_jobs=n_jobs_viz,
                                       prefer="threads")(delayed(assignTaxonomy)(samp, output_dir,
+                                                                                level_hierarchy,
                                                                                 "taxonomy_estimation",
                                                                                 mets_or_mags,
                                                                                 core = False) \
@@ -756,7 +791,8 @@ def manageTaxAssignment(samples, mets_or_mags, output_dir, sample_dir,
                   "Check log files for details.")
             sys.exit(1)
 
-def assignTaxonomy(sample_name, output_dir, est_dir, mets_or_mags, core = False):
+def assignTaxonomy(sample_name, output_dir, level_hierarchy,
+                   est_dir, mets_or_mags, core = False):
     '''
     Assign estimated taxonomy to each MET/MAG.
     '''
@@ -783,8 +819,10 @@ def assignTaxonomy(sample_name, output_dir, est_dir, mets_or_mags, core = False)
     sys.stderr = open(error_log, "w")
     try:
         rc = magStats(["--estimated-taxonomy-file",taxfile,
-                       "--out-prefix",sample_name,"--outdir",
-                       levels_directory,"--max-out-dir",max_dir])
+                       "--out-prefix",sample_name,
+                       "--outdir",levels_directory,
+                       "--level-hierarchy"," ".join(level_hierarchy),
+                       "--max-out-dir",max_dir])
     except:
         print("Taxonomic assignment did not complete successfully for sample",
               str(sample_name),". Check log for details.")

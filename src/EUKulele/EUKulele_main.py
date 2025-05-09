@@ -348,13 +348,17 @@ def main(args_in):
                        mets_or_mags = mets_or_mags,
                        sample_dir = sample_dir, pep_ext = pep_ext, nt_ext = nt_ext,
                        use_salmon_counts = use_salmon_counts, rerun_rules = rerun_rules,
-                       level_hierarchy = levels_file)
+                       level_hierarchy = levels_file,
+                       cutoff_file = args.cutoff_file,
+                       tax_tab = tax_tab)
 
         ## Next to assign taxonomy ##
         manageEukulele(piece = "assign_taxonomy", samples = samples, mets_or_mags = mets_or_mags,
                        sample_dir = sample_dir, pep_ext = pep_ext,
                        output_dir = output_dir,
-                       level_hierarchy = levels_file)
+                       level_hierarchy = levels_file,
+                       cutoff_file = args.cutoff_file,
+                       tax_tab = tax_tab)
 
         if create_euk_fasta:
             manageEukulele(piece = "dump_euks", samples = samples, mets_or_mags = mets_or_mags,

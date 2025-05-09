@@ -18,8 +18,6 @@ import EUKulele
 
 def tax_placement(pident, tax_cutoffs):
     ''' Decide which level of taxonomy is appropriate. '''
-
-    
     tax_cutoffs_sort = dict(sorted(tax_cutoffs.items(), key=lambda item: item[1], reverse=True))
     tax_levels = list(tax_cutoffs_sort.keys())
     out = 'unclassified'
@@ -66,14 +64,13 @@ def tax_placement(pident, tax_cutoffs):
     
     return out, level
 
-def read_in_taxonomy(infile):
+def read_in_taxonomy(infile,tax_cutoffs):
     ''' Load taxonomy table. '''
 
     with open(infile, 'rb') as f:
         result = chardet.detect(f.read())
     tax_out = pd.read_csv(infile, sep='\t',encoding=result['encoding'])
-    classes = ['domain','supergroup','division','class','order',
-               'family','genus','species']
+    classes = tax_cutoffs.keys()
     classes_out = []
     for c in tax_out.columns:
         if c.lower() in classes:
@@ -148,7 +145,7 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
     ''' Manages decision between multiple matches. '''
 
     ambiguous = 0 # we assume unambiguous
-    md = dd.bitscore.max() * consensus_proportion #0.97 
+    md = dd.bitscore.max() * consensus_proportion 
     transcript_name = set(list(dd["qseqid"]))
     if len(transcript_name) > 1:
         print("More than 1 transcript name included in the group.", flush = True)
@@ -313,15 +310,21 @@ def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,consensus_proportion,pr
         print("Taxonomic placement already complete at", outfile + "; will not re-run step.")
         return pd.read_csv(outfile, sep = "\t")
  
-    tax_table, classes = read_in_taxonomy(tax_file)
     if cutoff_file == "default_in_static":
         tax_cutoffs = read_in_tax_cutoffs(os.path.join(os.path.dirname(\
             os.path.realpath(__file__)), "static", "tax-cutoffs.yaml"))
     else:
         tax_cutoffs = read_in_tax_cutoffs(cutoff_file)
+        
+    tax_table, classes = read_in_taxonomy(tax_file,tax_cutoffs)
     pdict = read_in_protein_map(prot_map_file)
     tax_dict = gen_dict(tax_table,classes)
     consensus_cutoff = float(consensus_cutoff)
+    
+    ## get rid of labels that are not found in our taxonomy table though in cutoff file
+    tax_cutoffs = {k: v for k, v in tax_cutoffs.items() if k in tax_table.columns}
+    classes = [curr for curr in classes if curr in tax_table.columns]
+    
     if int(use_counts) == 1:
         reads_dict = gen_reads_dict(names_to_reads)
         classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, reads_dict,

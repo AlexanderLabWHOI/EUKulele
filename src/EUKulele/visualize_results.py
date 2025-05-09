@@ -19,9 +19,8 @@ def countClassifs(level, level_hierarchy, name_level, df):
     classifications = list(df.loc[df["classification_level"] == level]["classification"])
     counts = list(df.loc[df["classification_level"] == level]["counts"])
     transcript_names = list(df.loc[df["classification_level"] == level]["transcript_name"])
-    print(level_hierarchy, flush=True)
     match_loc = int(np.where([curr == level for curr in level_hierarchy])[0])
-    print(match_loc, flush=True)
+    
     for curr in range(match_loc + 1,len(level_hierarchy)):
         classification_curr = list(df.loc[df["classification_level"] == \
                                           level_hierarchy[curr]]["full_classification"])
@@ -57,7 +56,6 @@ def countClassifs(level, level_hierarchy, name_level, df):
     transcripts_classes = transcripts_classes.groupby("classifications").agg(\
         {"transcript_names": lambda x: ';'.join(x)})
 
-    # Apparently now when you groupby, the grouping becomes the index.
     if transcripts_classes.index.name != "classifications":
         transcripts_classes = transcripts_classes.set_index('classifications')
     transcripts_classes = transcripts_classes.loc[sorted(list(set_list))]
@@ -87,7 +85,7 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
     print(level, flush=True)
     if len(np.where([curr == level.lower() for curr in level_hierarchy])) == 0:
         return None, None
-    match_loc = int(np.where([curr == level.lower() for curr in level_hierarchy])[0])
+    match_loc = int(np.where([curr == level.lower() for curr in level_hierarchy])[0][0])
     print(match_loc, flush=True)
 
     for curr in range(match_loc + 1,len(level_hierarchy)):
@@ -104,6 +102,8 @@ def countClassifsNoCounts(level, level_hierarchy, name_level, df):
         classification_curr = [classification_curr[cr2] for cr2 in correct_index]
         transcripts_curr = [transcripts_curr[cr2] for cr2 in correct_index]
         classifs_curr = [str(cr).split(";")[match_loc].strip() \
+                         if len(str(cr).split(";"))>match_loc \
+                         else "missing"\
                          for cr in classification_curr]
         #classifs_curr = [str(cr).split(";")[-1-(curr-match_loc)].strip() \
         #                 for cr in classification_curr]
@@ -350,7 +350,7 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
             ax.set_xticks(ticks = locs)
             ax.set_xticklabels(labels = [label.get_text()[0:20] for label in labels])
             plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.,title=None)
-            plt.tight_layout()
+            #plt.tight_layout()
             os.system("mkdir -p " + results_viz_dir)
             plt.savefig(os.path.join(results_viz_dir, l + '_transcripts.png'),dpi=100)
             plt.show()
@@ -384,7 +384,7 @@ def visualize_all_results(out_prefix, out_dir, est_dir, samples_dir,
             handles, labels = ax2.get_legend_handles_labels()
             lgd = ax2.legend(handles, labels, loc='upper center',\
                              bbox_to_anchor=(0.5,-0.1))
-            plt.tight_layout()
+            #plt.tight_layout()
             os.system("mkdir -p " + results_viz_dir)
             plt.savefig(os.path.join(results_viz_dir, l +\
                                      '_counts_and_transcripts.png'),dpi=100)
