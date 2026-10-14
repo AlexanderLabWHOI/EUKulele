@@ -121,7 +121,7 @@ def main(args_in):
     parser.add_argument('--consensus_cutoff', default = 0.75, type = float)
     parser.add_argument('--transdecoder_orfsize', default = 100, type = int)
 
-    parser.add_argument('--CPUs', default=multiprocessing.cpu_count(), dest="CPUs")
+    parser.add_argument('--CPUs', default=multiprocessing.cpu_count(), type=int, dest="CPUs")
     parser.add_argument('--busco_threshold', default=50)
     parser.add_argument('--no_busco', action='store_true', default=False,
                        help = "When true, BUSCO steps are not run.")
@@ -340,7 +340,7 @@ def main(args_in):
                        names_to_reads = names_to_reads, alignment_res = alignment_res,
                        rerun_rules = rerun_rules, samples = samples,
                        sample_dir = sample_dir, pep_ext = pep_ext,
-                       nt_ext = nt_ext, perc_mem = perc_mem,
+                       nt_ext = nt_ext, perc_mem = perc_mem, cpus = cpus,
                        level_hierarchy = levels_file)
 
         ## Now to visualize the taxonomy ##

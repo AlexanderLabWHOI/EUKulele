@@ -237,8 +237,9 @@ def match_maker(dd, consensus_cutoff, consensus_proportion, tax_dict, use_counts
                        columns=['transcript_name', 'classification_level', 'full_classification',
                                 'classification', 'max_score', 'ambiguous', 'database'])
 
-def apply_parallel(grouped_data, match_maker, consensus_cutoff, consensus_proportion, tax_dict, use_counts, tax_cutoffs, classes):
-    resultdf = Parallel(n_jobs=multiprocessing.cpu_count(),
+def apply_parallel(grouped_data, match_maker, consensus_cutoff, consensus_proportion, tax_dict, use_counts, tax_cutoffs, classes,
+                   cpus = multiprocessing.cpu_count()):
+    resultdf = Parallel(n_jobs=cpus,
                         prefer="threads")(delayed(match_maker)(group,
                                                                consensus_cutoff,
                                                                consensus_proportion,
@@ -251,7 +252,8 @@ def apply_parallel(grouped_data, match_maker, consensus_cutoff, consensus_propor
     return pd.concat(resultdf)
 
 def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
-                               consensus_cutoff, consensus_proportion, tax_cutoffs, classes):
+                               consensus_cutoff, consensus_proportion, tax_cutoffs, classes,
+                               cpus = multiprocessing.cpu_count()):
     ''' Parallel implementation of the taxonomic classication process. '''
 
     chunksize = 2 * 10 ** 6
@@ -287,12 +289,12 @@ def classify_taxonomy_parallel(df, tax_dict, namestoreads, pdict,
 
         if counter == 0:
             outdf = apply_parallel(chunk.groupby('qseqid'), match_maker,
-                                   consensus_cutoff, consensus_proportion, tax_dict, use_counts, tax_cutoffs, classes)
+                                   consensus_cutoff, consensus_proportion, tax_dict, use_counts, tax_cutoffs, classes, cpus)
         else:
             # run apply parallel on current chunk
             candidate_df = apply_parallel(chunk.groupby('qseqid'),
                                           match_maker, consensus_cutoff, consensus_proportion, tax_dict,
-                                          use_counts, tax_cutoffs, classes)
+                                          use_counts, tax_cutoffs, classes, cpus)
             # account for if better maximum percent identity previously achieved
             outdf = pd.concat([outdf, candidate_df], axis = 0)
         counter = counter + 1
@@ -302,7 +304,7 @@ def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,consensus_proportion,pr
                    use_counts,names_to_reads,diamond_file,outfile,rerun,
                    
                    err_file="tax_assign.err",
-                   out_file="tax_assign.out"):
+                   out_file="tax_assign.out", cpus = multiprocessing.cpu_count()):
     ''' Find predicted taxonomy using alignment matches. '''
     sys.stdout = open(out_file,"a")
     sys.stderr = open(err_file,"a") 
@@ -328,10 +330,10 @@ def place_taxonomy(tax_file,cutoff_file,consensus_cutoff,consensus_proportion,pr
     if int(use_counts) == 1:
         reads_dict = gen_reads_dict(names_to_reads)
         classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, reads_dict,
-                                                       pdict, consensus_cutoff, consensus_proportion, tax_cutoffs, classes)
+                                                       pdict, consensus_cutoff, consensus_proportion, tax_cutoffs, classes, cpus)
     else:
         classification_df = classify_taxonomy_parallel(diamond_file, tax_dict, 0, pdict,
-                                                       consensus_cutoff, consensus_proportion, tax_cutoffs, classes)
+                                                       consensus_cutoff, consensus_proportion, tax_cutoffs, classes, cpus)
     classification_df.to_csv(outfile, sep='\t')
     sys.stdout.close()
     sys.stderr.close()
