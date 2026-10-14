@@ -98,7 +98,7 @@ def manageEukulele(piece, mets_or_mags = "", samples = [], database_dir = "",
         manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file,
                             consensus_cutoff, consensus_proportion, prot_tab, use_salmon_counts,
                             names_to_reads, alignment_res, rerun_rules, samples,
-                            sample_dir, pep_ext, nt_ext, perc_mem)
+                            sample_dir, pep_ext, nt_ext, perc_mem, cpus)
     elif piece == "visualize_taxonomy":
         if cutoff_file == "default_in_static":
             tax_cutoffs = read_in_tax_cutoffs(os.path.join(os.path.dirname(\
@@ -378,7 +378,8 @@ def manageAlignment(alignment_choice, samples, filter_metric, output_dir, ref_fa
                                                                         output_dir, ref_fasta,
                                                                         mets_or_mags, database_dir,
                                                                         sample_dir, rerun_rules,
-                                                                        nt_ext,pep_ext,core = core) \
+                                                                        nt_ext,pep_ext,core = core,
+                                                                        cpus = max(1, cpus // n_jobs_align)) \
                                                                     for sample_name in samples)
     #alignment_res = []
     #for sample_name in samples:
@@ -575,7 +576,8 @@ def return_seq_ids(fasta_file):
 
 def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensus_cutoff, consensus_proportion,
                         prot_tab, use_salmon_counts, names_to_reads, alignment_res,
-                        rerun_rules, samples, sample_dir, pep_ext, nt_ext, perc_mem):
+                        rerun_rules, samples, sample_dir, pep_ext, nt_ext, perc_mem,
+                        cpus = multiprocessing.cpu_count()):
     '''
     Manage the taxonomic estimation arm of the EUKulele workflow.
     '''
@@ -617,7 +619,7 @@ def manageTaxEstimation(output_dir, mets_or_mags, tax_tab, cutoff_file, consensu
             curr_out = place_taxonomy(tax_tab, cutoff_file, consensus_cutoff, consensus_proportion,\
                                                     prot_tab, use_salmon_counts, names_to_reads,\
                                                     alignment_res[t], outfiles[t], rerun_rules,
-                                      est_err_file,est_out_file)
+                                      est_err_file,est_out_file, cpus = cpus)
         except Exception as e:
             traceback.print_exc()
             print("Taxonomic estimation did not complete successfully.",
